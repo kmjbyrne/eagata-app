@@ -19,6 +19,9 @@ sandbox, the docs and the tooling. The format follows
 
 ### Changed
 
+- `@kmjbyrne/nuxt-shell`: the database refuses a role core doesn't know, through
+  CHECK constraints on `org_memberships`, `workspace_memberships` and
+  `platform_roles`, built from core's role lists. Migration `0003`.
 - `@kmjbyrne/core`: named permissions. `workspacePermissions` and
   `orgPermissions` map each permission to the least role holding it, and apps
   extend them with their own. `WorkspaceAccess.require` takes a permission in

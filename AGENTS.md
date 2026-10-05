@@ -52,6 +52,8 @@ no features of its own beyond the workspace home page.
   `packages/nuxt-shell/server/adapters/mysql/schema.ts`, then run
   `pnpm db:generate` for the app and
   `pnpm --filter @kmjbyrne/nuxt-shell db:test-generate` for the package's tests.
+  Changing a role list in core changes a CHECK constraint, so it needs a
+  migration too.
 
 ## Tests
 

@@ -1,10 +1,19 @@
-import { sql } from 'drizzle-orm'
-import { boolean, datetime, index, int, mysqlTable, primaryKey, uniqueIndex, varchar } from 'drizzle-orm/mysql-core'
+import { ORG_ROLES, PLATFORM_ROLES, WORKSPACE_ROLES } from '@kmjbyrne/core'
+import { type AnyColumn, sql } from 'drizzle-orm'
+import { boolean, check, datetime, index, int, mysqlTable, primaryKey, uniqueIndex, varchar } from 'drizzle-orm/mysql-core'
 
 // The tables behind core's repositories. Each app lists this file in its
 // drizzle.config.ts next to its own schema, and owns the migrations.
 
 const now = sql`CURRENT_TIMESTAMP(3)`
+
+/**
+ * Refuses a role core doesn't know, even from code that skips core. Built from
+ * core's role lists, so changing one changes the constraint, and
+ * `pnpm db:generate` makes the migration.
+ */
+const oneOf = (column: AnyColumn, values: readonly string[]) =>
+  sql`${column} IN (${sql.raw(values.map(value => `'${value}'`).join(', '))})`
 
 export const users = mysqlTable('users', {
   id: varchar('id', { length: 64 }).primaryKey(),
@@ -27,7 +36,9 @@ export const platformRoles = mysqlTable('platform_roles', {
   role: varchar('role', { length: 32 }).notNull(),
   grantedAt: datetime('granted_at', { fsp: 3 }).notNull(),
   grantedBy: varchar('granted_by', { length: 64 }).references(() => users.id, { onDelete: 'set null' })
-})
+}, table => [
+  check('platform_roles_role_check', oneOf(table.role, PLATFORM_ROLES))
+])
 
 /** A provider account belongs to one user, so (provider, subject) is the key. */
 export const userIdentities = mysqlTable('user_identities', {
@@ -79,7 +90,8 @@ export const orgMemberships = mysqlTable('org_memberships', {
   createdAt: datetime('created_at', { fsp: 3 }).notNull().default(now)
 }, table => [
   primaryKey({ name: 'org_memberships_pk', columns: [table.orgId, table.userId] }),
-  index('org_memberships_user_idx').on(table.userId)
+  index('org_memberships_user_idx').on(table.userId),
+  check('org_memberships_role_check', oneOf(table.role, ORG_ROLES))
 ])
 
 export const workspaceMemberships = mysqlTable('workspace_memberships', {
@@ -89,5 +101,6 @@ export const workspaceMemberships = mysqlTable('workspace_memberships', {
   createdAt: datetime('created_at', { fsp: 3 }).notNull().default(now)
 }, table => [
   primaryKey({ name: 'workspace_memberships_pk', columns: [table.workspaceId, table.userId] }),
-  index('workspace_memberships_user_idx').on(table.userId)
+  index('workspace_memberships_user_idx').on(table.userId),
+  check('workspace_memberships_role_check', oneOf(table.role, WORKSPACE_ROLES))
 ])

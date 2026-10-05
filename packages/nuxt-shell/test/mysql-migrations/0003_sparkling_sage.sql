@@ -1,0 +1,3 @@
+ALTER TABLE `org_memberships` ADD CONSTRAINT `org_memberships_role_check` CHECK (`org_memberships`.`role` IN ('member', 'admin', 'owner'));--> statement-breakpoint
+ALTER TABLE `platform_roles` ADD CONSTRAINT `platform_roles_role_check` CHECK (`platform_roles`.`role` IN ('admin'));--> statement-breakpoint
+ALTER TABLE `workspace_memberships` ADD CONSTRAINT `workspace_memberships_role_check` CHECK (`workspace_memberships`.`role` IN ('viewer', 'editor', 'owner'));
