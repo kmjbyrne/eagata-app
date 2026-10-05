@@ -16,6 +16,8 @@ export interface SessionData {
   userId?: UserId
   lastOrg?: string
   lastWorkspace?: string
+  /** Whose last-used workspace it is, so it survives sign-out for them and no one else. */
+  lastUserId?: UserId
 }
 
 /** One sign-in round trip, from the redirect to the provider until the callback. */
@@ -60,16 +62,23 @@ export async function readSession(event: H3Event): Promise<SessionData> {
   return { ...(await useSession<SessionData>(event, sessionConfig(SESSION_COOKIE, SESSION_MAX_AGE_S))).data }
 }
 
-/** Starts a fresh session, dropping anything a previous user left in it. */
+/** Starts a session. The last-used workspace carries over only if it was this user's. */
 export async function startSession(event: H3Event, userId: UserId): Promise<void> {
   const session = await useSession<SessionData>(event, sessionConfig(SESSION_COOKIE, SESSION_MAX_AGE_S))
-  await session.update({ userId, lastOrg: undefined, lastWorkspace: undefined })
+  const keepLast = session.data.lastUserId === userId
+  await session.update({
+    userId,
+    lastUserId: userId,
+    lastOrg: keepLast ? session.data.lastOrg : undefined,
+    lastWorkspace: keepLast ? session.data.lastWorkspace : undefined
+  })
   event.context.actor = { id: userId }
   event.context.actorResolved = true
 }
 
+/** Signs out, keeping the last-used workspace for when the same user signs in again. */
 export async function endSession(event: H3Event): Promise<void> {
-  await (await useSession(event, sessionConfig(SESSION_COOKIE, SESSION_MAX_AGE_S))).clear()
+  await (await useSession<SessionData>(event, sessionConfig(SESSION_COOKIE, SESSION_MAX_AGE_S))).update({ userId: undefined })
   event.context.actor = undefined
   event.context.actorResolved = true
 }

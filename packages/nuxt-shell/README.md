@@ -203,9 +203,11 @@ play the provider's part in a sign-in.
 
 `server/utils/session.ts` keeps two sealed cookies, using H3's session helpers.
 `session` holds the signed-in user's id, plus the last-used org and workspace
-slugs. Those decide only where `/` takes the user next time. The URL always
-decides which org and workspace a request acts on. `sign-in` lives for 10
-minutes and carries one sign-in round trip's `state`, `nonce` and PKCE verifier.
+slugs and whose they are. Signing out keeps the last-used workspace, and signing
+in keeps it only for the same user, so `/` takes them back to it. Those decide
+only where `/` takes the user next time. The URL always decides which org and
+workspace a request acts on. `sign-in` lives for 10 minutes and carries one
+sign-in round trip's `state`, `nonce` and PKCE verifier.
 
 `server/middleware/actor.ts` sets `event.context.actor` from the session on
 every request, through `resolveActor(event)`. Middleware from different layers

@@ -137,6 +137,20 @@ describe('where home is', () => {
     expect((await ada.json<HomeResponse>('/api/me/home')).body).toEqual({ path: `/${acme}/finance` })
   })
 
+  it('takes the same user back to it after signing out and in again, and nobody else', async () => {
+    const browser = new Browser()
+    await browser.signIn({ email: email('ada') })
+    await browser.request('/api/me/last-workspace', send('PUT', { org: acme, workspace: 'general' }))
+    await browser.request('/api/auth/logout', send('POST'))
+
+    await browser.signIn({ email: email('ada') })
+    expect((await browser.json<HomeResponse>('/api/me/home')).body).toEqual({ path: `/${acme}/general` })
+
+    await browser.request('/api/auth/logout', send('POST'))
+    await browser.signIn({ email: email('grace') })
+    expect((await browser.json<HomeResponse>('/api/me/home')).body).toEqual({ path: '/choose' })
+  })
+
   it('won\'t remember a workspace the user can\'t reach', async () => {
     expect((await mary.request('/api/me/last-workspace', send('PUT', { org: acme, workspace: 'finance' }))).status).toBe(404)
   })
