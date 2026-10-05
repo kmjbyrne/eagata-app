@@ -2,6 +2,7 @@ import type { Repositories } from '@kmjbyrne/core'
 import { OidcClient } from '@kmjbyrne/oidc'
 import type { H3Event } from 'h3'
 import type { Adapters, CoreAdapters, Services } from '../../types'
+import { MysqlRepositories } from '../adapters/mysql/MysqlRepositories'
 import { OidcSignInProvider } from '../adapters/OidcSignInProvider'
 import { SessionCurrentUser } from '../adapters/SessionCurrentUser'
 import { UuidIdGenerator } from '../adapters/UuidIdGenerator'
@@ -10,10 +11,12 @@ import { Container, missingAdapter, type ServiceFactory } from '../container/Con
 const container = new Container(createDefaultAdapters)
 
 function createDefaultAdapters(): Partial<CoreAdapters> {
-  const { oidc } = useRuntimeConfig()
+  const { oidc, databaseUrl } = useRuntimeConfig()
   return {
     ids: new UuidIdGenerator(),
-    repositories: missingAdapter<Repositories>('No data store is configured. Run `pnpm dev` for the sandbox, or set NUXT_DATABASE_URL'),
+    repositories: databaseUrl
+      ? new MysqlRepositories(useDatabase())
+      : missingAdapter<Repositories>('No data store is configured. Run `pnpm dev` for the sandbox, or set NUXT_DATABASE_URL'),
     signIn: new OidcSignInProvider(oidc.provider, new OidcClient({
       issuer: oidc.issuer,
       issuerAliases: oidc.issuerAliases.split(',').map(alias => alias.trim()).filter(Boolean),

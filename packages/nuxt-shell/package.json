@@ -18,11 +18,21 @@
   "publishConfig": {
     "access": "restricted"
   },
+  "scripts": {
+    "db:test-generate": "drizzle-kit generate --config drizzle.test.config.ts"
+  },
   "dependencies": {
     "@kmjbyrne/core": "workspace:*",
     "@kmjbyrne/oidc": "workspace:*"
   },
   "peerDependencies": {
+    "drizzle-orm": "catalog:",
+    "mysql2": "catalog:",
     "nuxt": "^4.5.0"
+  },
+  "devDependencies": {
+    "drizzle-kit": "catalog:",
+    "drizzle-orm": "catalog:",
+    "mysql2": "catalog:"
   }
 }

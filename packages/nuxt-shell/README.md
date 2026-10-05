@@ -11,8 +11,12 @@ an npm login with access to the `@kmjbyrne` scope:
 
 ```bash
 npm login
-pnpm add @kmjbyrne/nuxt-shell
+pnpm add @kmjbyrne/nuxt-shell drizzle-orm mysql2
 ```
+
+`drizzle-orm` and `mysql2` are peer dependencies. The app installs them, so it
+and the shell share one copy. Two copies of `drizzle-orm` don't recognise each
+other's tables.
 
 Inside this repository, depend on it from the workspace instead. Then extend it
 in the app's `nuxt.config.ts`:
@@ -54,9 +58,10 @@ every server file:
 - `registerServices(factory)` adds an app's own services.
 - `useAdapters()` returns the adapters in use.
 
-The default adapters are a UUID id generator and an `OidcSignInProvider` on a
-real `OidcClient`, configured as above. There is no default data store yet: if
-nothing provides one, the first service call fails with a message saying so.
+The default adapters are a UUID id generator, an `OidcSignInProvider` on a real
+`OidcClient` configured as above, and the MariaDB repositories when
+`NUXT_DATABASE_URL` is set. With no database and nothing provided in its place,
+the first service call fails with a message saying so.
 
 ### Adding an App's Services
 
@@ -84,6 +89,39 @@ export default defineNitroPlugin(() => {
 It must be a plugin, not a file in `server/utils/`. Nitro runs every plugin at
 startup, but runs a util only when something imports it. Once registered,
 `useServices(event).notes` is typed in every route.
+
+## The Database
+
+`server/adapters/mysql/` holds the Drizzle schema for the shell's tables, and
+`MysqlRepositories`, which implements core's `Repositories` on it and passes
+`repositoryContract`. It works on MariaDB and MySQL. Tables and columns are
+snake_case, and TypeScript fields camelCase.
+
+`useDatabase()` returns the app's one Drizzle database. An app's own
+repositories use it too, so they share the connection pool.
+
+An app owns its migrations, for the shell's tables and its own together. Its
+`drizzle.config.ts` lists the shell's schema next to its own:
+
+```ts
+export default defineConfig({
+  dialect: 'mysql',
+  schema: [
+    './node_modules/@kmjbyrne/nuxt-shell/server/adapters/mysql/schema.ts',
+    './server/database/schema.ts'
+  ],
+  out: './server/migrations',
+  dbCredentials: { url: process.env.NUXT_DATABASE_URL ?? '' }
+})
+```
+
+After upgrading the shell, run `drizzle-kit generate` to pick up any change to
+its tables, then `drizzle-kit migrate`.
+
+The package's own tests run the contract on a real database, using the throwaway
+migrations in `test/mysql-migrations`. Regenerate them with
+`pnpm db:test-generate` after changing the schema. The tests skip when
+`NUXT_TEST_DATABASE_URL` is unset.
 
 ## Sessions and Errors
 

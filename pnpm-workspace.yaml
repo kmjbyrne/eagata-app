@@ -2,6 +2,14 @@ packages:
   - packages/*
   - sandbox
 
+# One version for dependencies that several packages and the app share.
+# Packages refer to them as "catalog:". Libraries the app also uses are peer
+# dependencies of the packages, so there is only ever one copy installed.
+catalog:
+  drizzle-kit: ^0.31.11
+  drizzle-orm: ^0.45.3
+  mysql2: ^3.24.4
+
 allowBuilds:
   '@parcel/watcher': false
   '@tailwindcss/oxide': false

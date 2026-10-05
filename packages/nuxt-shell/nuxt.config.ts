@@ -2,6 +2,8 @@
 // through runtimeConfig, e.g. NUXT_OIDC_ISSUER or NUXT_SESSION_SECRET.
 export default defineNuxtConfig({
   runtimeConfig: {
+    // mysql://user:password@host:3306/database. Empty means no default store.
+    databaseUrl: '',
     // At least 32 characters. Dev falls back to a fixed secret when empty.
     sessionSecret: '',
     oidc: {
