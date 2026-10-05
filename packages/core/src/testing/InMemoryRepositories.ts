@@ -1,6 +1,6 @@
 import { orgSlugs, type Org } from '../entities/Org'
 import type { Membership } from '../entities/Membership'
-import type { LinkedIdentity, User, UserIdentity } from '../entities/User'
+import { isPlatformAdmin, type LinkedIdentity, type PlatformRoleGrant, type User, type UserIdentity } from '../entities/User'
 import type { Workspace } from '../entities/Workspace'
 import type { WorkspaceMembership } from '../entities/WorkspaceMembership'
 import { AlreadyMemberError, EmailTakenError, IdentityInUseError, SlugTakenError } from '../errors'
@@ -93,7 +93,7 @@ class InMemoryUserRepository implements UserRepository {
   }
 
   async countPlatformAdmins() {
-    return this.state().users.filter(user => user.isPlatformAdmin && !user.deactivatedAt).length
+    return this.state().users.filter(user => isPlatformAdmin(user) && !user.deactivatedAt).length
   }
 
   async create(user: User) {
@@ -105,7 +105,14 @@ class InMemoryUserRepository implements UserRepository {
     this.requireEmailFree(user)
     const stored = this.state().users.find(existing => existing.id === user.id)
     if (stored) {
-      Object.assign(stored, copy({ ...user, identities: stored.identities }))
+      Object.assign(stored, copy({ ...user, identities: stored.identities, platformRole: stored.platformRole }))
+    }
+  }
+
+  async setPlatformRole(userId: UserId, grant: PlatformRoleGrant | null) {
+    const stored = this.state().users.find(user => user.id === userId)
+    if (stored) {
+      stored.platformRole = copy(grant)
     }
   }
 

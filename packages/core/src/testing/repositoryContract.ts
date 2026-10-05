@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { Membership } from '../entities/Membership'
 import type { Org } from '../entities/Org'
-import type { User } from '../entities/User'
+import type { PlatformRoleGrant, User } from '../entities/User'
 import type { Workspace } from '../entities/Workspace'
 import type { WorkspaceMembership } from '../entities/WorkspaceMembership'
 import { AlreadyMemberError, EmailTakenError, IdentityInUseError, SlugTakenError } from '../errors'
@@ -11,6 +11,7 @@ import type { OrgId, UserId, WorkspaceId } from '../values/Ids'
 import type { Name } from '../values/Name'
 import type { Slug } from '../values/Slug'
 
+const admin = (grantedBy: UserId | null): PlatformRoleGrant => ({ role: 'admin', grantedAt: new Date('2026-01-02T03:04:05.678Z'), grantedBy })
 const google = (subject: string) => ({ provider: 'google', subject, linkedAt: new Date('2026-01-02T03:04:05.678Z') })
 
 /** Ids are unique per call, so a repositories shared between tests never clashes. */
@@ -24,7 +25,7 @@ function user(overrides: Partial<User> = {}): User {
     displayName: `User ${key}` as Name,
     email: `${key}@example.com` as Email,
     avatarUrl: null,
-    isPlatformAdmin: false,
+    platformRole: null,
     identities: [],
     deactivatedAt: null,
     ...overrides
@@ -82,10 +83,10 @@ export function repositoryContract(createRepositories: () => Repositories | Prom
       const repositories = await createRepositories()
       const ada = user({ identities: [google(id())] })
       await repositories.users.create(ada)
-      const changed = { ...ada, displayName: 'Ada L' as Name, avatarUrl: 'https://example.com/a.png', isPlatformAdmin: true, identities: [], deactivatedAt: new Date('2026-03-01T12:00:00.123Z') }
+      const changed = { ...ada, displayName: 'Ada L' as Name, avatarUrl: 'https://example.com/a.png', platformRole: admin(null), identities: [], deactivatedAt: new Date('2026-03-01T12:00:00.123Z') }
       await repositories.users.update(changed)
 
-      expect(await repositories.users.findById(ada.id)).toEqual({ ...changed, identities: ada.identities })
+      expect(await repositories.users.findById(ada.id)).toEqual({ ...changed, identities: ada.identities, platformRole: null })
     })
 
     it('rejects an update to another user\'s email', async () => {
@@ -113,11 +114,27 @@ export function repositoryContract(createRepositories: () => Repositories | Prom
       await expect(repositories.users.linkIdentity(grace.id, identity)).rejects.toThrow(IdentityInUseError)
     })
 
+    it('creates a user with a platform role, and grants, replaces and removes one', async () => {
+      const repositories = await createRepositories()
+      const pat = user({ platformRole: admin(null) })
+      const ada = user()
+      await repositories.users.create(pat)
+      await repositories.users.create(ada)
+      expect((await repositories.users.findById(pat.id))?.platformRole).toEqual(admin(null))
+
+      await repositories.users.setPlatformRole(ada.id, admin(pat.id))
+      expect((await repositories.users.findById(ada.id))?.platformRole).toEqual(admin(pat.id))
+      await repositories.users.setPlatformRole(ada.id, admin(null))
+      expect((await repositories.users.findById(ada.id))?.platformRole).toEqual(admin(null))
+      await repositories.users.setPlatformRole(ada.id, null)
+      expect((await repositories.users.findById(ada.id))?.platformRole).toBeNull()
+    })
+
     it('counts active platform admins', async () => {
       const repositories = await createRepositories()
       const before = await repositories.users.countPlatformAdmins()
-      await repositories.users.create(user({ isPlatformAdmin: true }))
-      await repositories.users.create(user({ isPlatformAdmin: true, deactivatedAt: new Date() }))
+      await repositories.users.create(user({ platformRole: admin(null) }))
+      await repositories.users.create(user({ platformRole: admin(null), deactivatedAt: new Date() }))
       await repositories.users.create(user())
 
       expect(await repositories.users.countPlatformAdmins()).toBe(before + 1)

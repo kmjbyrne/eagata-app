@@ -1,3 +1,4 @@
+import { isPlatformAdmin } from '@kmjbyrne/core'
 import type { MeResponse } from '../../../shared/contracts/me'
 
 export default defineServiceHandler(async (event): Promise<MeResponse> => {
@@ -7,7 +8,7 @@ export default defineServiceHandler(async (event): Promise<MeResponse> => {
     displayName: user.displayName,
     email: user.email,
     avatarUrl: user.avatarUrl,
-    isPlatformAdmin: user.isPlatformAdmin,
+    isPlatformAdmin: isPlatformAdmin(user),
     identities: user.identities.map(identity => ({ provider: identity.provider, linkedAt: identity.linkedAt.toISOString() })),
     providerLinked: user.identities.some(identity => identity.provider === useRuntimeConfig().public.signInProvider)
   }

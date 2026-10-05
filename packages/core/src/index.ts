@@ -3,7 +3,8 @@ export type { Membership, OrgRole } from './entities/Membership'
 export { changeOrgSlug, orgSlugs } from './entities/Org'
 export type { Org } from './entities/Org'
 export { hasSignedIn, isActive } from './entities/User'
-export type { LinkedIdentity, ProviderIdentity, User, UserIdentity } from './entities/User'
+export { isPlatformAdmin, PLATFORM_ROLES } from './entities/User'
+export type { LinkedIdentity, PlatformRole, PlatformRoleGrant, ProviderIdentity, User, UserIdentity } from './entities/User'
 export { DEFAULT_WORKSPACE } from './entities/Workspace'
 export {
   effectiveWorkspaceRole,

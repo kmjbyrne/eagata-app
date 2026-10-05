@@ -18,7 +18,7 @@ describe('bootstrapPlatformAdmin', () => {
     const { user, created } = await bootstrapPlatformAdmin(t.repositories, t.ids, { email: 'You@Example.com', displayName: 'You' })
 
     expect(created).toBe(true)
-    expect(user).toMatchObject({ email: 'you@example.com', isPlatformAdmin: true })
+    expect(user).toMatchObject({ email: 'you@example.com', platformRole: { role: 'admin', grantedBy: null } })
     expect(await t.repositories.orgs.list()).toHaveLength(1)
     const signedIn = await signIn(t, { provider: 'google', subject: 'g-you', email: user.email, emailVerified: true, name: null, picture: null })
     expect(signedIn.id).toBe(user.id)
@@ -31,6 +31,7 @@ describe('bootstrapPlatformAdmin', () => {
     const { user, created } = await bootstrapPlatformAdmin(t.repositories, t.ids, { email: ada.email })
 
     expect(created).toBe(false)
-    expect(user).toMatchObject({ id: ada.id, isPlatformAdmin: true, deactivatedAt: null })
+    expect(user).toMatchObject({ id: ada.id, platformRole: { role: 'admin', grantedBy: null }, deactivatedAt: null })
+    expect((await t.repositories.users.findById(ada.id))?.platformRole?.role).toBe('admin')
   })
 })

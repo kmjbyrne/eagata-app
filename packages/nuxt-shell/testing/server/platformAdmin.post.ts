@@ -5,6 +5,6 @@ export default defineEventHandler(async (event) => {
   const { email } = await readBody<{ email: string }>(event)
   const { repositories } = useAdapters()
   const user = await repositories.users.findByEmail(parseEmail(email))
-  await repositories.users.update({ ...user!, isPlatformAdmin: true })
+  await repositories.users.setPlatformRole(user!.id, { role: 'admin', grantedAt: new Date(), grantedBy: null })
   return null
 })

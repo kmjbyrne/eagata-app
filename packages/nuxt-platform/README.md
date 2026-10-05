@@ -55,7 +55,7 @@ platform admins only.
 | `/platform/organizations`      | Company orgs, with personal ones on request. "Create organization" asks for a name, a slug and an owner, with a shortcut to create the owner first. |
 | `/platform/organizations/:org` | Members and their roles, adding and removing members, workspaces, and changing the slug                                                             |
 | `/platform/users`              | Every user, marked platform admin, deactivated, or not signed in yet. "Create user".                                                                |
-| `/platform/users/:id`          | Their orgs, and switches for the platform role and deactivation                                                                                     |
+| `/platform/users/:id`          | Their orgs, switches for the platform role and deactivation, and who granted the role and when                                                      |
 
 Refusals such as "an organization needs at least one owner" come from the
 domain, and show as they are.

@@ -16,6 +16,9 @@ import {
   type User,
   type UserId,
   type LinkedIdentity,
+  PLATFORM_ROLES,
+  type PlatformRole,
+  type PlatformRoleGrant,
   type UserIdentity,
   type UserRepository,
   type Workspace,
@@ -88,6 +91,16 @@ async function mapDuplicate<R>(work: () => Promise<R>, toError: (message: string
 
 const duplicatedValue = (message: string) => /Duplicate entry '([^']*)'/.exec(message)?.[1] ?? ''
 
+function toGrant(row: typeof schema.platformRoles.$inferSelect | undefined): PlatformRoleGrant | null {
+  if (!row) {
+    return null
+  }
+  if (!PLATFORM_ROLES.includes(row.role as PlatformRole)) {
+    throw new Error(`Unknown platform role "${row.role}" for user ${row.userId}`)
+  }
+  return { role: row.role as PlatformRole, grantedAt: row.grantedAt, grantedBy: row.grantedBy as UserId | null }
+}
+
 class MysqlUserRepository implements UserRepository {
   constructor(private readonly db: Executor, private readonly lock: boolean) {}
 
@@ -110,8 +123,9 @@ class MysqlUserRepository implements UserRepository {
   }
 
   async countPlatformAdmins() {
-    const query = this.db.select({ id: schema.users.id }).from(schema.users)
-      .where(and(eq(schema.users.isPlatformAdmin, true), isNull(schema.users.deactivatedAt)))
+    const query = this.db.select({ id: schema.users.id }).from(schema.platformRoles)
+      .innerJoin(schema.users, eq(schema.users.id, schema.platformRoles.userId))
+      .where(and(eq(schema.platformRoles.role, 'admin'), isNull(schema.users.deactivatedAt)))
     return (await (this.lock ? query.for('update') : query)).length
   }
 
@@ -122,10 +136,10 @@ class MysqlUserRepository implements UserRepository {
         displayName: user.displayName,
         email: user.email,
         avatarUrl: user.avatarUrl,
-        isPlatformAdmin: user.isPlatformAdmin,
         deactivatedAt: user.deactivatedAt
       })
     }, () => new EmailTakenError(user.email))
+    await this.setPlatformRole(user.id, user.platformRole)
     for (const identity of user.identities) {
       await this.linkIdentity(user.id, identity)
     }
@@ -136,9 +150,15 @@ class MysqlUserRepository implements UserRepository {
       displayName: user.displayName,
       email: user.email,
       avatarUrl: user.avatarUrl,
-      isPlatformAdmin: user.isPlatformAdmin,
       deactivatedAt: user.deactivatedAt
     }).where(eq(schema.users.id, user.id)), () => new EmailTakenError(user.email))
+  }
+
+  async setPlatformRole(userId: UserId, grant: PlatformRoleGrant | null) {
+    await this.db.delete(schema.platformRoles).where(eq(schema.platformRoles.userId, userId))
+    if (grant) {
+      await this.db.insert(schema.platformRoles).values({ userId, ...grant })
+    }
   }
 
   async linkIdentity(userId: UserId, identity: LinkedIdentity) {
@@ -160,15 +180,17 @@ class MysqlUserRepository implements UserRepository {
     if (!rows.length) {
       return []
     }
+    const ids = rows.map(row => row.id)
+    const roles = await this.db.select().from(schema.platformRoles).where(inArray(schema.platformRoles.userId, ids))
     const identities = await this.db.select().from(schema.userIdentities)
-      .where(inArray(schema.userIdentities.userId, rows.map(row => row.id)))
+      .where(inArray(schema.userIdentities.userId, ids))
       .orderBy(asc(schema.userIdentities.createdAt))
     return rows.map(row => ({
       id: row.id as UserId,
       displayName: row.displayName as Name,
       email: row.email as Email,
       avatarUrl: row.avatarUrl,
-      isPlatformAdmin: row.isPlatformAdmin,
+      platformRole: toGrant(roles.find(role => role.userId === row.id)),
       deactivatedAt: row.deactivatedAt,
       identities: identities.filter(identity => identity.userId === row.id)
         .map(identity => ({ provider: identity.provider, subject: identity.subject, linkedAt: identity.createdAt }))

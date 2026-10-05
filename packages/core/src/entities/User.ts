@@ -22,14 +22,26 @@ export interface ProviderIdentity extends UserIdentity {
   picture: string | null
 }
 
+export const PLATFORM_ROLES = ['admin'] as const
+
+/** The platform role: runs the platform itself, and belongs to no org because of it. */
+export type PlatformRole = typeof PLATFORM_ROLES[number]
+
+/** A platform role, who granted it and when. `grantedBy` is null when granted from the command line. */
+export interface PlatformRoleGrant {
+  role: PlatformRole
+  grantedAt: Date
+  grantedBy: UserId | null
+}
+
 export interface User {
   id: UserId
   displayName: Name
   email: Email
   /** From the last sign-in, when the provider sent a picture. */
   avatarUrl: string | null
-  /** Platform role: runs the platform itself, and belongs to no org because of it. */
-  isPlatformAdmin: boolean
+  /** Most users have none. Saved through `setPlatformRole`, never `update`. */
+  platformRole: PlatformRoleGrant | null
   /** Empty until the user first signs in. */
   identities: LinkedIdentity[]
   /**
@@ -42,3 +54,5 @@ export interface User {
 export const hasSignedIn = (user: User) => user.identities.length > 0
 
 export const isActive = (user: User) => user.deactivatedAt === null
+
+export const isPlatformAdmin = (user: User) => user.platformRole?.role === 'admin'

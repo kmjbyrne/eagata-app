@@ -100,7 +100,10 @@ describe('users', () => {
 
   it('grants and revokes the platform role, one change per request', async () => {
     expect((await pat.json<PlatformUserSummary>(`/api/protected/users/${graceId}`, send('PATCH', { isPlatformAdmin: true }))).body.isPlatformAdmin).toBe(true)
+    const granted = (await pat.json<PlatformUserDetailResponse>(`/api/protected/users/${graceId}`)).body.platformRole
+    expect(granted).toEqual({ grantedAt: expect.any(String), grantedBy: { id: expect.any(String), displayName: 'Pat Platform' } })
     expect((await pat.json<PlatformUserSummary>(`/api/protected/users/${graceId}`, send('PATCH', { isPlatformAdmin: false }))).body.isPlatformAdmin).toBe(false)
+    expect((await pat.json<PlatformUserDetailResponse>(`/api/protected/users/${graceId}`)).body.platformRole).toBeNull()
     expect((await pat.request(`/api/protected/users/${graceId}`, send('PATCH', { isPlatformAdmin: true, deactivated: true }))).status).toBe(400)
   })
 

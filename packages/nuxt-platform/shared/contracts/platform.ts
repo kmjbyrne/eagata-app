@@ -28,7 +28,12 @@ export const platformOrgDetail = z.object({
 
 export const platformUserDetail = z.object({
   user: platformUserSummary,
-  orgs: z.array(z.object({ org: platformOrg, role: orgRole }))
+  orgs: z.array(z.object({ org: platformOrg, role: orgRole })),
+  /** When they became a platform admin, and who made them one: null from the command line. */
+  platformRole: z.object({
+    grantedAt: z.iso.datetime(),
+    grantedBy: z.object({ id: z.string(), displayName: z.string() }).nullable()
+  }).nullable()
 })
 
 export const createOrgBody = z.object({

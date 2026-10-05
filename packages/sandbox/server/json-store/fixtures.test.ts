@@ -57,7 +57,7 @@ describe('defaultTenancyFixtures', () => {
     const { services, as } = world()
 
     as('pat')
-    expect((await services.users.getMe()).isPlatformAdmin).toBe(true)
+    expect((await services.users.getMe()).platformRole?.role).toBe('admin')
     expect(await reach(services)).toEqual([['pat-platform', 'owner', ['general:owner']]])
 
     as('grace')

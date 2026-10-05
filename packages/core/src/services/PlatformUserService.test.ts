@@ -38,7 +38,7 @@ describe('PlatformUserService', () => {
       const grace = await t.services.platformUsers.create('Grace Hopper', 'Grace@Example.com')
       const detail = await t.services.platformUsers.get(grace.id)
 
-      expect(grace).toMatchObject({ email: 'grace@example.com', identities: [], isPlatformAdmin: false })
+      expect(grace).toMatchObject({ email: 'grace@example.com', identities: [], platformRole: null })
       expect(detail.orgs.map(entry => [entry.org.slug, entry.org.isPersonal, entry.role])).toEqual([['grace-hopper', true, 'owner']])
     })
 
@@ -102,13 +102,31 @@ describe('PlatformUserService', () => {
   })
 
   describe('setPlatformAdmin', () => {
-    it('grants and revokes the platform role', async () => {
-      const { t, ada } = await setup()
+    it('grants the platform role, recording who and when, and revokes it', async () => {
+      const { t, admin, ada } = await setup()
       await t.services.platformUsers.setPlatformAdmin(ada.id, true)
-      expect((await t.repositories.users.findById(ada.id))?.isPlatformAdmin).toBe(true)
+      expect((await t.repositories.users.findById(ada.id))?.platformRole).toEqual({ role: 'admin', grantedAt: expect.any(Date), grantedBy: admin.id })
 
       await t.services.platformUsers.setPlatformAdmin(ada.id, false)
-      expect((await t.repositories.users.findById(ada.id))?.isPlatformAdmin).toBe(false)
+      expect((await t.repositories.users.findById(ada.id))?.platformRole).toBeNull()
+    })
+
+    it('names who granted it in the user\'s detail', async () => {
+      const { t, admin, ada } = await setup()
+      await t.services.platformUsers.setPlatformAdmin(ada.id, true)
+
+      expect((await t.services.platformUsers.get(ada.id)).platformRoleGrantedBy?.id).toBe(admin.id)
+      expect((await t.services.platformUsers.get(admin.id)).platformRoleGrantedBy).toBeNull()
+    })
+
+    it('keeps the first grant when granted again', async () => {
+      const { t, admin, ada } = await setup()
+      const first = await t.services.platformUsers.setPlatformAdmin(ada.id, true)
+      t.signInAs(ada)
+      await t.services.platformUsers.setPlatformAdmin(ada.id, true)
+
+      expect((await t.repositories.users.findById(ada.id))?.platformRole).toEqual(first.platformRole)
+      expect(first.platformRole?.grantedBy).toBe(admin.id)
     })
 
     it('keeps at least one platform admin', async () => {

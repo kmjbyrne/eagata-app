@@ -15,6 +15,13 @@
       "when": 1791231477300,
       "tag": "0001_freezing_giant_man",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1791239928179,
+      "tag": "0002_petite_fat_cobra",
+      "breakpoints": true
     }
   ]
 }

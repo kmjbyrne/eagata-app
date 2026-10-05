@@ -69,6 +69,26 @@ const setDeactivated = (value: boolean) =>
             description="Runs the platform: organizations, members and users. Doesn't make them a member of any organization."
             @update:model-value="setPlatformAdmin"
           />
+          <p
+            v-if="detail.platformRole"
+            class="text-sm text-muted"
+          >
+            Platform admin since
+            <NuxtTime
+              :datetime="detail.platformRole.grantedAt"
+              date-style="medium"
+            />,
+            <template v-if="detail.platformRole.grantedBy">
+              granted by
+              <NuxtLink
+                :to="`/platform/users/${detail.platformRole.grantedBy.id}`"
+                class="text-highlighted hover:underline"
+              >{{ detail.platformRole.grantedBy.displayName }}</NuxtLink>.
+            </template>
+            <template v-else>
+              granted from the command line.
+            </template>
+          </p>
           <USwitch
             :model-value="Boolean(detail.user.deactivatedAt)"
             label="Deactivated"

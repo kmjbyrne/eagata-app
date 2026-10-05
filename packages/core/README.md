@@ -59,9 +59,12 @@ of org:
 
 Three kinds of role decide who may do what, and they stay separate everywhere:
 
-- **Platform role**, on the user: a platform admin (`isPlatformAdmin`) runs the
-  platform and creates company orgs. Being one doesn't make a user a member of
-  any org.
+- **Platform role**, a grant held by a few users: `platformRole` is
+  `{ role: 'admin', grantedAt, grantedBy }`, or null for everyone else.
+  `isPlatformAdmin(user)` checks it. A platform admin runs the platform and
+  creates company orgs. Being one doesn't make a user a member of any org.
+  Repositories save it with `setPlatformRole`, never `update`, and granting it
+  again keeps the first grant.
 - **Org role**, on an org membership: `owner`, `admin` or `member`. Owners and
   admins run the org, create its workspaces, and act as owners of every
   workspace in it.
@@ -74,12 +77,12 @@ user may do in a workspace, or null for no access.
 
 ## Entities
 
-| Entity       | Fields                                                                                      |
-| ------------ | ------------------------------------------------------------------------------------------- |
-| `User`       | `id`, `displayName`, `email`, `avatarUrl`, `isPlatformAdmin`, `identities`, `deactivatedAt` |
-| `Org`        | `id`, `name`, `slug`, `previousSlugs`                                                       |
-| `Workspace`  | `id`, `orgId`, `name`, `slug`, `createdAt`                                                  |
-| `Membership` | `userId`, `orgId`, `role`                                                                   |
+| Entity       | Fields                                                                                   |
+| ------------ | ---------------------------------------------------------------------------------------- |
+| `User`       | `id`, `displayName`, `email`, `avatarUrl`, `platformRole`, `identities`, `deactivatedAt` |
+| `Org`        | `id`, `name`, `slug`, `previousSlugs`                                                    |
+| `Workspace`  | `id`, `orgId`, `name`, `slug`, `createdAt`                                               |
+| `Membership` | `userId`, `orgId`, `role`                                                                |
 
 An org contains workspaces. An app's own entities refer to these by id
 (`UserId`, `OrgId`, `WorkspaceId`), and never extend them.

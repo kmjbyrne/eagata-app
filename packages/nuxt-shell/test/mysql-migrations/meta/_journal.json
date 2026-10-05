@@ -15,6 +15,13 @@
       "when": 1791231476740,
       "tag": "0001_mean_caretaker",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1791239928708,
+      "tag": "0002_useful_sandman",
+      "breakpoints": true
     }
   ]
 }

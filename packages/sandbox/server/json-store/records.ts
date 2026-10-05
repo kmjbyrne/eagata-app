@@ -9,7 +9,13 @@ export const userRecord = z.object({
   displayName: z.string(),
   email: z.string(),
   avatarUrl: z.string().nullable(),
-  isPlatformAdmin: z.boolean(),
+  // Required, so dev data saved with the old isPlatformAdmin flag is reported,
+  // and the login page offers a reset, rather than losing the role silently.
+  platformRole: z.object({
+    role: z.enum(['admin']),
+    grantedAt: z.iso.datetime(),
+    grantedBy: z.string().nullable()
+  }).nullable(),
   identities: z.array(z.object({
     provider: z.string(),
     subject: z.string(),

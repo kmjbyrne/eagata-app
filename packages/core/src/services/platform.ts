@@ -1,4 +1,4 @@
-import type { User } from '../entities/User'
+import { isPlatformAdmin, type User } from '../entities/User'
 import { ForbiddenError } from '../errors'
 import type { CurrentUser } from '../ports/CurrentUser'
 import type { Repositories } from '../ports/Repositories'
@@ -12,7 +12,7 @@ import { requireUser } from './access'
  */
 export async function requirePlatformAdmin(tx: Repositories, currentUser: CurrentUser): Promise<User> {
   const user = await requireUser(tx, currentUser)
-  if (!user.isPlatformAdmin) {
+  if (!isPlatformAdmin(user)) {
     throw new ForbiddenError('Platform admins only')
   }
   return user

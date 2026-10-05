@@ -84,7 +84,7 @@ describe('PlatformOrgService', () => {
       t.signInAs(ada)
 
       expect(await t.services.orgs.resolveSlug('acme')).toBe('acme-co')
-      t.signInAs((await t.repositories.users.list()).find(user => user.isPlatformAdmin)!)
+      t.signInAs((await t.repositories.users.list()).find(user => user.platformRole)!)
       await expect(t.services.platformOrgs.create('Acme', ada.id)).rejects.toThrow(SlugTakenError)
     })
   })

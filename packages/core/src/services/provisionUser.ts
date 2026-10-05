@@ -1,4 +1,4 @@
-import type { User } from '../entities/User'
+import type { PlatformRoleGrant, User } from '../entities/User'
 import { DEFAULT_WORKSPACE } from '../entities/Workspace'
 import type { IdGenerator } from '../ports/IdGenerator'
 import type { Repositories } from '../ports/Repositories'
@@ -10,7 +10,7 @@ import { parseSlug, RESERVED_ORG_SLUGS, SLUG_MAX_LENGTH, suggestSlug, type Slug 
 export interface NewUser {
   displayName: string
   email: Email
-  isPlatformAdmin?: boolean
+  platformRole?: PlatformRoleGrant
 }
 
 /**
@@ -24,7 +24,7 @@ export async function provisionUser(tx: Repositories, ids: IdGenerator, input: N
     displayName: parseName(input.displayName.slice(0, NAME_MAX_LENGTH)),
     email: input.email,
     avatarUrl: null,
-    isPlatformAdmin: input.isPlatformAdmin ?? false,
+    platformRole: input.platformRole ?? null,
     identities: [],
     deactivatedAt: null
   }

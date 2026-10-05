@@ -40,7 +40,7 @@ export function defaultTenancyFixtures(): TenancyFixtures {
     displayName: person.name,
     email: `${person.key}@example.com`,
     avatarUrl: null,
-    isPlatformAdmin: person.isPlatformAdmin ?? false,
+    platformRole: person.isPlatformAdmin ? { role: 'admin' as const, grantedAt: day(0), grantedBy: null } : null,
     identities: [],
     deactivatedAt: person.deactivatedAt ?? null
   }))

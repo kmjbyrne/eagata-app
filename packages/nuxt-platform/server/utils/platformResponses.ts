@@ -1,4 +1,4 @@
-import { hasSignedIn, type Org, type PlatformOrgDetail, type User } from '@kmjbyrne/core'
+import { hasSignedIn, isPlatformAdmin, type Org, type PlatformOrgDetail, type User } from '@kmjbyrne/core'
 import type { PlatformOrg, PlatformOrgDetailResponse, PlatformUserSummary } from '../../shared/contracts/platform'
 
 export const toPlatformOrg = (org: Org): PlatformOrg =>
@@ -9,7 +9,7 @@ export const toPlatformUser = (user: User): PlatformUserSummary => ({
   displayName: user.displayName,
   email: user.email,
   avatarUrl: user.avatarUrl,
-  isPlatformAdmin: user.isPlatformAdmin,
+  isPlatformAdmin: isPlatformAdmin(user),
   hasSignedIn: hasSignedIn(user),
   deactivatedAt: user.deactivatedAt?.toISOString() ?? null
 })

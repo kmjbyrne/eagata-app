@@ -101,9 +101,10 @@ org has many members, and only platform admins create one.
 
 Three kinds of role decide who may do what, and they stay separate everywhere:
 
-- The **platform role** belongs to a user and covers the whole platform. A
-  platform admin creates company orgs and users, assigns org members and roles,
-  and deactivates users. Being one doesn't make them a member of any org.
+- The **platform role** is granted to a few users, and covers the whole
+  platform. A platform admin creates company orgs and users, assigns org members
+  and roles, and deactivates users. Being one doesn't make them a member of any
+  org. Grants live in their own table, recording who granted each and when.
 - The **org role** belongs to an org membership: `owner`, `admin` or `member`.
   Owners and admins create workspaces, and act as owners of every workspace in
   their org.

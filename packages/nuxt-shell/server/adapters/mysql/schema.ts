@@ -11,12 +11,23 @@ export const users = mysqlTable('users', {
   displayName: varchar('display_name', { length: 100 }).notNull(),
   email: varchar('email', { length: 255 }).notNull(),
   avatarUrl: varchar('avatar_url', { length: 2048 }),
-  isPlatformAdmin: boolean('is_platform_admin').notNull().default(false),
   deactivatedAt: datetime('deactivated_at', { fsp: 3 }),
   createdAt: datetime('created_at', { fsp: 3 }).notNull().default(now)
 }, table => [
   uniqueIndex('users_email_unique').on(table.email)
 ])
+
+/**
+ * The few users with a platform role, one row each, with who granted it and
+ * when. `granted_by` is null when granted from the command line, or once the
+ * granting user is gone.
+ */
+export const platformRoles = mysqlTable('platform_roles', {
+  userId: varchar('user_id', { length: 64 }).primaryKey().references(() => users.id, { onDelete: 'cascade' }),
+  role: varchar('role', { length: 32 }).notNull(),
+  grantedAt: datetime('granted_at', { fsp: 3 }).notNull(),
+  grantedBy: varchar('granted_by', { length: 64 }).references(() => users.id, { onDelete: 'set null' })
+})
 
 /** A provider account belongs to one user, so (provider, subject) is the key. */
 export const userIdentities = mysqlTable('user_identities', {

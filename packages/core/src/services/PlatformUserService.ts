@@ -1,6 +1,6 @@
 import type { OrgRole } from '../entities/Membership'
 import type { Org } from '../entities/Org'
-import type { User } from '../entities/User'
+import { isPlatformAdmin, type User } from '../entities/User'
 import { ForbiddenError, LastPlatformAdminError, NotFoundError } from '../errors'
 import type { CurrentUser } from '../ports/CurrentUser'
 import type { IdGenerator } from '../ports/IdGenerator'
@@ -14,6 +14,8 @@ export interface PlatformUserDetail {
   user: User
   /** Org memberships, personal org first, then by org name. */
   orgs: { org: Org, role: OrgRole }[]
+  /** Who granted their platform role, when they have one and it wasn't from the command line. */
+  platformRoleGrantedBy: User | null
 }
 
 /** Users and the platform role, run by platform admins. */
@@ -56,22 +58,30 @@ export class PlatformUserService {
       }
     }
     orgs.sort((a, b) => Number(b.org.isPersonal) - Number(a.org.isPersonal) || a.org.name.localeCompare(b.org.name))
-    return { user, orgs }
+    const grantedBy = user.platformRole?.grantedBy
+    return { user, orgs, platformRoleGrantedBy: grantedBy ? await this.repositories.users.findById(grantedBy) : null }
   }
 
-  /** @throws LastPlatformAdminError when revoking the only platform admin */
+  /**
+   * Grants the platform role, recording who granted it and when, or revokes
+   * it. Granting it again keeps the first grant.
+   * @throws LastPlatformAdminError when revoking the only platform admin
+   */
   setPlatformAdmin(id: UserId, value: boolean): Promise<User> {
     return this.repositories.transaction(async (tx) => {
-      await requirePlatformAdmin(tx, this.currentUser)
+      const admin = await requirePlatformAdmin(tx, this.currentUser)
       const user = await tx.users.findById(id)
       if (!user) {
         throw new NotFoundError('User not found')
       }
-      if (user.isPlatformAdmin && !user.deactivatedAt && !value && await tx.users.countPlatformAdmins() <= 1) {
+      if (value === isPlatformAdmin(user)) {
+        return user
+      }
+      if (!value && !user.deactivatedAt && await tx.users.countPlatformAdmins() <= 1) {
         throw new LastPlatformAdminError()
       }
-      const updated = { ...user, isPlatformAdmin: value }
-      await tx.users.update(updated)
+      const updated: User = { ...user, platformRole: value ? { role: 'admin', grantedAt: new Date(), grantedBy: admin.id } : null }
+      await tx.users.setPlatformRole(user.id, updated.platformRole)
       return updated
     })
   }
@@ -92,7 +102,7 @@ export class PlatformUserService {
       if (value && user.id === admin.id) {
         throw new ForbiddenError('You can\'t deactivate yourself')
       }
-      if (value && user.isPlatformAdmin && !user.deactivatedAt && await tx.users.countPlatformAdmins() <= 1) {
+      if (value && isPlatformAdmin(user) && !user.deactivatedAt && await tx.users.countPlatformAdmins() <= 1) {
         throw new LastPlatformAdminError()
       }
       const updated = { ...user, deactivatedAt: value ? (user.deactivatedAt ?? new Date()) : null }

@@ -15,7 +15,7 @@ export async function tenancyDevUsers(store: SeededJsonStore<TenancyDocuments>):
       const roles = memberships
         .filter(membership => membership.userId === user.id && companies.has(membership.orgId))
         .map(membership => `${membership.role} of ${companies.get(membership.orgId)}`)
-      const parts = [...(user.deactivatedAt ? ['Deactivated'] : []), ...(user.isPlatformAdmin ? ['Platform admin'] : []), ...roles]
+      const parts = [...(user.deactivatedAt ? ['Deactivated'] : []), ...(user.platformRole ? ['Platform admin'] : []), ...roles]
       return {
         id: user.id,
         email: user.email,

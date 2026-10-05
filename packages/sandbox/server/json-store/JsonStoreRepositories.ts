@@ -16,6 +16,7 @@ import {
   type User,
   type UserId,
   type LinkedIdentity,
+  type PlatformRoleGrant,
   type UserIdentity,
   type UserRepository,
   type Workspace,
@@ -37,7 +38,7 @@ const toUser = (record: UserRecord): User => ({
   displayName: record.displayName as Name,
   email: record.email as Email,
   avatarUrl: record.avatarUrl,
-  isPlatformAdmin: record.isPlatformAdmin,
+  platformRole: record.platformRole && { ...record.platformRole, grantedAt: new Date(record.platformRole.grantedAt), grantedBy: record.platformRole.grantedBy as UserId | null },
   identities: record.identities.map(identity => ({ ...identity, linkedAt: new Date(identity.linkedAt) })),
   deactivatedAt: record.deactivatedAt ? new Date(record.deactivatedAt) : null
 })
@@ -45,8 +46,12 @@ const toUser = (record: UserRecord): User => ({
 const toUserRecord = (user: User): UserRecord => ({
   ...user,
   identities: user.identities.map(identity => ({ ...identity, linkedAt: identity.linkedAt.toISOString() })),
+  platformRole: toPlatformRoleRecord(user.platformRole),
   deactivatedAt: user.deactivatedAt?.toISOString() ?? null
 })
+
+const toPlatformRoleRecord = (grant: PlatformRoleGrant | null): UserRecord['platformRole'] =>
+  grant && { ...grant, grantedAt: grant.grantedAt.toISOString() }
 
 const toOrg = (record: OrgRecord): Org => ({
   id: record.id as OrgId,
@@ -114,7 +119,7 @@ class JsonUserRepository implements UserRepository {
   }
 
   async countPlatformAdmins() {
-    return (await this.store.find('users', user => user.isPlatformAdmin && !user.deactivatedAt)).length
+    return (await this.store.find('users', user => user.platformRole?.role === 'admin' && !user.deactivatedAt)).length
   }
 
   create(user: User) {
@@ -131,7 +136,16 @@ class JsonUserRepository implements UserRepository {
         return
       }
       await requireEmailFree(tx, user)
-      await tx.put('users', { ...toUserRecord(user), identities: stored.identities })
+      await tx.put('users', { ...toUserRecord(user), identities: stored.identities, platformRole: stored.platformRole })
+    })
+  }
+
+  setPlatformRole(userId: UserId, grant: PlatformRoleGrant | null) {
+    return this.store.transaction(async (tx) => {
+      const user = await tx.get('users', userId)
+      if (user) {
+        await tx.put('users', { ...user, platformRole: toPlatformRoleRecord(grant) })
+      }
     })
   }
 

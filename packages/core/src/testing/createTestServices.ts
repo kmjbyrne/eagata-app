@@ -27,7 +27,7 @@ export function createTestServices(options: { linkProof?: LinkProof } = {}) {
    */
   async function addUser(displayName: string, options: { email?: string, platformAdmin?: boolean } = {}): Promise<User> {
     const email = parseEmail(options.email ?? `${displayName.toLowerCase().replace(/[^a-z0-9]+/g, '.')}@example.com`)
-    return repositories.transaction(tx => provisionUser(tx, ids, { displayName, email, isPlatformAdmin: options.platformAdmin }))
+    return repositories.transaction(tx => provisionUser(tx, ids, { displayName, email, platformRole: options.platformAdmin ? { role: 'admin', grantedAt: new Date(), grantedBy: null } : undefined }))
   }
 
   return {

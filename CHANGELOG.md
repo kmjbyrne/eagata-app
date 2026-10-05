@@ -19,6 +19,14 @@ sandbox, the docs and the tooling. The format follows
 
 ### Changed
 
+- `@kmjbyrne/core`: the platform role is a grant, `User.platformRole`
+  (`{ role, grantedAt, grantedBy }` or null), in place of the `isPlatformAdmin`
+  flag. Repositories save it with `setPlatformRole`. The platform user page
+  shows who granted it and when. The API still answers `isPlatformAdmin`.
+- `@kmjbyrne/nuxt-shell`: platform roles move to a `platform_roles` table, and
+  `users.is_platform_admin` is dropped. The migration copies existing admins
+  across, dated from their account's creation. Dev data saved before this needs
+  a Reset.
 - `@kmjbyrne/nuxt-shell`: the provider name moved to public config, as
   `NUXT_PUBLIC_SIGN_IN_PROVIDER` in place of `NUXT_OIDC_PROVIDER`, so pages can
   show its logo.
