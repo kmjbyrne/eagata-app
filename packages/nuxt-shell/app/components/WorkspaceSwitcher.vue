@@ -11,8 +11,8 @@ const items = computed<DropdownMenuItem[][]>(() => [
   workspaces.value.map(workspace => ({
     label: workspace.name,
     icon: 'i-lucide-layers',
-    type: 'checkbox' as const,
-    checked: workspace.slug === current.value?.slug,
+    // A link, not a checkbox item: Nuxt UI renders checkbox items without their link.
+    active: workspace.slug === current.value?.slug,
     to: `/${org.value!.org.slug}/${workspace.slug}`
   })),
   ...(canCreate.value ? [[{ label: 'Create workspace', icon: 'i-lucide-plus', onSelect: () => { creating.value = true } }]] : [])

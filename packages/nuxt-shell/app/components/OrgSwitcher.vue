@@ -11,8 +11,8 @@ const items = computed<DropdownMenuItem[][]>(() => [
   orgs.value.map(entry => ({
     label: entry.org.name,
     icon: entry.org.isPersonal ? 'i-lucide-user' : 'i-lucide-building-2',
-    type: 'checkbox' as const,
-    checked: entry.org.slug === current.value?.org.slug,
+    // A link, not a checkbox item: Nuxt UI renders checkbox items without their link.
+    active: entry.org.slug === current.value?.org.slug,
     to: entry.workspaces[0] ? `/${entry.org.slug}/${entry.workspaces[0].slug}` : '/choose'
   })),
   [{ label: 'All organizations', icon: 'i-lucide-layout-grid', to: '/choose' }]

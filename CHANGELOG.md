@@ -12,6 +12,8 @@ sandbox, the docs and the tooling. The format follows
 
 ### Fixed
 
+- The org and workspace switchers navigate again. Their items were checkbox
+  items, which Nuxt UI renders without a link.
 - The sidebar keeps its navigation on pages outside a workspace, such as
   Settings, by falling back to the last workspace visited.
 - Buttons in settings and platform cards no longer stretch to full width on wide
