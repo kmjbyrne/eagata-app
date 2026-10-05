@@ -18,6 +18,8 @@ sandbox, the docs and the tooling. The format follows
 - `@kmjbyrne/oidc`: OpenID Connect sign-in with PKCE, for any provider.
 - `@kmjbyrne/oidc` rejects a discovery document whose `issuer` differs from the
   configured issuer.
+- `@kmjbyrne/oidc` requires `azp` to equal the client id when an ID token has
+  several audiences or names an `azp`.
 - Packages publish to npm with restricted access, so installing them needs an
   npm login.
 

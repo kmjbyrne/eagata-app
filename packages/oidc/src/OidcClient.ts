@@ -117,6 +117,10 @@ export class OidcClient implements OidcClientLike {
     if (!audiences.includes(this.config.clientId)) {
       throw new OidcError('ID token is for another client')
     }
+    // OIDC Core 3.1.3.7: several audiences require azp, and azp must be us.
+    if ((audiences.length > 1 || claims.azp !== undefined) && claims.azp !== this.config.clientId) {
+      throw new OidcError('ID token was issued to another party')
+    }
     if (typeof claims.exp !== 'number' || claims.exp + CLOCK_SKEW_S < now) {
       throw new OidcError('ID token expired')
     }

@@ -113,8 +113,8 @@ describe('OidcClient', () => {
       })
     })
 
-    it('accepts an issuer alias, an audience list and a string email_verified', async () => {
-      const claims = validClaims({ iss: 'accounts.example.com', aud: ['other', 'client-1'], email_verified: 'true' })
+    it('accepts an issuer alias, an audience list with our azp and a string email_verified', async () => {
+      const claims = validClaims({ iss: 'accounts.example.com', aud: ['other', 'client-1'], azp: 'client-1', email_verified: 'true' })
       const { fetchFn } = fakeFetch({ body: { id_token: jwt(claims) } })
 
       await expect(new OidcClient(CONFIG, fetchFn).complete('code-1', request))
@@ -139,6 +139,9 @@ describe('OidcClient', () => {
     it.each([
       ['another issuer', { iss: 'https://evil.example.com' }],
       ['another audience', { aud: 'someone-else' }],
+      ['several audiences without azp', { aud: ['other', 'client-1'] }],
+      ['several audiences with another azp', { aud: ['other', 'client-1'], azp: 'other' }],
+      ['another azp', { azp: 'other' }],
       ['an expired token', { exp: Math.floor(Date.now() / 1000) - 3600 }],
       ['a different nonce', { nonce: 'replayed' }],
       ['no subject', { sub: undefined }],
