@@ -25,6 +25,8 @@ export interface OidcIdentity {
   subject: string
   email: string
   emailVerified: boolean
+  /** The person's full name, when the provider sends one. */
+  name: string | null
   picture: string | null
 }
 
@@ -147,6 +149,7 @@ export class OidcClient implements OidcClientLike {
       subject: claims.sub,
       email: claims.email,
       emailVerified: claims.email_verified === true || claims.email_verified === 'true',
+      name: typeof claims.name === 'string' && claims.name.trim() ? claims.name.trim() : null,
       picture: typeof claims.picture === 'string' && claims.picture ? claims.picture : null
     }
   }

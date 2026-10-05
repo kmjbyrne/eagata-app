@@ -121,6 +121,7 @@ describe('OidcClient', () => {
         subject: 'g-123',
         email: 'Keith@Example.ie',
         emailVerified: true,
+        name: null,
         picture: null
       })
       expect(Object.fromEntries(calls[1]!.body!)).toEqual({
@@ -146,6 +147,13 @@ describe('OidcClient', () => {
 
       await expect(new OidcClient(CONFIG, fetchFn).complete('code-1', request))
         .resolves.toMatchObject({ emailVerified: false })
+    })
+
+    it('returns the name claim when the profile has one', async () => {
+      const { fetchFn } = fakeFetch({ body: { id_token: jwt(validClaims({ name: ' Ada Lovelace ' })) } })
+
+      await expect(new OidcClient(CONFIG, fetchFn).complete('code-1', request))
+        .resolves.toMatchObject({ name: 'Ada Lovelace' })
     })
 
     it('returns the picture claim when the profile has one', async () => {

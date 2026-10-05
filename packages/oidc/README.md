@@ -55,6 +55,7 @@ const identity = await client.complete(code, request)
 | `subject`       | The provider's stable id for the account (the `sub` claim) |
 | `email`         | The email as the provider sent it, not normalized          |
 | `emailVerified` | Whether the provider says it verified the email            |
+| `name`          | The person's full name, or `null`                          |
 | `picture`       | A profile picture URL, or `null`                           |
 
 Key accounts on `issuer` and `subject`, never on the email, which can change.
