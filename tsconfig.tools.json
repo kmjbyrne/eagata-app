@@ -1,0 +1,5 @@
+{
+  // Node-side files outside the Nuxt app: scripts and tool configs.
+  "extends": "./tsconfig.base.json",
+  "include": ["scripts", "drizzle.config.ts", "vitest.config.ts"]
+}
