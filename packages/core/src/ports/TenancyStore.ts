@@ -1,13 +1,16 @@
 import type { MembershipRepository } from './MembershipRepository'
 import type { OrgRepository } from './OrgRepository'
 import type { UserRepository } from './UserRepository'
+import type { WorkspaceMembershipRepository } from './WorkspaceMembershipRepository'
 import type { WorkspaceRepository } from './WorkspaceRepository'
 
 export interface TenancyRepositories {
   users: UserRepository
   orgs: OrgRepository
   workspaces: WorkspaceRepository
+  /** Org memberships. */
   memberships: MembershipRepository
+  workspaceMembers: WorkspaceMembershipRepository
 }
 
 /** Every repository, plus a way to make several writes succeed or fail together. */

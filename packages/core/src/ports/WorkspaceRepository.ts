@@ -1,8 +1,9 @@
 import type { Workspace } from '../entities/Workspace'
-import type { OrgId } from '../values/Ids'
+import type { OrgId, WorkspaceId } from '../values/Ids'
 import type { Slug } from '../values/Slug'
 
 export interface WorkspaceRepository {
+  findById(id: WorkspaceId): Promise<Workspace | null>
   findBySlug(orgId: OrgId, slug: Slug): Promise<Workspace | null>
   /** Oldest first. */
   listByOrg(orgId: OrgId): Promise<Workspace[]>

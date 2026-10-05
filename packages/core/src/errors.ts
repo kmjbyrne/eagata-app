@@ -36,8 +36,8 @@ export class EmailTakenError extends ConflictError {
 }
 
 export class AlreadyMemberError extends ConflictError {
-  constructor() {
-    super('That user is already a member of this organization')
+  constructor(readonly of: 'organization' | 'workspace') {
+    super(`That user is already a member of this ${of}`)
   }
 }
 
@@ -48,8 +48,8 @@ export class IdentityInUseError extends ConflictError {
 }
 
 export class LastOwnerError extends ConflictError {
-  constructor() {
-    super('An organization needs at least one owner. Make someone else an owner first')
+  constructor(readonly of: 'organization' | 'workspace') {
+    super(`A${of === 'organization' ? 'n' : ''} ${of} needs at least one owner. Make someone else an owner first`)
   }
 }
 

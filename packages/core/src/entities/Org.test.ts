@@ -5,7 +5,7 @@ import type { Slug } from '../values/Slug'
 import { changeOrgSlug, orgSlugs, type Org } from './Org'
 
 const org = (slug: string, previousSlugs: string[] = []): Org =>
-  ({ id: 'o1' as OrgId, name: 'Acme' as Name, slug: slug as Slug, previousSlugs: previousSlugs as Slug[] })
+  ({ id: 'o1' as OrgId, name: 'Acme' as Name, slug: slug as Slug, previousSlugs: previousSlugs as Slug[], isPersonal: false })
 
 describe('changeOrgSlug', () => {
   it('moves the old slug to the previous slugs', () => {

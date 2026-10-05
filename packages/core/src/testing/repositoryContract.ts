@@ -3,6 +3,7 @@ import type { Membership } from '../entities/Membership'
 import type { Org } from '../entities/Org'
 import type { User } from '../entities/User'
 import type { Workspace } from '../entities/Workspace'
+import type { WorkspaceMembership } from '../entities/WorkspaceMembership'
 import { AlreadyMemberError, EmailTakenError, IdentityInUseError, SlugTakenError } from '../errors'
 import type { TenancyStore } from '../ports/TenancyStore'
 import type { Email } from '../values/Email'
@@ -31,7 +32,7 @@ function user(overrides: Partial<User> = {}): User {
 
 function org(overrides: Partial<Org> = {}): Org {
   const key = id()
-  return { id: key as OrgId, name: `Org ${key}` as Name, slug: key as Slug, previousSlugs: [], ...overrides }
+  return { id: key as OrgId, name: `Org ${key}` as Name, slug: key as Slug, previousSlugs: [], isPersonal: false, ...overrides }
 }
 
 function workspace(orgId: OrgId, overrides: Partial<Workspace> = {}): Workspace {
@@ -124,7 +125,7 @@ export function repositoryContract(createStore: () => TenancyStore | Promise<Ten
   describe('orgs', () => {
     it('finds an org by id and current slug, and by a previous slug only when asked', async () => {
       const store = await createStore()
-      const acme = org({ previousSlugs: [id() as Slug] })
+      const acme = org({ previousSlugs: [id() as Slug], isPersonal: true })
       await store.orgs.create(acme)
 
       expect(await store.orgs.findById(acme.id)).toEqual(acme)
@@ -169,13 +170,15 @@ export function repositoryContract(createStore: () => TenancyStore | Promise<Ten
   })
 
   describe('workspaces', () => {
-    it('finds a workspace by org and slug', async () => {
+    it('finds a workspace by id, and by org and slug', async () => {
       const store = await createStore()
       const acme = org()
       await store.orgs.create(acme)
       const general = workspace(acme.id)
       await store.workspaces.create(general)
 
+      expect(await store.workspaces.findById(general.id)).toEqual(general)
+      expect(await store.workspaces.findById(id() as WorkspaceId)).toBeNull()
       expect(await store.workspaces.findBySlug(acme.id, general.slug)).toEqual(general)
       expect(await store.workspaces.findBySlug(id() as OrgId, general.slug)).toBeNull()
     })
@@ -242,6 +245,47 @@ export function repositoryContract(createStore: () => TenancyStore | Promise<Ten
       await store.memberships.add({ orgId: acme.id, userId: ada.id, role: 'member' })
 
       await expect(store.memberships.add({ orgId: acme.id, userId: ada.id, role: 'admin' })).rejects.toThrow(AlreadyMemberError)
+    })
+  })
+
+  describe('workspace memberships', () => {
+    async function workspaceAndUsers(store: TenancyStore) {
+      const acme = org()
+      const ada = user()
+      const grace = user()
+      await store.orgs.create(acme)
+      await store.users.create(ada)
+      await store.users.create(grace)
+      const general = workspace(acme.id)
+      await store.workspaces.create(general)
+      return { general, ada, grace }
+    }
+
+    it('adds, finds, lists, changes and removes workspace memberships', async () => {
+      const store = await createStore()
+      const { general, ada, grace } = await workspaceAndUsers(store)
+      const owner: WorkspaceMembership = { workspaceId: general.id, userId: ada.id, role: 'owner' }
+      const viewer: WorkspaceMembership = { workspaceId: general.id, userId: grace.id, role: 'viewer' }
+      await store.workspaceMembers.add(owner)
+      await store.workspaceMembers.add(viewer)
+
+      expect(await store.workspaceMembers.find(general.id, ada.id)).toEqual(owner)
+      expect(await store.workspaceMembers.listByWorkspace(general.id)).toHaveLength(2)
+      expect(await store.workspaceMembers.listByUser(grace.id)).toEqual([viewer])
+
+      await store.workspaceMembers.update({ ...viewer, role: 'editor' })
+      expect((await store.workspaceMembers.find(general.id, grace.id))?.role).toBe('editor')
+
+      await store.workspaceMembers.remove(general.id, grace.id)
+      expect(await store.workspaceMembers.find(general.id, grace.id)).toBeNull()
+    })
+
+    it('rejects a second membership for the same user and workspace', async () => {
+      const store = await createStore()
+      const { general, ada } = await workspaceAndUsers(store)
+      await store.workspaceMembers.add({ workspaceId: general.id, userId: ada.id, role: 'viewer' })
+
+      await expect(store.workspaceMembers.add({ workspaceId: general.id, userId: ada.id, role: 'owner' })).rejects.toThrow(AlreadyMemberError)
     })
   })
 

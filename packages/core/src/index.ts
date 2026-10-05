@@ -5,6 +5,15 @@ export type { Org } from './entities/Org'
 export { hasSignedIn } from './entities/User'
 export type { ProviderIdentity, User, UserIdentity } from './entities/User'
 export { DEFAULT_WORKSPACE } from './entities/Workspace'
+export {
+  effectiveWorkspaceRole,
+  ensureWorkspaceOwnerRemains,
+  InvalidWorkspaceRoleError,
+  parseWorkspaceRole,
+  roleAllows,
+  WORKSPACE_ROLES
+} from './entities/WorkspaceMembership'
+export type { WorkspaceMembership, WorkspaceRole } from './entities/WorkspaceMembership'
 export type { Workspace } from './entities/Workspace'
 export {
   AlreadyMemberError,
@@ -45,4 +54,5 @@ export type { OrgRepository } from './ports/OrgRepository'
 export type { AuthorizationOptions, AuthorizationRequest, SignInProvider } from './ports/SignInProvider'
 export type { TenancyRepositories, TenancyStore } from './ports/TenancyStore'
 export type { UserRepository } from './ports/UserRepository'
+export type { WorkspaceMembershipRepository } from './ports/WorkspaceMembershipRepository'
 export type { WorkspaceRepository } from './ports/WorkspaceRepository'

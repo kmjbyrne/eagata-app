@@ -8,6 +8,11 @@ export interface Org {
   slug: Slug
   /** Slugs the org used before, so old links keep leading here. Never reused by another org. */
   previousSlugs: Slug[]
+  /**
+   * Created with its user, who is its only org member. Others share its
+   * workspaces through workspace memberships instead.
+   */
+  isPersonal: boolean
 }
 
 /** Every slug that leads to the org, current first. */

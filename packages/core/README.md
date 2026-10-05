@@ -49,17 +49,28 @@ such as "Ltd" and "Inc" from the end. "Café Ólafsson Ltd" becomes
 `cafe-olafsson`. A name too short for a slug gets `-1` added, and a name with no
 letters or numbers throws.
 
-## Two Kinds of Roles
+## Orgs, Workspaces and Roles
 
-The **platform role** belongs to a user and covers the whole platform. A user is
-a platform admin (`isPlatformAdmin`) or not. Platform admins create orgs and
-users, and assign memberships. Being one doesn't make a user a member of any
-org.
+The org is the top-level tenant, and it contains workspaces. There are two kinds
+of org:
 
-The **org role** belongs to a membership and covers one org: `owner`, `admin` or
-`member`. Owners and admins run their org day to day, which for now means
-creating workspaces. An app that needs finer permissions keeps them as its own
-data, keyed by org and user.
+- **Personal:** every user has one. Its only org member is that user, as owner.
+- **Company:** many users are org members.
+
+Three kinds of role decide who may do what, and they stay separate everywhere:
+
+- **Platform role**, on the user: a platform admin (`isPlatformAdmin`) runs the
+  platform and creates company orgs. Being one doesn't make a user a member of
+  any org.
+- **Org role**, on an org membership: `owner`, `admin` or `member`. Owners and
+  admins run the org, create its workspaces, and act as owners of every
+  workspace in it.
+- **Workspace role**, on a workspace membership: `owner`, `editor` or `viewer`.
+  Plain org members, and people from outside the org, see a workspace only
+  through a workspace membership. That is how a workspace is shared.
+
+`effectiveWorkspaceRole(orgRole, membership)` combines the last two into what a
+user may do in a workspace, or null for no access.
 
 ## Entities
 
@@ -104,16 +115,16 @@ The conflicts are `SlugTakenError`, `EmailTakenError`, `AlreadyMemberError`,
 Core reaches storage, ids, the session and sign-in only through these
 interfaces. Adapters elsewhere implement them.
 
-| Port                   | What it does                                                          |
-| ---------------------- | --------------------------------------------------------------------- |
-| `UserRepository`       | Users and their linked identities                                     |
-| `OrgRepository`        | Orgs by id, current slug, or current-or-previous slug                 |
-| `WorkspaceRepository`  | Workspaces by org and slug, oldest first                              |
-| `MembershipRepository` | Memberships by org or by user                                         |
-| `TenancyStore`         | All four repositories, plus `transaction` for writes that go together |
-| `IdGenerator`          | New ids                                                               |
-| `CurrentUser`          | The signed-in user's id, or null                                      |
-| `SignInProvider`       | Starts and completes a sign-in with an identity provider              |
+| Port                   | What it does                                                         |
+| ---------------------- | -------------------------------------------------------------------- |
+| `UserRepository`       | Users and their linked identities                                    |
+| `OrgRepository`        | Orgs by id, current slug, or current-or-previous slug                |
+| `WorkspaceRepository`  | Workspaces by org and slug, oldest first                             |
+| `MembershipRepository` | Memberships by org or by user                                        |
+| `TenancyStore`         | All the repositories, plus `transaction` for writes that go together |
+| `IdGenerator`          | New ids                                                              |
+| `CurrentUser`          | The signed-in user's id, or null                                     |
+| `SignInProvider`       | Starts and completes a sign-in with an identity provider             |
 
 The repositories enforce uniqueness themselves, so two requests at once can't
 both win: emails across users, identities across users, org slugs across every

@@ -2,14 +2,16 @@ import { orgSlugs, type Org } from '../entities/Org'
 import type { Membership } from '../entities/Membership'
 import type { User, UserIdentity } from '../entities/User'
 import type { Workspace } from '../entities/Workspace'
+import type { WorkspaceMembership } from '../entities/WorkspaceMembership'
 import { AlreadyMemberError, EmailTakenError, IdentityInUseError, SlugTakenError } from '../errors'
 import type { MembershipRepository } from '../ports/MembershipRepository'
 import type { OrgRepository } from '../ports/OrgRepository'
 import type { TenancyRepositories, TenancyStore } from '../ports/TenancyStore'
 import type { UserRepository } from '../ports/UserRepository'
+import type { WorkspaceMembershipRepository } from '../ports/WorkspaceMembershipRepository'
 import type { WorkspaceRepository } from '../ports/WorkspaceRepository'
 import type { Email } from '../values/Email'
-import type { OrgId, UserId } from '../values/Ids'
+import type { OrgId, UserId, WorkspaceId } from '../values/Ids'
 import type { Slug } from '../values/Slug'
 
 interface State {
@@ -17,6 +19,7 @@ interface State {
   orgs: Org[]
   workspaces: Workspace[]
   memberships: Membership[]
+  workspaceMembers: WorkspaceMembership[]
 }
 
 const copy = <T>(value: T): T => structuredClone(value)
@@ -28,12 +31,13 @@ const sameIdentity = (a: UserIdentity, b: UserIdentity) => a.provider === b.prov
  * transaction runs as a transaction of its own, so none is lost to another.
  */
 export class InMemoryTenancyStore implements TenancyStore {
-  private state: State = { users: [], orgs: [], workspaces: [], memberships: [] }
+  private state: State = { users: [], orgs: [], workspaces: [], memberships: [], workspaceMembers: [] }
   private queue: Promise<unknown> = Promise.resolve()
   readonly users = this.queued('users')
   readonly orgs = this.queued('orgs')
   readonly workspaces = this.queued('workspaces')
   readonly memberships = this.queued('memberships')
+  readonly workspaceMembers = this.queued('workspaceMembers')
 
   transaction<R>(fn: (repositories: TenancyRepositories) => Promise<R>): Promise<R> {
     const result = this.queue.then(async () => {
@@ -59,7 +63,8 @@ function repositories(state: () => State): TenancyRepositories {
     users: new InMemoryUserRepository(state),
     orgs: new InMemoryOrgRepository(state),
     workspaces: new InMemoryWorkspaceRepository(state),
-    memberships: new InMemoryMembershipRepository(state)
+    memberships: new InMemoryMembershipRepository(state),
+    workspaceMembers: new InMemoryWorkspaceMembershipRepository(state)
   }
 }
 
@@ -158,6 +163,10 @@ class InMemoryOrgRepository implements OrgRepository {
 class InMemoryWorkspaceRepository implements WorkspaceRepository {
   constructor(private readonly state: () => State) {}
 
+  async findById(id: WorkspaceId) {
+    return copy(this.state().workspaces.find(workspace => workspace.id === id) ?? null)
+  }
+
   async findBySlug(orgId: OrgId, slug: Slug) {
     return copy(this.state().workspaces.find(workspace => workspace.orgId === orgId && workspace.slug === slug) ?? null)
   }
@@ -192,7 +201,7 @@ class InMemoryMembershipRepository implements MembershipRepository {
 
   async add(membership: Membership) {
     if (await this.find(membership.orgId, membership.userId)) {
-      throw new AlreadyMemberError()
+      throw new AlreadyMemberError('organization')
     }
     this.state().memberships.push(copy(membership))
   }
@@ -209,6 +218,44 @@ class InMemoryMembershipRepository implements MembershipRepository {
     const index = memberships.findIndex(membership => membership.orgId === orgId && membership.userId === userId)
     if (index !== -1) {
       memberships.splice(index, 1)
+    }
+  }
+}
+
+class InMemoryWorkspaceMembershipRepository implements WorkspaceMembershipRepository {
+  constructor(private readonly state: () => State) {}
+
+  async find(workspaceId: WorkspaceId, userId: UserId) {
+    return copy(this.state().workspaceMembers.find(member => member.workspaceId === workspaceId && member.userId === userId) ?? null)
+  }
+
+  async listByWorkspace(workspaceId: WorkspaceId) {
+    return copy(this.state().workspaceMembers.filter(member => member.workspaceId === workspaceId))
+  }
+
+  async listByUser(userId: UserId) {
+    return copy(this.state().workspaceMembers.filter(member => member.userId === userId))
+  }
+
+  async add(membership: WorkspaceMembership) {
+    if (await this.find(membership.workspaceId, membership.userId)) {
+      throw new AlreadyMemberError('workspace')
+    }
+    this.state().workspaceMembers.push(copy(membership))
+  }
+
+  async update(membership: WorkspaceMembership) {
+    const stored = this.state().workspaceMembers.find(existing => existing.workspaceId === membership.workspaceId && existing.userId === membership.userId)
+    if (stored) {
+      stored.role = membership.role
+    }
+  }
+
+  async remove(workspaceId: WorkspaceId, userId: UserId) {
+    const { workspaceMembers } = this.state()
+    const index = workspaceMembers.findIndex(member => member.workspaceId === workspaceId && member.userId === userId)
+    if (index !== -1) {
+      workspaceMembers.splice(index, 1)
     }
   }
 }

@@ -39,6 +39,6 @@ export function ensureOwnerRemains(memberships: Membership[], userId: UserId, ro
     membership.userId === userId ? role === 'owner' : membership.role === 'owner'
   )
   if (!owners.length) {
-    throw new LastOwnerError()
+    throw new LastOwnerError('organization')
   }
 }
