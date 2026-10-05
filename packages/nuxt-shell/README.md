@@ -97,6 +97,10 @@ startup, but runs a util only when something imports it. Once registered,
 `repositoryContract`. It works on MariaDB and MySQL. Tables and columns are
 snake_case, and TypeScript fields camelCase.
 
+Scripts outside Nuxt, such as `platform:grant`, import the adapter from
+`@kmjbyrne/nuxt-shell/mysql`: `createDatabase`, `MysqlRepositories` and
+`schema`.
+
 `useDatabase()` returns the app's one Drizzle database. An app's own
 repositories use it too, so they share the connection pool.
 
