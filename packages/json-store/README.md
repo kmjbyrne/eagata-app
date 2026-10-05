@@ -1,8 +1,9 @@
 # @kmjbyrne/json-store
 
-Named collections of JSON documents, held in memory. Use it to try out a
-feature's reads and writes before it has real database tables, and to run tests
-without a database. It knows nothing about any app, and has no Nuxt dependency.
+Named collections of JSON documents, held in memory or in one JSON file. Use it
+to try out a feature's reads and writes before it has real database tables, and
+to run tests without a database. It knows nothing about any app, and has no Nuxt
+dependency.
 
 It is not a database. Every write copies the whole data set, writes run one at a
 time, and queries are filters run in memory. That suits development and tests,
@@ -69,7 +70,8 @@ If the callback throws, none of its writes are kept.
   throws `CollectionNameError` if two define the same name.
 - `JsonStore` is the interface: `get`, `find`, `put`, `delete` and
   `transaction`.
-- `MemoryJsonStore` keeps everything in memory.
+- `MemoryJsonStore` keeps everything in memory, for tests.
+- `FileJsonStore` keeps everything in one JSON file, for a development server.
 
 Documents go in and come out as JSON copies. Mutating an object never changes
 stored data. A value JSON cannot hold, such as a `Date`, comes back as JSON
@@ -78,6 +80,26 @@ holds it, so store dates as ISO strings.
 Calling the outer store's `put`, `delete` or `transaction` from inside a
 transaction throws `NestedWriteError`. Waiting for the transaction to finish
 would otherwise deadlock.
+
+## The File
+
+`new FileJsonStore({ file: '.data/store.json', collections })` reads the file on
+first use and rewrites it after every write. A missing file is created, along
+with its directories. If a write to the file fails, the change is dropped from
+memory too, so the two never disagree.
+
+The file holds each collection as an array under its name, with bookkeeping
+under `_meta`:
+
+```json
+{
+  "_meta": { "version": 1 },
+  "notes": [{ "id": "n1", "title": "Hello", "body": "" }]
+}
+```
+
+Keys that no collection defines are kept untouched, so data for a collection you
+have stopped defining is not lost. Only one process should use a file at a time.
 
 ## The Contract
 

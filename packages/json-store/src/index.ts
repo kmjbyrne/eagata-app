@@ -2,4 +2,6 @@ export { combineCollections, CollectionNameError, defineCollections } from './co
 export type { CollectionDefinition, CollectionDefinitions, DocumentsOf, JsonDocument } from './collections'
 export { InvalidDocumentError, NestedWriteError, UnknownCollectionError } from './JsonStore'
 export type { JsonStore } from './JsonStore'
+export { FileJsonStore } from './FileJsonStore'
+export type { FileJsonStoreOptions } from './FileJsonStore'
 export { MemoryJsonStore } from './MemoryJsonStore'

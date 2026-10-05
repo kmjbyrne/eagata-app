@@ -24,7 +24,8 @@ sandbox, the docs and the tooling. The format follows
   default.
 - `@kmjbyrne/oidc` accepts a `loginHint` that preselects an account.
 - `@kmjbyrne/json-store`: collections of JSON documents with Zod schemas and
-  transactions, in memory, with a contract suite every store must pass.
+  transactions, in memory or in one JSON file, with a contract suite every store
+  must pass.
 - Packages publish to npm with restricted access, so installing them needs an
   npm login.
 
