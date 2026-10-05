@@ -20,6 +20,8 @@ sandbox, the docs and the tooling. The format follows
   configured issuer.
 - `@kmjbyrne/oidc` requires `azp` to equal the client id when an ID token has
   several audiences or names an `azp`.
+- `@kmjbyrne/oidc` times out discovery and token requests, after 10 seconds by
+  default.
 - Packages publish to npm with restricted access, so installing them needs an
   npm login.
 

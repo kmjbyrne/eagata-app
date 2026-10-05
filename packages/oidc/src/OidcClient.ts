@@ -7,6 +7,8 @@ export interface OidcClientConfig {
   clientId: string
   clientSecret: string
   redirectUri: string
+  /** For each discovery and token request. Defaults to 10 seconds. */
+  timeoutMs?: number
 }
 
 /** The secrets one sign-in round trip must carry from start to callback. */
@@ -46,6 +48,7 @@ export class OidcError extends Error {
 
 const DISCOVERY_TTL_MS = 60 * 60 * 1000
 const CLOCK_SKEW_S = 60
+const DEFAULT_TIMEOUT_MS = 10_000
 
 function randomToken(): string {
   return randomBytes(32).toString('base64url')
@@ -87,7 +90,7 @@ export class OidcClient implements OidcClientLike {
 
   async complete(code: string, request: Pick<AuthorizationRequest, 'nonce' | 'codeVerifier'>): Promise<OidcIdentity> {
     const { token_endpoint, issuer } = await this.discover()
-    const response = await this.fetchFn(token_endpoint, {
+    const response = await this.request('Token exchange', token_endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({
@@ -145,7 +148,7 @@ export class OidcClient implements OidcClientLike {
       return this.discovery.value
     }
     const url = `${this.config.issuer.replace(/\/$/, '')}/.well-known/openid-configuration`
-    const response = await this.fetchFn(url)
+    const response = await this.request('Discovery', url)
     if (!response.ok) {
       throw new OidcError(`Discovery failed: ${response.status}`)
     }
@@ -156,6 +159,18 @@ export class OidcClient implements OidcClientLike {
     }
     this.discovery = { value, expiresAt: Date.now() + DISCOVERY_TTL_MS }
     return value
+  }
+
+  private async request(label: string, url: string, init: RequestInit = {}): Promise<Response> {
+    const timeoutMs = this.config.timeoutMs ?? DEFAULT_TIMEOUT_MS
+    try {
+      return await this.fetchFn(url, { ...init, signal: AbortSignal.timeout(timeoutMs) })
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'TimeoutError') {
+        throw new OidcError(`${label} timed out after ${timeoutMs} ms`)
+      }
+      throw error
+    }
   }
 }
 

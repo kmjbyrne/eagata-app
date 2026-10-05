@@ -45,6 +45,11 @@ function fakeFetch(tokenResponse: { status?: number, body: unknown }, discoveryI
   return { fetchFn, calls }
 }
 
+/** A fetch that never answers, until its signal aborts. */
+const hangingFetch = ((_: string, init?: RequestInit) => new Promise<Response>((_, reject) => {
+  init?.signal?.addEventListener('abort', () => reject(init.signal!.reason))
+})) as typeof fetch
+
 describe('OidcClient', () => {
   describe('authorizationRequest', () => {
     it('builds a code flow URL with state, nonce and an S256 PKCE challenge', async () => {
@@ -81,6 +86,11 @@ describe('OidcClient', () => {
       const { fetchFn } = fakeFetch({ body: {} }, 'https://evil.example.com')
 
       await expect(new OidcClient(CONFIG, fetchFn).authorizationRequest()).rejects.toThrow(OidcError)
+    })
+
+    it('times out a discovery request that never answers', async () => {
+      await expect(new OidcClient({ ...CONFIG, timeoutMs: 10 }, hangingFetch).authorizationRequest())
+        .rejects.toThrow(/Discovery timed out/)
     })
 
     it('rejects a discovery document that names only an issuer alias', async () => {
@@ -150,6 +160,14 @@ describe('OidcClient', () => {
       const { fetchFn } = fakeFetch({ body: { id_token: jwt(validClaims(overrides)) } })
 
       await expect(new OidcClient(CONFIG, fetchFn).complete('code-1', request)).rejects.toThrow(OidcError)
+    })
+
+    it('times out a token request that never answers', async () => {
+      const { fetchFn } = fakeFetch({ body: {} })
+      const client = new OidcClient({ ...CONFIG, timeoutMs: 10 }, ((url: string, init?: RequestInit) =>
+        url.endsWith('/token') ? hangingFetch(url, init) : fetchFn(url, init)) as typeof fetch)
+
+      await expect(client.complete('code-1', request)).rejects.toThrow(/Token exchange timed out/)
     })
 
     it('rejects a failed exchange and a response without an ID token', async () => {
