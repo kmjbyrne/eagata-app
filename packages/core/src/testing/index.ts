@@ -1,3 +1,5 @@
+export { companyOrg } from './companyOrg'
+export type { CompanyOrgSetup } from './companyOrg'
 export { createTestServices } from './createTestServices'
 export { FakeCurrentUser } from './FakeCurrentUser'
 export { InMemoryTenancyStore } from './InMemoryTenancyStore'

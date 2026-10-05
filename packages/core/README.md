@@ -137,7 +137,60 @@ added until it is free. Reserved slugs are skipped.
 
 `createCoreServices({ store, currentUser, ids })` builds every service on the
 given adapters. It is cheap, so build it per request with that request's
-`CurrentUser`.
+`CurrentUser`. Every service acts as the current user, and throws
+`NotSignedInError` if there is none.
+
+| Service           | Methods                                                                          |
+| ----------------- | -------------------------------------------------------------------------------- |
+| `users`           | `getMe()`                                                                        |
+| `orgs`            | `listMine()`, `getBySlug(slug)`, `resolveSlug(oldSlug)`                          |
+| `workspaces`      | `list`, `create`, `listMembers`, `addMember`, `changeMemberRole`, `removeMember` |
+| `workspaceAccess` | `require(orgSlug, workspaceSlug, role?)`                                         |
+
+The rules they enforce:
+
+- A user sees an org if they're an org member, or a member of one of its
+  workspaces. `listMine` returns their personal org first, then the rest by
+  name, each with the workspaces the user can see.
+- Anything the user can't see is a `NotFoundError`, so its existence isn't
+  revealed. Old org slugs aren't accepted, except by `resolveSlug`, which
+  returns the current slug so an old link can redirect.
+- Org owners and admins create workspaces, and become the new workspace's owner.
+- Workspace owners add people by the email of an existing account, and change or
+  remove members. Any member can remove themselves. A workspace always keeps an
+  owner.
+
+### WorkspaceAccess
+
+An app's own services call
+`workspaceAccess.require(orgSlug, workspaceSlug, role)` before acting in a
+workspace, so every app checks access the same way:
+
+```ts
+class NoteService {
+  constructor(
+    private readonly notes: NoteRepository,
+    private readonly access: WorkspaceAccess
+  ) {}
+
+  async create(orgSlug: string, workspaceSlug: string, title: string) {
+    const { workspace, userId } = await this.access.require(
+      orgSlug,
+      workspaceSlug,
+      'editor'
+    )
+    return this.notes.create({
+      workspaceId: workspace.id,
+      authorId: userId,
+      title
+    })
+  }
+}
+```
+
+It returns the org, the workspace, the user's effective role and their id. It
+throws `NotFoundError` if they can't see the workspace, and `ForbiddenError` if
+their role is below the one asked for.
 
 ## Ports
 
@@ -170,6 +223,8 @@ org's current and previous slugs, and workspace slugs within an org.
   the contract.
 - `FakeCurrentUser` is a `CurrentUser` you can sign in and out.
 - `SequentialIdGenerator` makes the ids `id-1`, `id-2` and so on.
+- `companyOrg(store, setup)` writes a company org, its memberships and
+  workspaces straight to a store, as a platform admin would have made them.
 - `createTestServices()` builds every service on those. Its `signUp(name)` signs
   a user up as a provider would, and `signInAs(user)` makes them the current
   user:
