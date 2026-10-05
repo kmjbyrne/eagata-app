@@ -1,0 +1,5 @@
+export { combineCollections, CollectionNameError, defineCollections } from './collections'
+export type { CollectionDefinition, CollectionDefinitions, DocumentsOf, JsonDocument } from './collections'
+export { InvalidDocumentError, NestedWriteError, UnknownCollectionError } from './JsonStore'
+export type { JsonStore } from './JsonStore'
+export { MemoryJsonStore } from './MemoryJsonStore'

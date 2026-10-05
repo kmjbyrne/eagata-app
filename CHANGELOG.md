@@ -23,6 +23,8 @@ sandbox, the docs and the tooling. The format follows
 - `@kmjbyrne/oidc` times out discovery and token requests, after 10 seconds by
   default.
 - `@kmjbyrne/oidc` accepts a `loginHint` that preselects an account.
+- `@kmjbyrne/json-store`: collections of JSON documents with Zod schemas and
+  transactions, in memory, with a contract suite every store must pass.
 - Packages publish to npm with restricted access, so installing them needs an
   npm login.
 
