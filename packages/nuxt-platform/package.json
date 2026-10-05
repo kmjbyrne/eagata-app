@@ -1,0 +1,42 @@
+{
+  "name": "@kmjbyrne/nuxt-platform",
+  "version": "0.0.0",
+  "description": "Nuxt layer for the platform admin area: organizations, members and users, for the app's operators",
+  "type": "module",
+  "main": "./nuxt.config.ts",
+  "exports": {
+    ".": "./nuxt.config.ts"
+  },
+  "files": [
+    "nuxt.config.ts",
+    "app",
+    "server",
+    "shared",
+    "!**/*.test.ts",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "restricted"
+  },
+  "scripts": {
+    "typecheck": "nuxt typecheck"
+  },
+  "dependencies": {
+    "@kmjbyrne/core": "workspace:*",
+    "@kmjbyrne/nuxt-shell": "workspace:*"
+  },
+  "peerDependencies": {
+    "@nuxt/ui": "^4.11.0",
+    "h3": "catalog:",
+    "nuxt": "^4.5.0",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@nuxt/test-utils": "^4.3.3",
+    "@nuxt/ui": "^4.11.3",
+    "drizzle-orm": "catalog:",
+    "h3": "catalog:",
+    "mysql2": "catalog:",
+    "zod": "catalog:"
+  }
+}

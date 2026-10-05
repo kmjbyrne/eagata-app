@@ -9,6 +9,7 @@ if (!org.value || !workspace.value) {
 useHead({ title: () => `Members · ${workspace.value?.name}` })
 
 const toast = useToast()
+const api = useApi()
 const { me } = useMe()
 const { refresh: refreshOrgs } = useOrgs()
 const path = computed(() => `/api/orgs/${org.value!.org.slug}/workspaces/${workspace.value!.slug}/members`)
@@ -39,20 +40,20 @@ async function act(work: () => Promise<unknown>, done: string) {
 
 async function add() {
   adding.value = true
-  await act(() => $fetch(path.value, { method: 'POST', body: { email: email.value, role: role.value } }), `Shared with ${email.value}`)
+  await act(() => api(path.value, { method: 'POST', body: { email: email.value, role: role.value } }), `Shared with ${email.value}`)
   email.value = ''
   adding.value = false
 }
 
 const changeRole = (member: WorkspaceMemberResponse, value: WorkspaceRoleValue) =>
-  act(() => $fetch(`${path.value}/${member.user.id}`, { method: 'PATCH', body: { role: value } }), `${member.user.displayName} is now ${value === 'owner' ? 'an' : 'a'} ${value}`)
+  act(() => api(`${path.value}/${member.user.id}`, { method: 'PATCH', body: { role: value } }), `${member.user.displayName} is now ${value === 'owner' ? 'an' : 'a'} ${value}`)
 
 const remove = (member: WorkspaceMemberResponse) =>
-  act(() => $fetch(`${path.value}/${member.user.id}`, { method: 'DELETE' }), `Removed ${member.user.displayName}`)
+  act(() => api(`${path.value}/${member.user.id}`, { method: 'DELETE' }), `Removed ${member.user.displayName}`)
 
 async function leave() {
   try {
-    await $fetch(`${path.value}/${me.value!.id}`, { method: 'DELETE' })
+    await api(`${path.value}/${me.value!.id}`, { method: 'DELETE' })
     await refreshOrgs()
     await navigateTo('/')
   } catch (error) {

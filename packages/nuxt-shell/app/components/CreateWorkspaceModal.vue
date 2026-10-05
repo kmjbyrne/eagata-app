@@ -5,6 +5,7 @@ const props = defineProps<{ orgSlug: string }>()
 const open = defineModel<boolean>('open', { default: false })
 
 const { refresh } = useOrgs()
+const api = useApi()
 const name = ref('')
 const slug = ref('')
 const slugError = ref<string>()
@@ -25,7 +26,7 @@ async function create() {
   slugError.value = undefined
   formError.value = undefined
   try {
-    const workspace = await $fetch<WorkspaceResponse>(`/api/orgs/${props.orgSlug}/workspaces`, {
+    const workspace = await api<WorkspaceResponse>(`/api/orgs/${props.orgSlug}/workspaces`, {
       method: 'POST',
       body: { name: name.value, slug: slug.value || undefined }
     })
