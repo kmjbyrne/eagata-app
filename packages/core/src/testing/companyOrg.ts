@@ -2,7 +2,7 @@ import type { OrgRole } from '../entities/Membership'
 import type { Org } from '../entities/Org'
 import type { User } from '../entities/User'
 import type { Workspace } from '../entities/Workspace'
-import type { TenancyStore } from '../ports/TenancyStore'
+import type { Repositories } from '../ports/Repositories'
 import type { OrgId, WorkspaceId } from '../values/Ids'
 import { parseName } from '../values/Name'
 import { parseSlug, type Slug } from '../values/Slug'
@@ -16,8 +16,8 @@ export interface CompanyOrgSetup {
   workspaces?: string[]
 }
 
-/** Writes a company org straight to the store, as a platform admin would have made it. */
-export async function companyOrg(store: TenancyStore, setup: CompanyOrgSetup): Promise<{ org: Org, workspaces: Workspace[] }> {
+/** Writes a company org straight to the repositories, as a platform admin would have made it. */
+export async function companyOrg(repositories: Repositories, setup: CompanyOrgSetup): Promise<{ org: Org, workspaces: Workspace[] }> {
   const org: Org = {
     id: `org-${setup.slug}` as OrgId,
     name: parseName(setup.name),
@@ -32,13 +32,13 @@ export async function companyOrg(store: TenancyStore, setup: CompanyOrgSetup): P
     slug: parseSlug(slug),
     createdAt: new Date(Date.UTC(2026, 0, index + 1))
   }))
-  await store.transaction(async (repositories) => {
-    await repositories.orgs.create(org)
+  await repositories.transaction(async (tx) => {
+    await tx.orgs.create(org)
     for (const [user, role] of setup.members ?? []) {
-      await repositories.memberships.add({ orgId: org.id, userId: user.id, role })
+      await tx.memberships.add({ orgId: org.id, userId: user.id, role })
     }
     for (const workspace of workspaces) {
-      await repositories.workspaces.create(workspace)
+      await tx.workspaces.create(workspace)
     }
   })
   return { org, workspaces }

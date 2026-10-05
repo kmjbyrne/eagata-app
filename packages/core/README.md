@@ -135,8 +135,8 @@ added until it is free. Reserved slugs are skipped.
 
 ## Services
 
-`createCoreServices({ store, currentUser, ids })` builds every service on the
-given adapters. It is cheap, so build it per request with that request's
+`createCoreServices({ repositories, currentUser, ids })` builds every service on
+the given adapters. It is cheap, so build it per request with that request's
 `CurrentUser`. Every service acts as the current user, and throws
 `NotSignedInError` if there is none.
 
@@ -203,7 +203,7 @@ interfaces. Adapters elsewhere implement them.
 | `OrgRepository`        | Orgs by id, current slug, or current-or-previous slug                |
 | `WorkspaceRepository`  | Workspaces by org and slug, oldest first                             |
 | `MembershipRepository` | Memberships by org or by user                                        |
-| `TenancyStore`         | All the repositories, plus `transaction` for writes that go together |
+| `Repositories`         | All the repositories, plus `transaction` for writes that go together |
 | `IdGenerator`          | New ids                                                              |
 | `CurrentUser`          | The signed-in user's id, or null                                     |
 | `SignInProvider`       | Starts and completes a sign-in with an identity provider             |
@@ -216,15 +216,16 @@ org's current and previous slugs, and workspace slugs within an org.
 
 `@kmjbyrne/core/testing` has what tests need. It needs Vitest.
 
-- `repositoryContract(createStore)` is a Vitest suite that every implementation
-  of the repositories must pass. Run it against an adapter's `TenancyStore`.
-  Each test makes its own records, so the store can be shared.
-- `InMemoryTenancyStore` implements every repository on plain arrays. It passes
+- `repositoryContract(createRepositories)` is a Vitest suite that every
+  implementation of `Repositories` must pass. Each test makes its own records,
+  so one set of repositories can be shared between tests.
+- `InMemoryRepositories` implements every repository on plain arrays. It passes
   the contract.
 - `FakeCurrentUser` is a `CurrentUser` you can sign in and out.
 - `SequentialIdGenerator` makes the ids `id-1`, `id-2` and so on.
-- `companyOrg(store, setup)` writes a company org, its memberships and
-  workspaces straight to a store, as a platform admin would have made them.
+- `companyOrg(repositories, setup)` writes a company org, its memberships and
+  workspaces straight to the repositories, as a platform admin would have made
+  them.
 - `createTestServices()` builds every service on those. Its `signUp(name)` signs
   a user up as a provider would, and `signInAs(user)` makes them the current
   user:
@@ -242,8 +243,8 @@ t.signInAs(ada)
 import { describe } from 'vitest'
 import { repositoryContract } from '@kmjbyrne/core/testing'
 
-describe('MysqlTenancyStore', () => {
-  repositoryContract(() => store)
+describe('MySQL repositories', () => {
+  repositoryContract(() => repositories)
 })
 ```
 

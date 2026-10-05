@@ -3,7 +3,7 @@ import type { Workspace } from '../entities/Workspace'
 import { roleAllows, type WorkspaceRole } from '../entities/WorkspaceMembership'
 import { ForbiddenError, NotFoundError } from '../errors'
 import type { CurrentUser } from '../ports/CurrentUser'
-import type { TenancyStore } from '../ports/TenancyStore'
+import type { Repositories } from '../ports/Repositories'
 import type { UserId } from '../values/Ids'
 import { parseSlugOrNotFound, requireAccessibleOrg, requireUserId } from './access'
 
@@ -20,7 +20,7 @@ export interface WorkspaceGrant {
  */
 export class WorkspaceAccess {
   constructor(
-    private readonly store: TenancyStore,
+    private readonly repositories: Repositories,
     private readonly currentUser: CurrentUser
   ) {}
 
@@ -31,7 +31,7 @@ export class WorkspaceAccess {
    */
   async require(orgSlug: string, workspaceSlug: string, needed: WorkspaceRole = 'viewer'): Promise<WorkspaceGrant> {
     const userId = requireUserId(this.currentUser)
-    const { org, workspaces } = await requireAccessibleOrg(this.store, orgSlug, userId)
+    const { org, workspaces } = await requireAccessibleOrg(this.repositories, orgSlug, userId)
     const slug = parseSlugOrNotFound(workspaceSlug)
     const found = workspaces.find(entry => entry.workspace.slug === slug)
     if (!found) {

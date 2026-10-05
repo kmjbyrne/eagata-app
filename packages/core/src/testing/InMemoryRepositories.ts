@@ -6,7 +6,7 @@ import type { WorkspaceMembership } from '../entities/WorkspaceMembership'
 import { AlreadyMemberError, EmailTakenError, IdentityInUseError, SlugTakenError } from '../errors'
 import type { MembershipRepository } from '../ports/MembershipRepository'
 import type { OrgRepository } from '../ports/OrgRepository'
-import type { TenancyRepositories, TenancyStore } from '../ports/TenancyStore'
+import type { Repositories } from '../ports/Repositories'
 import type { UserRepository } from '../ports/UserRepository'
 import type { WorkspaceMembershipRepository } from '../ports/WorkspaceMembershipRepository'
 import type { WorkspaceRepository } from '../ports/WorkspaceRepository'
@@ -30,7 +30,7 @@ const sameIdentity = (a: UserIdentity, b: UserIdentity) => a.provider === b.prov
  * Every core repository on plain arrays, for tests. Each call outside a
  * transaction runs as a transaction of its own, so none is lost to another.
  */
-export class InMemoryTenancyStore implements TenancyStore {
+export class InMemoryRepositories implements Repositories {
   private state: State = { users: [], orgs: [], workspaces: [], memberships: [], workspaceMembers: [] }
   private queue: Promise<unknown> = Promise.resolve()
   readonly users = this.queued('users')
@@ -39,10 +39,10 @@ export class InMemoryTenancyStore implements TenancyStore {
   readonly memberships = this.queued('memberships')
   readonly workspaceMembers = this.queued('workspaceMembers')
 
-  transaction<R>(fn: (repositories: TenancyRepositories) => Promise<R>): Promise<R> {
+  transaction<R>(fn: (tx: Repositories) => Promise<R>): Promise<R> {
     const result = this.queue.then(async () => {
       const snapshot = copy(this.state)
-      const value = await fn(repositories(() => snapshot))
+      const value = await fn(bound(() => snapshot))
       this.state = snapshot
       return value
     })
@@ -50,22 +50,27 @@ export class InMemoryTenancyStore implements TenancyStore {
     return result
   }
 
-  private queued<K extends keyof TenancyRepositories>(name: K): TenancyRepositories[K] {
+  private queued<K extends RepositoryName>(name: K): Repositories[K] {
     return new Proxy({}, {
       get: (_, method: string) => (...args: unknown[]) =>
-        this.transaction(repositories => (repositories[name] as unknown as Record<string, (...args: unknown[]) => Promise<unknown>>)[method]!(...args))
-    }) as TenancyRepositories[K]
+        this.transaction(tx => (tx[name] as unknown as Record<string, (...args: unknown[]) => Promise<unknown>>)[method]!(...args))
+    }) as Repositories[K]
   }
 }
 
-function repositories(state: () => State): TenancyRepositories {
-  return {
+type RepositoryName = Exclude<keyof Repositories, 'transaction'>
+
+/** Repositories working directly on one state. A transaction on them joins the one already running. */
+function bound(state: () => State): Repositories {
+  const repositories: Repositories = {
     users: new InMemoryUserRepository(state),
     orgs: new InMemoryOrgRepository(state),
     workspaces: new InMemoryWorkspaceRepository(state),
     memberships: new InMemoryMembershipRepository(state),
-    workspaceMembers: new InMemoryWorkspaceMembershipRepository(state)
+    workspaceMembers: new InMemoryWorkspaceMembershipRepository(state),
+    transaction: fn => fn(repositories)
   }
+  return repositories
 }
 
 class InMemoryUserRepository implements UserRepository {

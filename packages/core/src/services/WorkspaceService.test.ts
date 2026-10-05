@@ -9,14 +9,14 @@ async function setup() {
   const grace = await t.signUp('Grace Hopper')
   const mary = await t.signUp('Mary Somerville')
   const katherine = await t.signUp('Katherine Johnson')
-  const { workspaces: [general] } = await companyOrg(t.store, {
+  const { workspaces: [general] } = await companyOrg(t.repositories, {
     name: 'Acme',
     slug: 'acme',
     members: [[ada, 'owner'], [katherine, 'admin'], [grace, 'member']],
     workspaces: ['general', 'finance']
   })
-  await t.store.workspaceMembers.add({ workspaceId: general!.id, userId: ada.id, role: 'owner' })
-  await t.store.workspaceMembers.add({ workspaceId: general!.id, userId: grace.id, role: 'viewer' })
+  await t.repositories.workspaceMembers.add({ workspaceId: general!.id, userId: ada.id, role: 'owner' })
+  await t.repositories.workspaceMembers.add({ workspaceId: general!.id, userId: grace.id, role: 'viewer' })
   return { t, ada, grace, mary, katherine }
 }
 
@@ -69,7 +69,7 @@ describe('WorkspaceService', () => {
       const created = await t.services.workspaces.create('acme', 'Marketing Team')
 
       expect(created).toMatchObject({ name: 'Marketing Team', slug: 'marketing-team' })
-      expect(await t.store.workspaceMembers.find(created.id, katherine.id)).toMatchObject({ role: 'owner' })
+      expect(await t.repositories.workspaceMembers.find(created.id, katherine.id)).toMatchObject({ role: 'owner' })
     })
 
     it('takes a chosen slug', async () => {
@@ -136,7 +136,7 @@ describe('WorkspaceService', () => {
       t.signInAs(ada)
       await t.services.workspaces.changeMemberRole('acme', 'general', grace.id, 'editor')
 
-      expect(await t.store.workspaceMembers.find((await t.services.workspaceAccess.require('acme', 'general')).workspace.id, grace.id))
+      expect(await t.repositories.workspaceMembers.find((await t.services.workspaceAccess.require('acme', 'general')).workspace.id, grace.id))
         .toMatchObject({ role: 'editor' })
     })
 

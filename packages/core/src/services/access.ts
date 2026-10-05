@@ -5,7 +5,7 @@ import type { Workspace } from '../entities/Workspace'
 import { effectiveWorkspaceRole, type WorkspaceRole } from '../entities/WorkspaceMembership'
 import { NotFoundError, NotSignedInError } from '../errors'
 import type { CurrentUser } from '../ports/CurrentUser'
-import type { TenancyRepositories } from '../ports/TenancyStore'
+import type { Repositories } from '../ports/Repositories'
 import type { UserId } from '../values/Ids'
 import { parseSlug } from '../values/Slug'
 
@@ -30,8 +30,8 @@ export function requireUserId(currentUser: CurrentUser): UserId {
   return currentUser.userId
 }
 
-export async function requireUser(repositories: TenancyRepositories, currentUser: CurrentUser): Promise<User> {
-  const user = await repositories.users.findById(requireUserId(currentUser))
+export async function requireUser(tx: Repositories, currentUser: CurrentUser): Promise<User> {
+  const user = await tx.users.findById(requireUserId(currentUser))
   if (!user) {
     throw new NotSignedInError()
   }
@@ -39,11 +39,11 @@ export async function requireUser(repositories: TenancyRepositories, currentUser
 }
 
 /** The workspaces of one org the user can see, with their role in each. */
-export async function accessibleWorkspaces(repositories: TenancyRepositories, org: Org, userId: UserId): Promise<AccessibleOrg | null> {
-  const orgRole = (await repositories.memberships.find(org.id, userId))?.role ?? null
+export async function accessibleWorkspaces(tx: Repositories, org: Org, userId: UserId): Promise<AccessibleOrg | null> {
+  const orgRole = (await tx.memberships.find(org.id, userId))?.role ?? null
   const workspaces: AccessibleWorkspace[] = []
-  for (const workspace of await repositories.workspaces.listByOrg(org.id)) {
-    const role = effectiveWorkspaceRole(orgRole, await repositories.workspaceMembers.find(workspace.id, userId))
+  for (const workspace of await tx.workspaces.listByOrg(org.id)) {
+    const role = effectiveWorkspaceRole(orgRole, await tx.workspaceMembers.find(workspace.id, userId))
     if (role) {
       workspaces.push({ workspace, role })
     }
@@ -55,9 +55,9 @@ export async function accessibleWorkspaces(repositories: TenancyRepositories, or
  * The org at a current slug, if the user can reach it. Anyone else gets
  * NotFoundError, so they can't learn the org exists.
  */
-export async function requireAccessibleOrg(repositories: TenancyRepositories, orgSlug: string, userId: UserId): Promise<AccessibleOrg> {
-  const org = await repositories.orgs.findBySlug(parseSlugOrNotFound(orgSlug))
-  const accessible = org && await accessibleWorkspaces(repositories, org, userId)
+export async function requireAccessibleOrg(tx: Repositories, orgSlug: string, userId: UserId): Promise<AccessibleOrg> {
+  const org = await tx.orgs.findBySlug(parseSlugOrNotFound(orgSlug))
+  const accessible = org && await accessibleWorkspaces(tx, org, userId)
   if (!accessible) {
     throw new NotFoundError('Organization not found')
   }

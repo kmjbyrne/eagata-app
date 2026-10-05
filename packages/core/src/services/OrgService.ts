@@ -1,12 +1,12 @@
 import { NotFoundError } from '../errors'
 import type { CurrentUser } from '../ports/CurrentUser'
-import type { TenancyStore } from '../ports/TenancyStore'
+import type { Repositories } from '../ports/Repositories'
 import type { Slug } from '../values/Slug'
 import { accessibleWorkspaces, parseSlugOrNotFound, requireAccessibleOrg, requireUserId, type AccessibleOrg } from './access'
 
 export class OrgService {
   constructor(
-    private readonly store: TenancyStore,
+    private readonly repositories: Repositories,
     private readonly currentUser: CurrentUser
   ) {}
 
@@ -16,17 +16,17 @@ export class OrgService {
    */
   async listMine(): Promise<AccessibleOrg[]> {
     const userId = requireUserId(this.currentUser)
-    const orgIds = new Set((await this.store.memberships.listByUser(userId)).map(membership => membership.orgId))
-    for (const membership of await this.store.workspaceMembers.listByUser(userId)) {
-      const workspace = await this.store.workspaces.findById(membership.workspaceId)
+    const orgIds = new Set((await this.repositories.memberships.listByUser(userId)).map(membership => membership.orgId))
+    for (const membership of await this.repositories.workspaceMembers.listByUser(userId)) {
+      const workspace = await this.repositories.workspaces.findById(membership.workspaceId)
       if (workspace) {
         orgIds.add(workspace.orgId)
       }
     }
     const orgs: AccessibleOrg[] = []
     for (const orgId of orgIds) {
-      const org = await this.store.orgs.findById(orgId)
-      const accessible = org && await accessibleWorkspaces(this.store, org, userId)
+      const org = await this.repositories.orgs.findById(orgId)
+      const accessible = org && await accessibleWorkspaces(this.repositories, org, userId)
       if (accessible) {
         orgs.push(accessible)
       }
@@ -37,7 +37,7 @@ export class OrgService {
 
   /** @throws NotFoundError for an org the user can't reach, or an old slug */
   getBySlug(slug: string): Promise<AccessibleOrg> {
-    return requireAccessibleOrg(this.store, slug, requireUserId(this.currentUser))
+    return requireAccessibleOrg(this.repositories, slug, requireUserId(this.currentUser))
   }
 
   /**
@@ -47,8 +47,8 @@ export class OrgService {
    */
   async resolveSlug(slug: string): Promise<Slug> {
     const userId = requireUserId(this.currentUser)
-    const org = await this.store.orgs.findBySlugOrPrevious(parseSlugOrNotFound(slug))
-    if (!org || !(await accessibleWorkspaces(this.store, org, userId))) {
+    const org = await this.repositories.orgs.findBySlugOrPrevious(parseSlugOrNotFound(slug))
+    if (!org || !(await accessibleWorkspaces(this.repositories, org, userId))) {
       throw new NotFoundError('Organization not found')
     }
     return org.slug

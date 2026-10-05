@@ -5,7 +5,7 @@ import { ensureWorkspaceOwnerRemains, parseWorkspaceRole } from '../entities/Wor
 import { ForbiddenError, NotFoundError } from '../errors'
 import type { CurrentUser } from '../ports/CurrentUser'
 import type { IdGenerator } from '../ports/IdGenerator'
-import type { TenancyStore } from '../ports/TenancyStore'
+import type { Repositories } from '../ports/Repositories'
 import { parseEmail } from '../values/Email'
 import type { UserId, WorkspaceId } from '../values/Ids'
 import { parseName } from '../values/Name'
@@ -20,7 +20,7 @@ export interface WorkspaceMember {
 
 export class WorkspaceService {
   constructor(
-    private readonly store: TenancyStore,
+    private readonly repositories: Repositories,
     private readonly currentUser: CurrentUser,
     private readonly ids: IdGenerator,
     private readonly access: WorkspaceAccess
@@ -28,7 +28,7 @@ export class WorkspaceService {
 
   /** The org's workspaces the user can see, oldest first. */
   async list(orgSlug: string): Promise<AccessibleWorkspace[]> {
-    return (await requireAccessibleOrg(this.store, orgSlug, requireUserId(this.currentUser))).workspaces
+    return (await requireAccessibleOrg(this.repositories, orgSlug, requireUserId(this.currentUser))).workspaces
   }
 
   /**
@@ -39,7 +39,7 @@ export class WorkspaceService {
    */
   async create(orgSlug: string, name: string, slug?: string): Promise<Workspace> {
     const userId = requireUserId(this.currentUser)
-    const { org, role } = await requireAccessibleOrg(this.store, orgSlug, userId)
+    const { org, role } = await requireAccessibleOrg(this.repositories, orgSlug, userId)
     if (!role || !canManageWorkspaces(role)) {
       throw new ForbiddenError('Only organization owners and admins create workspaces')
     }
@@ -50,9 +50,9 @@ export class WorkspaceService {
       slug: slug === undefined ? suggestSlug(name) : parseSlug(slug),
       createdAt: new Date()
     }
-    await this.store.transaction(async (repositories) => {
-      await repositories.workspaces.create(workspace)
-      await repositories.workspaceMembers.add({ workspaceId: workspace.id, userId, role: 'owner' })
+    await this.repositories.transaction(async (tx) => {
+      await tx.workspaces.create(workspace)
+      await tx.workspaceMembers.add({ workspaceId: workspace.id, userId, role: 'owner' })
     })
     return workspace
   }
@@ -61,8 +61,8 @@ export class WorkspaceService {
   async listMembers(orgSlug: string, workspaceSlug: string): Promise<WorkspaceMember[]> {
     const { workspace } = await this.access.require(orgSlug, workspaceSlug)
     const members: WorkspaceMember[] = []
-    for (const membership of await this.store.workspaceMembers.listByWorkspace(workspace.id)) {
-      const user = await this.store.users.findById(membership.userId)
+    for (const membership of await this.repositories.workspaceMembers.listByWorkspace(workspace.id)) {
+      const user = await this.repositories.users.findById(membership.userId)
       if (user) {
         members.push({ user: { id: user.id, displayName: user.displayName, email: user.email, avatarUrl: user.avatarUrl }, role: membership.role })
       }
@@ -79,11 +79,11 @@ export class WorkspaceService {
   async addMember(orgSlug: string, workspaceSlug: string, email: string, role: string): Promise<WorkspaceMember> {
     const { workspace } = await this.access.require(orgSlug, workspaceSlug, 'owner')
     const parsedRole = parseWorkspaceRole(role)
-    const user = await this.store.users.findByEmail(parseEmail(email))
+    const user = await this.repositories.users.findByEmail(parseEmail(email))
     if (!user) {
       throw new NotFoundError('No account has that email. They need to sign up first')
     }
-    await this.store.workspaceMembers.add({ workspaceId: workspace.id, userId: user.id, role: parsedRole })
+    await this.repositories.workspaceMembers.add({ workspaceId: workspace.id, userId: user.id, role: parsedRole })
     return { user: { id: user.id, displayName: user.displayName, email: user.email, avatarUrl: user.avatarUrl }, role: parsedRole }
   }
 
@@ -91,13 +91,13 @@ export class WorkspaceService {
   async changeMemberRole(orgSlug: string, workspaceSlug: string, userId: UserId, role: string): Promise<void> {
     const { workspace } = await this.access.require(orgSlug, workspaceSlug, 'owner')
     const parsedRole = parseWorkspaceRole(role)
-    await this.store.transaction(async (repositories) => {
-      const membership = await repositories.workspaceMembers.find(workspace.id, userId)
+    await this.repositories.transaction(async (tx) => {
+      const membership = await tx.workspaceMembers.find(workspace.id, userId)
       if (!membership) {
         throw new NotFoundError('That user is not a member of this workspace')
       }
-      ensureWorkspaceOwnerRemains(await repositories.workspaceMembers.listByWorkspace(workspace.id), userId, parsedRole)
-      await repositories.workspaceMembers.update({ ...membership, role: parsedRole })
+      ensureWorkspaceOwnerRemains(await tx.workspaceMembers.listByWorkspace(workspace.id), userId, parsedRole)
+      await tx.workspaceMembers.update({ ...membership, role: parsedRole })
     })
   }
 
@@ -108,12 +108,12 @@ export class WorkspaceService {
   async removeMember(orgSlug: string, workspaceSlug: string, userId: UserId): Promise<void> {
     const leaving = userId === requireUserId(this.currentUser)
     const { workspace } = await this.access.require(orgSlug, workspaceSlug, leaving ? 'viewer' : 'owner')
-    await this.store.transaction(async (repositories) => {
-      if (!(await repositories.workspaceMembers.find(workspace.id, userId))) {
+    await this.repositories.transaction(async (tx) => {
+      if (!(await tx.workspaceMembers.find(workspace.id, userId))) {
         throw new NotFoundError('That user is not a member of this workspace')
       }
-      ensureWorkspaceOwnerRemains(await repositories.workspaceMembers.listByWorkspace(workspace.id), userId, null)
-      await repositories.workspaceMembers.remove(workspace.id, userId)
+      ensureWorkspaceOwnerRemains(await tx.workspaceMembers.listByWorkspace(workspace.id), userId, null)
+      await tx.workspaceMembers.remove(workspace.id, userId)
     })
   }
 }

@@ -31,13 +31,13 @@ describe('AuthService.signIn', () => {
         isPlatformAdmin: false,
         identities: [{ provider: 'google', subject: 'g-ada' }]
       })
-      const [membership] = await t.store.memberships.listByUser(ada.id)
-      const org = await t.store.orgs.findById(membership!.orgId)
-      const [workspace] = await t.store.workspaces.listByOrg(org!.id)
+      const [membership] = await t.repositories.memberships.listByUser(ada.id)
+      const org = await t.repositories.orgs.findById(membership!.orgId)
+      const [workspace] = await t.repositories.workspaces.listByOrg(org!.id)
       expect(membership!.role).toBe('owner')
       expect(org).toMatchObject({ name: 'Ada Lovelace', slug: 'ada-lovelace', isPersonal: true })
       expect(workspace).toMatchObject({ name: 'General', slug: 'general' })
-      expect(await t.store.workspaceMembers.find(workspace!.id, ada.id)).toMatchObject({ role: 'owner' })
+      expect(await t.repositories.workspaceMembers.find(workspace!.id, ada.id)).toMatchObject({ role: 'owner' })
     })
 
     it('names the user after their email when the provider sends no name', async () => {
@@ -53,8 +53,8 @@ describe('AuthService.signIn', () => {
       const admin = await t.services.auth.signIn(identity({ subject: 'g-admin', email: parseEmail('admin@example.com'), name: 'Admin' }))
 
       const slugOf = async (userId: UserId) => {
-        const [membership] = await t.store.memberships.listByUser(userId)
-        return (await t.store.orgs.findById(membership!.orgId))!.slug
+        const [membership] = await t.repositories.memberships.listByUser(userId)
+        return (await t.repositories.orgs.findById(membership!.orgId))!.slug
       }
       expect(await slugOf(second.id)).toBe('ada-lovelace-2')
       expect(await slugOf(admin.id)).toBe('admin-2')
@@ -64,8 +64,8 @@ describe('AuthService.signIn', () => {
       const t = createTestServices()
 
       await expect(t.services.auth.signIn(identity({ emailVerified: false }))).rejects.toThrow(EmailNotVerifiedError)
-      expect(await t.store.users.list()).toEqual([])
-      expect(await t.store.orgs.list()).toEqual([])
+      expect(await t.repositories.users.list()).toEqual([])
+      expect(await t.repositories.orgs.list()).toEqual([])
     })
   })
 
@@ -76,8 +76,8 @@ describe('AuthService.signIn', () => {
       const again = await t.services.auth.signIn(identity({ picture: 'https://example.com/new.png' }))
 
       expect(again.id).toBe(first.id)
-      expect((await t.store.users.findById(first.id))?.avatarUrl).toBe('https://example.com/new.png')
-      expect(await t.store.orgs.list()).toHaveLength(1)
+      expect((await t.repositories.users.findById(first.id))?.avatarUrl).toBe('https://example.com/new.png')
+      expect(await t.repositories.orgs.list()).toHaveLength(1)
     })
 
     it('signs in by identity even after the email changed at the provider', async () => {
@@ -89,16 +89,16 @@ describe('AuthService.signIn', () => {
 
     it('links a verified email to a user who has not signed in yet', async () => {
       const t = createTestServices()
-      const created = await t.store.transaction(async (repositories) => {
+      const created = await t.repositories.transaction(async (tx) => {
         const user = { id: 'u-made' as UserId, displayName: parseName('Ada'), email: parseEmail('ada@example.com'), avatarUrl: null, isPlatformAdmin: false, identities: [] }
-        await repositories.users.create(user)
+        await tx.users.create(user)
         return user
       })
       const signedIn = await t.services.auth.signIn(identity())
 
       expect(signedIn.id).toBe(created.id)
-      expect((await t.store.users.findById(created.id))?.identities).toEqual([{ provider: 'google', subject: 'g-ada' }])
-      expect(await t.store.orgs.list()).toEqual([])
+      expect((await t.repositories.users.findById(created.id))?.identities).toEqual([{ provider: 'google', subject: 'g-ada' }])
+      expect(await t.repositories.orgs.list()).toEqual([])
     })
 
     it('never links an unverified email to an existing user', async () => {

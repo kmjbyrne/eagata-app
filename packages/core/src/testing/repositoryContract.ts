@@ -5,7 +5,7 @@ import type { User } from '../entities/User'
 import type { Workspace } from '../entities/Workspace'
 import type { WorkspaceMembership } from '../entities/WorkspaceMembership'
 import { AlreadyMemberError, EmailTakenError, IdentityInUseError, SlugTakenError } from '../errors'
-import type { TenancyStore } from '../ports/TenancyStore'
+import type { Repositories } from '../ports/Repositories'
 import type { Email } from '../values/Email'
 import type { OrgId, UserId, WorkspaceId } from '../values/Ids'
 import type { Name } from '../values/Name'
@@ -13,7 +13,7 @@ import type { Slug } from '../values/Slug'
 
 const google = (subject: string) => ({ provider: 'google', subject })
 
-/** Ids are unique per call, so a store shared between tests never clashes. */
+/** Ids are unique per call, so a repositories shared between tests never clashes. */
 let sequence = 0
 const id = () => `id-${++sequence}-${Math.random().toString(36).slice(2, 8)}`
 
@@ -42,281 +42,292 @@ function workspace(orgId: OrgId, overrides: Partial<Workspace> = {}): Workspace 
 
 /**
  * The behaviour every implementation of core's repositories must have. Call
- * it from a test file with a function that returns a store. The store may be
+ * it from a test file with a function that returns a repositories. The repositories may be
  * shared between tests: every test makes its own records.
  */
-export function repositoryContract(createStore: () => TenancyStore | Promise<TenancyStore>): void {
+export function repositoryContract(createRepositories: () => Repositories | Promise<Repositories>): void {
   describe('users', () => {
     it('finds a user by id, email and identity', async () => {
-      const store = await createStore()
+      const repositories = await createRepositories()
       const ada = user({ identities: [google(id())] })
-      await store.users.create(ada)
+      await repositories.users.create(ada)
 
-      expect(await store.users.findById(ada.id)).toEqual(ada)
-      expect(await store.users.findByEmail(ada.email)).toEqual(ada)
-      expect(await store.users.findByIdentity(ada.identities[0]!)).toEqual(ada)
-      expect(await store.users.findById(id() as UserId)).toBeNull()
-      expect(await store.users.findByIdentity({ provider: 'other', subject: ada.identities[0]!.subject })).toBeNull()
+      expect(await repositories.users.findById(ada.id)).toEqual(ada)
+      expect(await repositories.users.findByEmail(ada.email)).toEqual(ada)
+      expect(await repositories.users.findByIdentity(ada.identities[0]!)).toEqual(ada)
+      expect(await repositories.users.findById(id() as UserId)).toBeNull()
+      expect(await repositories.users.findByIdentity({ provider: 'other', subject: ada.identities[0]!.subject })).toBeNull()
     })
 
     it('lists users by display name', async () => {
-      const store = await createStore()
+      const repositories = await createRepositories()
       const prefix = id()
-      await store.users.create(user({ displayName: `${prefix} b` as Name }))
-      await store.users.create(user({ displayName: `${prefix} a` as Name }))
-      const names = (await store.users.list()).map(found => found.displayName).filter(name => name.startsWith(prefix))
+      await repositories.users.create(user({ displayName: `${prefix} b` as Name }))
+      await repositories.users.create(user({ displayName: `${prefix} a` as Name }))
+      const names = (await repositories.users.list()).map(found => found.displayName).filter(name => name.startsWith(prefix))
 
       expect(names).toEqual([`${prefix} a`, `${prefix} b`])
     })
 
     it('rejects a second user with the same email', async () => {
-      const store = await createStore()
+      const repositories = await createRepositories()
       const ada = user()
-      await store.users.create(ada)
+      await repositories.users.create(ada)
 
-      await expect(store.users.create(user({ email: ada.email }))).rejects.toThrow(EmailTakenError)
+      await expect(repositories.users.create(user({ email: ada.email }))).rejects.toThrow(EmailTakenError)
     })
 
     it('updates a user but not their identities', async () => {
-      const store = await createStore()
+      const repositories = await createRepositories()
       const ada = user({ identities: [google(id())] })
-      await store.users.create(ada)
+      await repositories.users.create(ada)
       const changed = { ...ada, displayName: 'Ada L' as Name, avatarUrl: 'https://example.com/a.png', isPlatformAdmin: true, identities: [] }
-      await store.users.update(changed)
+      await repositories.users.update(changed)
 
-      expect(await store.users.findById(ada.id)).toEqual({ ...changed, identities: ada.identities })
+      expect(await repositories.users.findById(ada.id)).toEqual({ ...changed, identities: ada.identities })
     })
 
     it('rejects an update to another user\'s email', async () => {
-      const store = await createStore()
+      const repositories = await createRepositories()
       const ada = user()
       const grace = user()
-      await store.users.create(ada)
-      await store.users.create(grace)
+      await repositories.users.create(ada)
+      await repositories.users.create(grace)
 
-      await expect(store.users.update({ ...grace, email: ada.email })).rejects.toThrow(EmailTakenError)
+      await expect(repositories.users.update({ ...grace, email: ada.email })).rejects.toThrow(EmailTakenError)
     })
 
     it('links an identity once, and only to one user', async () => {
-      const store = await createStore()
+      const repositories = await createRepositories()
       const ada = user()
       const grace = user()
       const identity = google(id())
-      await store.users.create(ada)
-      await store.users.create(grace)
-      await store.users.linkIdentity(ada.id, identity)
-      await store.users.linkIdentity(ada.id, identity)
+      await repositories.users.create(ada)
+      await repositories.users.create(grace)
+      await repositories.users.linkIdentity(ada.id, identity)
+      await repositories.users.linkIdentity(ada.id, identity)
 
-      expect((await store.users.findByIdentity(identity))?.id).toBe(ada.id)
-      expect((await store.users.findById(ada.id))?.identities).toEqual([identity])
-      await expect(store.users.linkIdentity(grace.id, identity)).rejects.toThrow(IdentityInUseError)
+      expect((await repositories.users.findByIdentity(identity))?.id).toBe(ada.id)
+      expect((await repositories.users.findById(ada.id))?.identities).toEqual([identity])
+      await expect(repositories.users.linkIdentity(grace.id, identity)).rejects.toThrow(IdentityInUseError)
     })
 
     it('counts platform admins', async () => {
-      const store = await createStore()
-      const before = await store.users.countPlatformAdmins()
-      await store.users.create(user({ isPlatformAdmin: true }))
-      await store.users.create(user())
+      const repositories = await createRepositories()
+      const before = await repositories.users.countPlatformAdmins()
+      await repositories.users.create(user({ isPlatformAdmin: true }))
+      await repositories.users.create(user())
 
-      expect(await store.users.countPlatformAdmins()).toBe(before + 1)
+      expect(await repositories.users.countPlatformAdmins()).toBe(before + 1)
     })
   })
 
   describe('orgs', () => {
     it('finds an org by id and current slug, and by a previous slug only when asked', async () => {
-      const store = await createStore()
+      const repositories = await createRepositories()
       const acme = org({ previousSlugs: [id() as Slug], isPersonal: true })
-      await store.orgs.create(acme)
+      await repositories.orgs.create(acme)
 
-      expect(await store.orgs.findById(acme.id)).toEqual(acme)
-      expect(await store.orgs.findBySlug(acme.slug)).toEqual(acme)
-      expect(await store.orgs.findBySlug(acme.previousSlugs[0]!)).toBeNull()
-      expect(await store.orgs.findBySlugOrPrevious(acme.previousSlugs[0]!)).toEqual(acme)
-      expect(await store.orgs.findBySlugOrPrevious(acme.slug)).toEqual(acme)
+      expect(await repositories.orgs.findById(acme.id)).toEqual(acme)
+      expect(await repositories.orgs.findBySlug(acme.slug)).toEqual(acme)
+      expect(await repositories.orgs.findBySlug(acme.previousSlugs[0]!)).toBeNull()
+      expect(await repositories.orgs.findBySlugOrPrevious(acme.previousSlugs[0]!)).toEqual(acme)
+      expect(await repositories.orgs.findBySlugOrPrevious(acme.slug)).toEqual(acme)
     })
 
     it('lists orgs by name', async () => {
-      const store = await createStore()
+      const repositories = await createRepositories()
       const prefix = id()
-      await store.orgs.create(org({ name: `${prefix} b` as Name }))
-      await store.orgs.create(org({ name: `${prefix} a` as Name }))
-      const names = (await store.orgs.list()).map(found => found.name).filter(name => name.startsWith(prefix))
+      await repositories.orgs.create(org({ name: `${prefix} b` as Name }))
+      await repositories.orgs.create(org({ name: `${prefix} a` as Name }))
+      const names = (await repositories.orgs.list()).map(found => found.name).filter(name => name.startsWith(prefix))
 
       expect(names).toEqual([`${prefix} a`, `${prefix} b`])
     })
 
     it('rejects a slug that is another org\'s current or previous slug', async () => {
-      const store = await createStore()
+      const repositories = await createRepositories()
       const acme = org({ previousSlugs: [id() as Slug] })
-      await store.orgs.create(acme)
+      await repositories.orgs.create(acme)
 
-      await expect(store.orgs.create(org({ slug: acme.slug }))).rejects.toThrow(SlugTakenError)
-      await expect(store.orgs.create(org({ slug: acme.previousSlugs[0]! }))).rejects.toThrow(SlugTakenError)
-      await expect(store.orgs.create(org({ previousSlugs: [acme.slug] }))).rejects.toThrow(SlugTakenError)
+      await expect(repositories.orgs.create(org({ slug: acme.slug }))).rejects.toThrow(SlugTakenError)
+      await expect(repositories.orgs.create(org({ slug: acme.previousSlugs[0]! }))).rejects.toThrow(SlugTakenError)
+      await expect(repositories.orgs.create(org({ previousSlugs: [acme.slug] }))).rejects.toThrow(SlugTakenError)
     })
 
     it('updates an org, and checks its slugs against other orgs only', async () => {
-      const store = await createStore()
+      const repositories = await createRepositories()
       const acme = org()
       const globex = org()
-      await store.orgs.create(acme)
-      await store.orgs.create(globex)
+      await repositories.orgs.create(acme)
+      await repositories.orgs.create(globex)
       const renamed = { ...acme, name: 'Acme Two' as Name, slug: id() as Slug, previousSlugs: [acme.slug] }
-      await store.orgs.update(renamed)
+      await repositories.orgs.update(renamed)
 
-      expect(await store.orgs.findById(acme.id)).toEqual(renamed)
-      await expect(store.orgs.update({ ...globex, slug: acme.slug })).rejects.toThrow(SlugTakenError)
+      expect(await repositories.orgs.findById(acme.id)).toEqual(renamed)
+      await expect(repositories.orgs.update({ ...globex, slug: acme.slug })).rejects.toThrow(SlugTakenError)
     })
   })
 
   describe('workspaces', () => {
     it('finds a workspace by id, and by org and slug', async () => {
-      const store = await createStore()
+      const repositories = await createRepositories()
       const acme = org()
-      await store.orgs.create(acme)
+      await repositories.orgs.create(acme)
       const general = workspace(acme.id)
-      await store.workspaces.create(general)
+      await repositories.workspaces.create(general)
 
-      expect(await store.workspaces.findById(general.id)).toEqual(general)
-      expect(await store.workspaces.findById(id() as WorkspaceId)).toBeNull()
-      expect(await store.workspaces.findBySlug(acme.id, general.slug)).toEqual(general)
-      expect(await store.workspaces.findBySlug(id() as OrgId, general.slug)).toBeNull()
+      expect(await repositories.workspaces.findById(general.id)).toEqual(general)
+      expect(await repositories.workspaces.findById(id() as WorkspaceId)).toBeNull()
+      expect(await repositories.workspaces.findBySlug(acme.id, general.slug)).toEqual(general)
+      expect(await repositories.workspaces.findBySlug(id() as OrgId, general.slug)).toBeNull()
     })
 
     it('lists an org\'s workspaces oldest first', async () => {
-      const store = await createStore()
+      const repositories = await createRepositories()
       const acme = org()
-      await store.orgs.create(acme)
+      await repositories.orgs.create(acme)
       const newer = workspace(acme.id, { createdAt: new Date('2026-02-01T00:00:00Z') })
       const older = workspace(acme.id, { createdAt: new Date('2026-01-01T00:00:00Z') })
-      await store.workspaces.create(newer)
-      await store.workspaces.create(older)
+      await repositories.workspaces.create(newer)
+      await repositories.workspaces.create(older)
 
-      expect((await store.workspaces.listByOrg(acme.id)).map(found => found.id)).toEqual([older.id, newer.id])
+      expect((await repositories.workspaces.listByOrg(acme.id)).map(found => found.id)).toEqual([older.id, newer.id])
     })
 
     it('rejects a slug the org already uses, but not one another org uses', async () => {
-      const store = await createStore()
+      const repositories = await createRepositories()
       const acme = org()
       const globex = org()
-      await store.orgs.create(acme)
-      await store.orgs.create(globex)
+      await repositories.orgs.create(acme)
+      await repositories.orgs.create(globex)
       const slug = id() as Slug
-      await store.workspaces.create(workspace(acme.id, { slug }))
-      await store.workspaces.create(workspace(globex.id, { slug }))
+      await repositories.workspaces.create(workspace(acme.id, { slug }))
+      await repositories.workspaces.create(workspace(globex.id, { slug }))
 
-      await expect(store.workspaces.create(workspace(acme.id, { slug }))).rejects.toThrow(SlugTakenError)
+      await expect(repositories.workspaces.create(workspace(acme.id, { slug }))).rejects.toThrow(SlugTakenError)
     })
   })
 
   describe('memberships', () => {
-    async function orgAndUsers(store: TenancyStore) {
+    async function orgAndUsers(repositories: Repositories) {
       const acme = org()
       const ada = user()
       const grace = user()
-      await store.orgs.create(acme)
-      await store.users.create(ada)
-      await store.users.create(grace)
+      await repositories.orgs.create(acme)
+      await repositories.users.create(ada)
+      await repositories.users.create(grace)
       return { acme, ada, grace }
     }
 
     it('adds, finds, lists, changes and removes memberships', async () => {
-      const store = await createStore()
-      const { acme, ada, grace } = await orgAndUsers(store)
+      const repositories = await createRepositories()
+      const { acme, ada, grace } = await orgAndUsers(repositories)
       const owner: Membership = { orgId: acme.id, userId: ada.id, role: 'owner' }
       const member: Membership = { orgId: acme.id, userId: grace.id, role: 'member' }
-      await store.memberships.add(owner)
-      await store.memberships.add(member)
+      await repositories.memberships.add(owner)
+      await repositories.memberships.add(member)
 
-      expect(await store.memberships.find(acme.id, ada.id)).toEqual(owner)
-      expect(await store.memberships.listByOrg(acme.id)).toHaveLength(2)
-      expect(await store.memberships.listByUser(grace.id)).toEqual([member])
+      expect(await repositories.memberships.find(acme.id, ada.id)).toEqual(owner)
+      expect(await repositories.memberships.listByOrg(acme.id)).toHaveLength(2)
+      expect(await repositories.memberships.listByUser(grace.id)).toEqual([member])
 
-      await store.memberships.update({ ...member, role: 'admin' })
-      expect((await store.memberships.find(acme.id, grace.id))?.role).toBe('admin')
+      await repositories.memberships.update({ ...member, role: 'admin' })
+      expect((await repositories.memberships.find(acme.id, grace.id))?.role).toBe('admin')
 
-      await store.memberships.remove(acme.id, grace.id)
-      expect(await store.memberships.find(acme.id, grace.id)).toBeNull()
+      await repositories.memberships.remove(acme.id, grace.id)
+      expect(await repositories.memberships.find(acme.id, grace.id)).toBeNull()
     })
 
     it('rejects a second membership for the same user and org', async () => {
-      const store = await createStore()
-      const { acme, ada } = await orgAndUsers(store)
-      await store.memberships.add({ orgId: acme.id, userId: ada.id, role: 'member' })
+      const repositories = await createRepositories()
+      const { acme, ada } = await orgAndUsers(repositories)
+      await repositories.memberships.add({ orgId: acme.id, userId: ada.id, role: 'member' })
 
-      await expect(store.memberships.add({ orgId: acme.id, userId: ada.id, role: 'admin' })).rejects.toThrow(AlreadyMemberError)
+      await expect(repositories.memberships.add({ orgId: acme.id, userId: ada.id, role: 'admin' })).rejects.toThrow(AlreadyMemberError)
     })
   })
 
   describe('workspace memberships', () => {
-    async function workspaceAndUsers(store: TenancyStore) {
+    async function workspaceAndUsers(repositories: Repositories) {
       const acme = org()
       const ada = user()
       const grace = user()
-      await store.orgs.create(acme)
-      await store.users.create(ada)
-      await store.users.create(grace)
+      await repositories.orgs.create(acme)
+      await repositories.users.create(ada)
+      await repositories.users.create(grace)
       const general = workspace(acme.id)
-      await store.workspaces.create(general)
+      await repositories.workspaces.create(general)
       return { general, ada, grace }
     }
 
     it('adds, finds, lists, changes and removes workspace memberships', async () => {
-      const store = await createStore()
-      const { general, ada, grace } = await workspaceAndUsers(store)
+      const repositories = await createRepositories()
+      const { general, ada, grace } = await workspaceAndUsers(repositories)
       const owner: WorkspaceMembership = { workspaceId: general.id, userId: ada.id, role: 'owner' }
       const viewer: WorkspaceMembership = { workspaceId: general.id, userId: grace.id, role: 'viewer' }
-      await store.workspaceMembers.add(owner)
-      await store.workspaceMembers.add(viewer)
+      await repositories.workspaceMembers.add(owner)
+      await repositories.workspaceMembers.add(viewer)
 
-      expect(await store.workspaceMembers.find(general.id, ada.id)).toEqual(owner)
-      expect(await store.workspaceMembers.listByWorkspace(general.id)).toHaveLength(2)
-      expect(await store.workspaceMembers.listByUser(grace.id)).toEqual([viewer])
+      expect(await repositories.workspaceMembers.find(general.id, ada.id)).toEqual(owner)
+      expect(await repositories.workspaceMembers.listByWorkspace(general.id)).toHaveLength(2)
+      expect(await repositories.workspaceMembers.listByUser(grace.id)).toEqual([viewer])
 
-      await store.workspaceMembers.update({ ...viewer, role: 'editor' })
-      expect((await store.workspaceMembers.find(general.id, grace.id))?.role).toBe('editor')
+      await repositories.workspaceMembers.update({ ...viewer, role: 'editor' })
+      expect((await repositories.workspaceMembers.find(general.id, grace.id))?.role).toBe('editor')
 
-      await store.workspaceMembers.remove(general.id, grace.id)
-      expect(await store.workspaceMembers.find(general.id, grace.id)).toBeNull()
+      await repositories.workspaceMembers.remove(general.id, grace.id)
+      expect(await repositories.workspaceMembers.find(general.id, grace.id)).toBeNull()
     })
 
     it('rejects a second membership for the same user and workspace', async () => {
-      const store = await createStore()
-      const { general, ada } = await workspaceAndUsers(store)
-      await store.workspaceMembers.add({ workspaceId: general.id, userId: ada.id, role: 'viewer' })
+      const repositories = await createRepositories()
+      const { general, ada } = await workspaceAndUsers(repositories)
+      await repositories.workspaceMembers.add({ workspaceId: general.id, userId: ada.id, role: 'viewer' })
 
-      await expect(store.workspaceMembers.add({ workspaceId: general.id, userId: ada.id, role: 'owner' })).rejects.toThrow(AlreadyMemberError)
+      await expect(repositories.workspaceMembers.add({ workspaceId: general.id, userId: ada.id, role: 'owner' })).rejects.toThrow(AlreadyMemberError)
     })
   })
 
   describe('transactions', () => {
     it('keeps every write when the callback resolves, and returns its value', async () => {
-      const store = await createStore()
+      const repositories = await createRepositories()
       const acme = org()
       const ada = user()
 
-      const result = await store.transaction(async (repositories) => {
-        await repositories.orgs.create(acme)
-        await repositories.users.create(ada)
-        await repositories.memberships.add({ orgId: acme.id, userId: ada.id, role: 'owner' })
+      const result = await repositories.transaction(async (tx) => {
+        await tx.orgs.create(acme)
+        await tx.users.create(ada)
+        await tx.memberships.add({ orgId: acme.id, userId: ada.id, role: 'owner' })
         return 'done'
       })
 
       expect(result).toBe('done')
-      expect(await store.memberships.find(acme.id, ada.id)).not.toBeNull()
+      expect(await repositories.memberships.find(acme.id, ada.id)).not.toBeNull()
+    })
+
+    it('joins a transaction started inside another into it', async () => {
+      const repositories = await createRepositories()
+      const acme = org()
+
+      await expect(repositories.transaction(async (tx) => {
+        await tx.transaction(inner => inner.orgs.create(acme))
+        throw new Error('roll back both')
+      })).rejects.toThrow('roll back both')
+      expect(await repositories.orgs.findById(acme.id)).toBeNull()
     })
 
     it('keeps no write when the callback throws', async () => {
-      const store = await createStore()
+      const repositories = await createRepositories()
       const acme = org()
 
-      await expect(store.transaction(async (repositories) => {
-        await repositories.orgs.create(acme)
-        await repositories.workspaces.create(workspace(acme.id))
+      await expect(repositories.transaction(async (tx) => {
+        await tx.orgs.create(acme)
+        await tx.workspaces.create(workspace(acme.id))
         throw new Error('changed my mind')
       })).rejects.toThrow('changed my mind')
-      expect(await store.orgs.findById(acme.id)).toBeNull()
-      expect(await store.workspaces.listByOrg(acme.id)).toEqual([])
+      expect(await repositories.orgs.findById(acme.id)).toBeNull()
+      expect(await repositories.workspaces.listByOrg(acme.id)).toEqual([])
     })
   })
 }

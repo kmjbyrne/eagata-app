@@ -44,13 +44,13 @@ describe('PlatformOrgService', () => {
       expect(acme).toMatchObject({ name: 'Acme Ltd', slug: 'acme', isPersonal: false })
       expect(detail.members.map(member => [member.user.id, member.role])).toEqual([[ada.id, 'owner']])
       expect(detail.workspaces.map(workspace => workspace.slug)).toEqual(['general'])
-      expect(await t.store.workspaceMembers.find(detail.workspaces[0]!.id, ada.id)).toMatchObject({ role: 'owner' })
+      expect(await t.repositories.workspaceMembers.find(detail.workspaces[0]!.id, ada.id)).toMatchObject({ role: 'owner' })
     })
 
     it('doesn\'t make the platform admin a member', async () => {
       const { t, admin } = await setup()
 
-      expect(await t.store.memberships.listByUser(admin.id)).toHaveLength(1)
+      expect(await t.repositories.memberships.listByUser(admin.id)).toHaveLength(1)
     })
 
     it('takes a chosen slug, and rejects reserved and taken ones', async () => {
@@ -84,7 +84,7 @@ describe('PlatformOrgService', () => {
       t.signInAs(ada)
 
       expect(await t.services.orgs.resolveSlug('acme')).toBe('acme-co')
-      t.signInAs((await t.store.users.list()).find(user => user.isPlatformAdmin)!)
+      t.signInAs((await t.repositories.users.list()).find(user => user.isPlatformAdmin)!)
       await expect(t.services.platformOrgs.create('Acme', ada.id)).rejects.toThrow(SlugTakenError)
     })
   })

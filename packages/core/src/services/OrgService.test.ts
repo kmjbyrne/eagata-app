@@ -8,14 +8,14 @@ async function setup() {
   const ada = await t.signUp('Ada Lovelace')
   const grace = await t.signUp('Grace Hopper')
   const mary = await t.signUp('Mary Somerville')
-  const { workspaces: [general, finance] } = await companyOrg(t.store, {
+  const { workspaces: [general, finance] } = await companyOrg(t.repositories, {
     name: 'Acme',
     slug: 'acme',
     previousSlugs: ['acme-old'],
     members: [[ada, 'owner'], [grace, 'member']],
     workspaces: ['general', 'finance']
   })
-  await t.store.workspaceMembers.add({ workspaceId: general!.id, userId: grace.id, role: 'editor' })
+  await t.repositories.workspaceMembers.add({ workspaceId: general!.id, userId: grace.id, role: 'editor' })
   return { t, ada, grace, mary, general: general!, finance: finance! }
 }
 

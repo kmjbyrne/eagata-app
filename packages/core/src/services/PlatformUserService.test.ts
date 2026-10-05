@@ -38,7 +38,7 @@ describe('PlatformUserService', () => {
       const signedIn = await t.signUp('Grace H', { email: 'grace@example.com' })
 
       expect(signedIn.id).toBe(grace.id)
-      expect(await t.store.memberships.listByUser(grace.id)).toHaveLength(1)
+      expect(await t.repositories.memberships.listByUser(grace.id)).toHaveLength(1)
     })
 
     it('rejects an email already in use', async () => {
@@ -63,10 +63,10 @@ describe('PlatformUserService', () => {
     it('grants and revokes the platform role', async () => {
       const { t, ada } = await setup()
       await t.services.platformUsers.setPlatformAdmin(ada.id, true)
-      expect((await t.store.users.findById(ada.id))?.isPlatformAdmin).toBe(true)
+      expect((await t.repositories.users.findById(ada.id))?.isPlatformAdmin).toBe(true)
 
       await t.services.platformUsers.setPlatformAdmin(ada.id, false)
-      expect((await t.store.users.findById(ada.id))?.isPlatformAdmin).toBe(false)
+      expect((await t.repositories.users.findById(ada.id))?.isPlatformAdmin).toBe(false)
     })
 
     it('keeps at least one platform admin', async () => {

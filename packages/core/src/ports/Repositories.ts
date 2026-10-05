@@ -4,21 +4,19 @@ import type { UserRepository } from './UserRepository'
 import type { WorkspaceMembershipRepository } from './WorkspaceMembershipRepository'
 import type { WorkspaceRepository } from './WorkspaceRepository'
 
-export interface TenancyRepositories {
+/** Everything core stores, as core sees it, whatever the database behind it. */
+export interface Repositories {
   users: UserRepository
   orgs: OrgRepository
   workspaces: WorkspaceRepository
   /** Org memberships. */
   memberships: MembershipRepository
   workspaceMembers: WorkspaceMembershipRepository
-}
-
-/** Every repository, plus a way to make several writes succeed or fail together. */
-export interface TenancyStore extends TenancyRepositories {
   /**
-   * Keeps all of `fn`'s writes or none. Checks made inside through the given
-   * repositories hold until it ends, so a rule such as "an org keeps an owner"
-   * can't be broken by two requests at once.
+   * Keeps all of `fn`'s writes or none. Inside, use the repositories `fn` is
+   * given: checks made through them hold until it ends, so a rule such as "an
+   * org keeps an owner" can't be broken by two requests at once. A
+   * transaction started on them joins this one.
    */
-  transaction<R>(fn: (repositories: TenancyRepositories) => Promise<R>): Promise<R>
+  transaction<R>(fn: (tx: Repositories) => Promise<R>): Promise<R>
 }

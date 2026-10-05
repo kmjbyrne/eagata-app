@@ -2,11 +2,11 @@ import type { User } from '../entities/User'
 import { createCoreServices } from '../services/CoreServices'
 import { parseEmail } from '../values/Email'
 import { FakeCurrentUser } from './FakeCurrentUser'
-import { InMemoryTenancyStore } from './InMemoryTenancyStore'
+import { InMemoryRepositories } from './InMemoryRepositories'
 import { SequentialIdGenerator } from './SequentialIdGenerator'
 
 /**
- * Every core service on an in-memory store, for unit tests in core and in
+ * Every core service on in-memory repositories, for unit tests in core and in
  * apps. Sign people up and switch between them with the helpers:
  *
  *   const t = createTestServices()
@@ -14,10 +14,10 @@ import { SequentialIdGenerator } from './SequentialIdGenerator'
  *   t.signInAs(ada)
  */
 export function createTestServices() {
-  const store = new InMemoryTenancyStore()
+  const repositories = new InMemoryRepositories()
   const currentUser = new FakeCurrentUser()
   const ids = new SequentialIdGenerator()
-  const services = createCoreServices({ store, currentUser, ids })
+  const services = createCoreServices({ repositories, currentUser, ids })
 
   /** Signs a new user up as a provider would, with an email made from the name unless given. */
   async function signUp(displayName: string, options: { email?: string, platformAdmin?: boolean } = {}): Promise<User> {
@@ -34,12 +34,12 @@ export function createTestServices() {
       return user
     }
     const admin = { ...user, isPlatformAdmin: true }
-    await store.users.update(admin)
+    await repositories.users.update(admin)
     return admin
   }
 
   return {
-    store,
+    repositories,
     currentUser,
     ids,
     services,
