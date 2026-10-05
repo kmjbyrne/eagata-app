@@ -6,7 +6,15 @@ It works with any OIDC provider that publishes a discovery document.
 
 ## Install
 
-Inside this repository, depend on it from the workspace:
+The package is published to npm with restricted access, so installing it needs
+an npm login with access to the `@kmjbyrne` scope:
+
+```bash
+npm login
+pnpm add @kmjbyrne/oidc
+```
+
+Inside this repository, depend on it from the workspace instead:
 
 ```json
 { "dependencies": { "@kmjbyrne/oidc": "workspace:*" } }

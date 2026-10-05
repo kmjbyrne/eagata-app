@@ -1,11 +1,19 @@
 {
   "name": "@kmjbyrne/oidc",
   "version": "0.0.0",
-  "private": true,
   "description": "OpenID Connect authorization code flow with PKCE, for Node",
   "type": "module",
   "exports": {
     ".": "./src/index.ts"
+  },
+  "files": [
+    "src",
+    "!src/**/*.test.ts",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "restricted",
+    "registry": "https://registry.npmjs.org/"
   },
   "scripts": {
     "typecheck": "tsc -p ."
