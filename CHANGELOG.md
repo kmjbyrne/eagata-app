@@ -12,6 +12,8 @@ sandbox, the docs and the tooling. The format follows
 
 ### Fixed
 
+- The sidebar keeps its navigation on pages outside a workspace, such as
+  Settings, by falling back to the last workspace visited.
 - Buttons in settings and platform cards no longer stretch to full width on wide
   screens.
 - `@kmjbyrne/nuxt-shell`: a refreshed, replayed or stale sign-in callback
