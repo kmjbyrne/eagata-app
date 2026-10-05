@@ -41,6 +41,21 @@ function sessionConfig(name: string, maxAge: number): SessionConfig {
   }
 }
 
+/**
+ * Sets `event.context.actor` from the session, once per request. Middleware
+ * from different layers runs in no guaranteed order, so anything that needs
+ * the actor early calls this rather than relying on the actor middleware
+ * having run.
+ */
+export async function resolveActor(event: H3Event): Promise<void> {
+  if (event.context.actorResolved) {
+    return
+  }
+  const { userId } = await readSession(event)
+  event.context.actor = userId ? { id: userId } : undefined
+  event.context.actorResolved = true
+}
+
 export async function readSession(event: H3Event): Promise<SessionData> {
   return { ...(await useSession<SessionData>(event, sessionConfig(SESSION_COOKIE, SESSION_MAX_AGE_S))).data }
 }
@@ -50,11 +65,13 @@ export async function startSession(event: H3Event, userId: UserId): Promise<void
   const session = await useSession<SessionData>(event, sessionConfig(SESSION_COOKIE, SESSION_MAX_AGE_S))
   await session.update({ userId, lastOrg: undefined, lastWorkspace: undefined })
   event.context.actor = { id: userId }
+  event.context.actorResolved = true
 }
 
 export async function endSession(event: H3Event): Promise<void> {
   await (await useSession(event, sessionConfig(SESSION_COOKIE, SESSION_MAX_AGE_S))).clear()
   event.context.actor = undefined
+  event.context.actorResolved = true
 }
 
 export async function rememberWorkspace(event: H3Event, org: string, workspace: string): Promise<void> {

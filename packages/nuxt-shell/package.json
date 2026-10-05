@@ -9,7 +9,8 @@
     "./types": "./types.ts",
     "./mysql": "./server/adapters/mysql/index.ts",
     "./adapters": "./server/adapters/index.ts",
-    "./testing": "./testing/index.ts"
+    "./testing": "./testing/index.ts",
+    "./contracts": "./shared/contracts/index.ts"
   },
   "files": [
     "nuxt.config.ts",

@@ -208,7 +208,10 @@ decides which org and workspace a request acts on. `sign-in` lives for 10
 minutes and carries one sign-in round trip's `state`, `nonce` and PKCE verifier.
 
 `server/middleware/actor.ts` sets `event.context.actor` from the session on
-every request. `SessionCurrentUser` reads it, so services know who is asking.
+every request, through `resolveActor(event)`. Middleware from different layers
+runs in no guaranteed order, so another layer's middleware that needs the actor
+calls `resolveActor(event)` first. It reads the session once per request.
+`SessionCurrentUser` reads it, so services know who is asking.
 
 Every route is defined with `defineServiceHandler`, which turns the domain's
 errors into responses:
@@ -226,12 +229,12 @@ the same handler for their own routes.
 
 ## Sign-In
 
-| Route                    | What it does                                                                                                                                                                    |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `GET /api/auth/login`    | Keeps a new `state`, `nonce` and PKCE verifier in the `sign-in` cookie, and redirects to the provider. `?hint=` preselects an account.                                          |
+| Route                    | What it does                                                                                                                                                              |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GET /api/auth/login`    | Keeps a new `state`, `nonce` and PKCE verifier in the `sign-in` cookie, and redirects to the provider. `?hint=` preselects an account.                                    |
 | `GET /api/auth/callback` | Checks `state` against the cookie and ends the round trip, so it can't be replayed. Completes the sign-in, signs the person in, starts the session, and redirects to `/`. |
-| `POST /api/auth/logout`  | Ends the session. Answers 204.                                                                                                                                                  |
-| `GET /api/me`            | The signed-in user, or 401.                                                                                                                                                     |
+| `POST /api/auth/logout`  | Ends the session. Answers 204.                                                                                                                                            |
+| `GET /api/me`            | The signed-in user, or 401.                                                                                                                                               |
 
 A state that doesn't match, or a callback this browser never started, is a 400.
 Other failures go back to `/login?error=` with a reason:

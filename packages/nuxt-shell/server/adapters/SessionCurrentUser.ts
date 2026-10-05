@@ -3,8 +3,9 @@ import type { H3Event } from 'h3'
 
 declare module 'h3' {
   interface H3EventContext {
-    /** Who the session says is making the request. Set by the actor middleware. */
+    /** Who the session says is making the request. Set by `resolveActor`. */
     actor?: { id: UserId }
+    actorResolved?: boolean
   }
 }
 
