@@ -3,7 +3,10 @@ import { OIDC_PRESETS, OidcClient } from '@kmjbyrne/oidc'
 import type { H3Event } from 'h3'
 import type { Adapters, CoreAdapters, Services } from '../../types'
 import { MysqlRepositories } from '../adapters/mysql/MysqlRepositories'
+import { ConsoleEmailSender } from '../adapters/ConsoleEmailSender'
+import { InMemoryRateLimiter } from '../adapters/InMemoryRateLimiter'
 import { OidcSignInProvider } from '../adapters/OidcSignInProvider'
+import { SesEmailSender } from '../adapters/SesEmailSender'
 import { SessionCurrentUser } from '../adapters/SessionCurrentUser'
 import { UuidIdGenerator } from '../adapters/UuidIdGenerator'
 import { Container, missingAdapter, type ServiceFactory } from '../container/Container'
@@ -11,9 +14,17 @@ import { Container, missingAdapter, type ServiceFactory } from '../container/Con
 const container = new Container(createDefaultAdapters)
 
 function createDefaultAdapters(): Partial<CoreAdapters> {
-  const { oidc, databaseUrl } = useRuntimeConfig()
+  const { oidc, databaseUrl, email } = useRuntimeConfig()
+  if (!email.sesSender) {
+    console.info('[email] No SES sender configured: mail is logged, not sent.')
+  }
   return {
     ids: new UuidIdGenerator(),
+    emailSender: email.sesSender
+      ? new SesEmailSender({ from: email.sesSender, region: email.sesRegion, accessKeyId: email.accessKeyId, secretAccessKey: email.secretAccessKey })
+      : new ConsoleEmailSender(),
+    // One per process, shared by every request. Counts reset on restart.
+    rateLimiter: new InMemoryRateLimiter(),
     repositories: databaseUrl
       ? new MysqlRepositories(useDatabase())
       : missingAdapter<Repositories>('No data store is configured. Run `pnpm dev` for the sandbox, or set NUXT_DATABASE_URL'),

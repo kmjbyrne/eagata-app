@@ -29,6 +29,7 @@
     "db:test-generate": "drizzle-kit generate --config drizzle.test.config.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-sesv2": "^3.1146.0",
     "@kmjbyrne/core": "workspace:*",
     "@kmjbyrne/oidc": "workspace:*"
   },

@@ -1,4 +1,4 @@
-import type { CoreServices, IdGenerator, Repositories, SignInProvider } from '@kmjbyrne/core'
+import type { CoreServices, EmailSender, IdGenerator, LinkProof, RateLimiter, Repositories, SignInProvider } from '@kmjbyrne/core'
 
 /**
  * An app's own adapters, such as its repositories. Apps add to it:
@@ -18,6 +18,10 @@ export interface CoreAdapters {
   repositories: Repositories
   signIn: SignInProvider
   ids: IdGenerator
+  emailSender: EmailSender
+  rateLimiter: RateLimiter
+  /** Optional: a layer such as passwords supplies it. */
+  linkProof?: LinkProof
 }
 
 export type Adapters = CoreAdapters & AppAdapters

@@ -39,7 +39,7 @@ export class Container {
 
   services(currentUser: CurrentUser): Services {
     const adapters = this.adapters()
-    const core = createCoreServices({ repositories: adapters.repositories, currentUser, ids: adapters.ids })
+    const core = createCoreServices({ repositories: adapters.repositories, currentUser, ids: adapters.ids, linkProof: adapters.linkProof })
     const services: Services = { ...core } as Services
     for (const factory of this.factories) {
       Object.assign(services, factory({ adapters, core, currentUser }))

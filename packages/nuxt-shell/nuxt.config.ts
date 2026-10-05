@@ -9,6 +9,14 @@ export default defineNuxtConfig({
     databaseUrl: '',
     // At least 32 characters. Dev falls back to a fixed secret when empty.
     sessionSecret: '',
+    // With no SES sender, mail is logged instead of sent. Blank keys use the
+    // AWS default credential chain: environment, ~/.aws, or an instance role.
+    email: {
+      sesSender: '',
+      sesRegion: 'eu-west-1',
+      accessKeyId: '',
+      secretAccessKey: ''
+    },
     oidc: {
       // Stored with each linked account. A provider with a preset in
       // @kmjbyrne/oidc, such as "google", needs no issuer settings.
