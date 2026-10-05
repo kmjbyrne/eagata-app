@@ -10,6 +10,13 @@ sandbox, the docs and the tooling. The format follows
 
 ## Unreleased
 
+### Fixed
+
+- `@kmjbyrne/nuxt-shell`: a refreshed, replayed or stale sign-in callback
+  redirects, to `/` when signed in and to `/login` with "This sign-in expired"
+  otherwise, instead of answering 400. Its log line leaves out the provider's
+  code and state.
+
 ### Added
 
 - `@kmjbyrne/core/passwords`: optional passwords. `PasswordService` signs in,

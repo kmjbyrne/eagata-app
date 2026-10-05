@@ -36,17 +36,17 @@ describe('GET /api/auth/callback', () => {
     const authorize = await browser.startSignIn()
     const response = await browser.callback('forged-state', fakeCode({ nonce: authorize.searchParams.get('nonce')!, email: 'eve@example.com' }))
 
-    expect(response.status).toBe(400)
+    expect(response.headers.get('location')).toBe('/login?error=expired')
     expect((await browser.json('/api/me')).status).toBe(401)
   })
 
   it('rejects a callback this browser never started', async () => {
     const response = await new Browser().callback('state-x', fakeCode({ nonce: 'nonce-x', email: 'eve@example.com' }))
 
-    expect(response.status).toBe(400)
+    expect(response.headers.get('location')).toBe('/login?error=expired')
   })
 
-  it('can\'t be replayed, because the round trip ends on first use', async () => {
+  it('can\'t be replayed: a second use sends the signed-in user on, and signs nobody else in', async () => {
     await createUser('once@example.com')
     const browser = new Browser()
     const authorize = await browser.startSignIn()
@@ -54,7 +54,8 @@ describe('GET /api/auth/callback', () => {
     const code = fakeCode({ nonce: authorize.searchParams.get('nonce')!, email: 'once@example.com' })
     await browser.callback(state, code)
 
-    expect((await browser.callback(state, code)).status).toBe(400)
+    expect((await browser.callback(state, code)).headers.get('location')).toBe('/')
+    expect((await new Browser().callback(state, code)).headers.get('location')).toBe('/login?error=expired')
   })
 
   it.each([

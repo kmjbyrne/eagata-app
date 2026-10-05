@@ -26,6 +26,8 @@ async function connect(event: H3Event, identity: ProviderIdentity) {
  * with, or the request was forged or replayed.
  */
 export default defineServiceHandler(async (event) => {
+  // The query holds the provider's one-time code and our state: keep them out of the log.
+  event.context.log?.set({ path: event.path.split('?')[0] })
   const query = await getValidatedQuery(event, callbackQuery.parse)
   const flow = await readFlow(event)
   await endFlow(event)
@@ -35,7 +37,11 @@ export default defineServiceHandler(async (event) => {
     return sendRedirect(event, connecting ? backToSecurity('cancelled') : backToLogin('cancelled'))
   }
   if (!query.code || !query.state || !flow.state || !flow.nonce || !flow.codeVerifier || !flow.redirectUri || query.state !== flow.state) {
-    throw createError({ statusCode: 400, message: 'This sign-in has expired or did not start here. Start again.' })
+    // A refresh or Back replays a used callback, and a stale tab sends one
+    // that expired. Someone already signed in carries on; anyone else starts again.
+    event.context.log?.setLevel('warn')
+    const { userId } = await readSession(event)
+    return sendRedirect(event, userId ? '/' : backToLogin('expired'))
   }
 
   let identity: ProviderIdentity

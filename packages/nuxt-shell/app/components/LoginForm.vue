@@ -6,6 +6,7 @@ const { shell: { brand } } = useAppConfig()
 const route = useRoute()
 
 const messages: Record<SignInError, string> = {
+  'expired': 'This sign-in expired. Start again.',
   'cancelled': 'Sign-in was cancelled.',
   'provider': 'The sign-in provider could not confirm who you are. Try again.',
   'not-invited': 'This account hasn\'t been set up yet. Ask an administrator for access.',

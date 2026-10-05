@@ -15,7 +15,7 @@ export const callbackQuery = z.object({
 })
 
 /** Why a sign-in ended back on /login, in `?error=`. */
-export const SIGN_IN_ERRORS = ['cancelled', 'provider', 'not-invited', 'email-not-verified', 'identity-mismatch', 'deactivated'] as const
+export const SIGN_IN_ERRORS = ['expired', 'cancelled', 'provider', 'not-invited', 'email-not-verified', 'identity-mismatch', 'deactivated'] as const
 
 export type SignInError = typeof SIGN_IN_ERRORS[number]
 
