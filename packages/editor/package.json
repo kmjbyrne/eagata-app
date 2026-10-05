@@ -1,0 +1,33 @@
+{
+  "name": "@varcharley/editor",
+  "version": "0.1.0",
+  "description": "Rich-text HTML editor for Nuxt UI, as a Nuxt layer",
+  "type": "module",
+  "main": "./nuxt.config.ts",
+  "files": [
+    "nuxt.config.ts",
+    "app"
+  ],
+  "peerDependencies": {
+    "@nuxt/ui": "^4.11.2",
+    "nuxt": "^4.5.2"
+  },
+  "dependencies": {
+    "@iconify-json/lucide": "^1.2.137",
+    "@iconify-json/vscode-icons": "^1.2.82",
+    "@tiptap/core": "^3.31.3",
+    "@tiptap/extension-image": "^3.31.3",
+    "@tiptap/extension-superscript": "^3.31.3",
+    "@tiptap/extension-table": "^3.31.3",
+    "@tiptap/extension-text-align": "^3.31.3",
+    "@tiptap/extension-text-style": "^3.31.3",
+    "@tiptap/extensions": "^3.31.3",
+    "@tiptap/pm": "^3.31.3",
+    "@tiptap/vue-3": "^3.31.3",
+    "cropperjs": "^2.2.0",
+    "mammoth": "^1.13.0"
+  },
+  "devDependencies": {
+    "@tiptap/starter-kit": "^3.31.3"
+  }
+}

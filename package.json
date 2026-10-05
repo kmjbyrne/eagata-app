@@ -22,6 +22,7 @@
     "@kmjbyrne/nuxt-platform": "workspace:*",
     "@kmjbyrne/nuxt-shell": "workspace:*",
     "@nuxt/ui": "^4.11.3",
+    "@varcharley/editor": "workspace:*",
     "drizzle-orm": "catalog:",
     "mysql2": "catalog:",
     "nuxt": "^4.5.2",
