@@ -41,6 +41,9 @@ no features of its own beyond the workspace home page.
   functions so forms check slugs as the server does.
 - **Platform roles, org roles and workspace roles stay separate,** in the
   domain, the API and the UI.
+- **Check permissions, never roles.** Services ask `workspaceAccess.require` for
+  a permission, and pages check the `permissions` in responses. What each role
+  may do lives in `packages/core/src/entities/permissions.ts` alone.
 - **Anything a user can't see is not found,** never forbidden, so its existence
   isn't revealed.
 - **The URL decides which org and workspace a request acts on,** never the

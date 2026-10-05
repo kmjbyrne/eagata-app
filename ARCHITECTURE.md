@@ -145,21 +145,24 @@ hypothetical invoices feature:
 1. **Entity:** `core/entities/Invoice.ts`, referring to `WorkspaceId` and
    `UserId`. The app's `core/` has no Nuxt, HTTP, Zod or storage imports.
 2. **Port:** `core/ports/InvoiceRepository.ts`.
-3. **Service:** `core/services/InvoiceService.ts`. Every method starts with
-   `workspaceAccess.require(orgSlug, workspaceSlug, 'editor')`, so every app
-   checks access the same way. Its tests use `createTestServices()` from
-   `@kmjbyrne/core/testing`.
-4. **Repositories:** one on the JSON store in `sandbox/server/`, with fixtures,
+3. **Permissions:** `core/permissions.ts` extends `workspacePermissions` with
+   the feature's own, such as `'invoices.approve': 'owner'`. Code asks for
+   permissions, never roles.
+4. **Service:** `core/services/InvoiceService.ts`. Every method starts with
+   `workspaceAccess.require` with a permission, such as `'invoices.approve'`,
+   and `invoicePermissions`, so every app checks access the same way. Its tests
+   use `createTestServices()` from `@kmjbyrne/core/testing`.
+5. **Repositories:** one on the JSON store in `sandbox/server/`, with fixtures,
    and one on MariaDB in the app's `server/`, using `useDatabase()`. Both pass
    the same contract tests.
-5. **Contract:** `shared/contracts/invoices.ts`, as Zod schemas.
-6. **Routes:** under `server/api/orgs/[org]/workspaces/[workspace]/invoices/`,
+6. **Contract:** `shared/contracts/invoices.ts`, as Zod schemas.
+7. **Routes:** under `server/api/orgs/[org]/workspaces/[workspace]/invoices/`,
    each validating its input with the contract, calling one service method, and
    mapping the result to the contract.
-7. **Registration:** a Nitro plugin in `server/plugins/` calls
+8. **Registration:** a Nitro plugin in `server/plugins/` calls
    `registerServices`, typed by extending `AppServices` and `AppAdapters`. The
    sandbox's plugin supplies the JSON repository with `provideAdapters`.
-8. **Page:** under `app/pages/[org]/[workspace]/`, linked from the layout.
+9. **Page:** under `app/pages/[org]/[workspace]/`, linked from the layout.
 
 ## Databases
 

@@ -15,7 +15,7 @@ const { refresh: refreshOrgs } = useOrgs()
 const path = computed(() => `/api/orgs/${org.value!.org.slug}/workspaces/${workspace.value!.slug}/members`)
 const { data: members, refresh } = await useFetch<WorkspaceMemberResponse[]>(path, { default: () => [], headers: useRequestHeaders(['cookie']) })
 
-const isOwner = computed(() => workspace.value?.role === 'owner')
+const canManage = computed(() => workspace.value?.permissions.includes('members.manage') ?? false)
 const roles: { label: string, value: WorkspaceRoleValue }[] = [
   { label: 'Owner', value: 'owner' },
   { label: 'Editor', value: 'editor' },
@@ -75,7 +75,7 @@ async function leave() {
     <template #body>
       <div class="mx-auto flex w-full max-w-2xl flex-col gap-6">
         <UPageCard
-          v-if="isOwner"
+          v-if="canManage"
           title="Share this workspace"
           description="Add someone who has an account, by their email."
           variant="subtle"
@@ -125,7 +125,7 @@ async function leave() {
               />
               <div class="flex items-center gap-2">
                 <USelect
-                  v-if="isOwner"
+                  v-if="canManage"
                   :model-value="member.role"
                   :items="roles"
                   class="w-32"
@@ -138,7 +138,7 @@ async function leave() {
                   variant="subtle"
                 />
                 <UButton
-                  v-if="isOwner && member.user.id !== me?.id"
+                  v-if="canManage && member.user.id !== me?.id"
                   icon="i-lucide-x"
                   color="neutral"
                   variant="ghost"

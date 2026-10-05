@@ -58,12 +58,14 @@ describe('GET /api/orgs', () => {
 
     expect(body.map(entry => [entry.org.isPersonal, entry.role])).toEqual([[true, 'owner'], [false, 'owner']])
     expect(body[1]!.workspaces.map(workspace => [workspace.slug, workspace.role])).toEqual([['general', 'owner'], ['finance', 'owner']])
+    expect(body[1]!.permissions).toEqual(['org.view', 'workspaces.create'])
+    expect(body[1]!.workspaces[0]!.permissions).toEqual(['workspace.view', 'members.view', 'members.manage'])
   })
 
   it('shows a plain org member only the workspaces they belong to', async () => {
     const { body } = await grace.json<AccessibleOrgResponse[]>('/api/orgs')
 
-    expect(body.find(entry => entry.org.slug === acme)).toMatchObject({ role: 'member', workspaces: [] })
+    expect(body.find(entry => entry.org.slug === acme)).toMatchObject({ role: 'member', permissions: ['org.view'], workspaces: [] })
   })
 })
 

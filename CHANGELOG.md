@@ -19,6 +19,11 @@ sandbox, the docs and the tooling. The format follows
 
 ### Changed
 
+- `@kmjbyrne/core`: named permissions. `workspacePermissions` and
+  `orgPermissions` map each permission to the least role holding it, and apps
+  extend them with their own. `WorkspaceAccess.require` takes a permission in
+  place of a role, and `canManageWorkspaces` is gone. Org and workspace
+  responses carry `permissions`, and pages check those instead of roles.
 - `@kmjbyrne/core`: the platform role is a grant, `User.platformRole`
   (`{ role, grantedAt, grantedBy }` or null), in place of the `isPlatformAdmin`
   flag. Repositories save it with `setPlatformRole`. The platform user page

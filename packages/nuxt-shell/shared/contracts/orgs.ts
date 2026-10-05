@@ -14,13 +14,17 @@ export const accessibleWorkspace = z.object({
   id: z.string(),
   name: z.string(),
   slug: z.string(),
-  role: workspaceRole
+  role: workspaceRole,
+  /** What the user may do here, such as `members.manage`. Pages check these, never the role. */
+  permissions: z.array(z.string())
 })
 
 /** An org the user can reach, their org role (null if they only reach shared workspaces), and the workspaces they see. */
 export const accessibleOrg = z.object({
   org: orgSummary,
   role: orgRole.nullable(),
+  /** What the user may do in the org, such as `workspaces.create`. Empty without an org role. */
+  permissions: z.array(z.string()),
   workspaces: z.array(accessibleWorkspace)
 })
 

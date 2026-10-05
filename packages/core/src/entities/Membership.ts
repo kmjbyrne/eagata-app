@@ -26,9 +26,6 @@ export function parseOrgRole(input: string): OrgRole {
   return input as OrgRole
 }
 
-/** Owners and admins run the org day to day. */
-export const canManageWorkspaces = (role: OrgRole) => role === 'owner' || role === 'admin'
-
 /**
  * Checks that changing a member's role, or removing them (`role` null),
  * doesn't take away an org's last owner. Changes to anyone who isn't an owner

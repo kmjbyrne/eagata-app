@@ -93,7 +93,6 @@ The rules that live on the entities:
   working. Moving back to an old slug takes it off the list.
 - `ensureOwnerRemains` throws `LastOwnerError` if a role change or removal would
   leave an org with no owner.
-- `canManageWorkspaces` is true for owners and admins.
 - A new org's first workspace is `DEFAULT_WORKSPACE`: "General", at `general`.
 
 ## Errors
@@ -182,11 +181,41 @@ The rules they enforce:
   remove members. Any member can remove themselves. A workspace always keeps an
   owner.
 
+### Permissions
+
+Code asks for a permission, never a role. `workspacePermissions` and
+`orgPermissions` map each permission to the least role that holds it, and a role
+holds every permission of the roles below it, so a role's powers change in one
+place.
+
+| Permission          | Least role         |
+| ------------------- | ------------------ |
+| `workspace.view`    | Workspace `viewer` |
+| `members.view`      | Workspace `viewer` |
+| `members.manage`    | Workspace `owner`  |
+| `org.view`          | Org `member`       |
+| `workspaces.create` | Org `admin`        |
+
+An app adds its own by extending the workspace set:
+
+```ts
+export const notePermissions = workspacePermissions.extend({
+  'notes.read': 'viewer',
+  'notes.edit': 'editor'
+})
+```
+
+`can(role, permission)` checks one, and `of(role)` lists a role's permissions.
+Org and workspace responses carry `permissions`, so pages show or hide controls
+by permission too. `definePermissions(roles, map)` makes a new set over any
+ordered roles.
+
 ### WorkspaceAccess
 
 An app's own services call
-`workspaceAccess.require(orgSlug, workspaceSlug, role)` before acting in a
-workspace, so every app checks access the same way:
+`workspaceAccess.require(orgSlug, workspaceSlug, permission, permissions?)`
+before acting in a workspace, so every app checks access the same way. Without
+`permissions`, it checks core's own:
 
 ```ts
 class NoteService {
@@ -199,7 +228,8 @@ class NoteService {
     const { workspace, userId } = await this.access.require(
       orgSlug,
       workspaceSlug,
-      'editor'
+      'notes.edit',
+      notePermissions
     )
     return this.notes.create({
       workspaceId: workspace.id,
@@ -212,7 +242,7 @@ class NoteService {
 
 It returns the org, the workspace, the user's effective role and their id. It
 throws `NotFoundError` if they can't see the workspace, and `ForbiddenError` if
-their role is below the one asked for.
+their role lacks the permission.
 
 ## Ports
 

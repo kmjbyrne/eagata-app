@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { workspacePermissions } from '../entities/permissions'
 import { AlreadyMemberError, ForbiddenError, LastOwnerError, NotFoundError, SlugTakenError } from '../errors'
 import { companyOrg } from '../testing/companyOrg'
 import { createTestServices } from '../testing/createTestServices'
@@ -25,7 +26,7 @@ describe('WorkspaceAccess.require', () => {
     const { t, katherine } = await setup()
     t.signInAs(katherine)
 
-    expect((await t.services.workspaceAccess.require('acme', 'finance', 'owner')).role).toBe('owner')
+    expect((await t.services.workspaceAccess.require('acme', 'finance', 'members.manage')).role).toBe('owner')
   })
 
   it('grants a workspace member their workspace role', async () => {
@@ -35,11 +36,20 @@ describe('WorkspaceAccess.require', () => {
     expect((await t.services.workspaceAccess.require('acme', 'general')).role).toBe('viewer')
   })
 
-  it('refuses a role above the member\'s', async () => {
+  it('refuses a permission the member\'s role lacks', async () => {
     const { t, grace } = await setup()
     t.signInAs(grace)
 
-    await expect(t.services.workspaceAccess.require('acme', 'general', 'editor')).rejects.toThrow(ForbiddenError)
+    await expect(t.services.workspaceAccess.require('acme', 'general', 'members.manage')).rejects.toThrow(ForbiddenError)
+  })
+
+  it('checks an app\'s own permissions', async () => {
+    const { t, grace } = await setup()
+    const notes = workspacePermissions.extend({ 'notes.read': 'viewer', 'notes.edit': 'editor' })
+    t.signInAs(grace)
+
+    expect((await t.services.workspaceAccess.require('acme', 'general', 'notes.read', notes)).role).toBe('viewer')
+    await expect(t.services.workspaceAccess.require('acme', 'general', 'notes.edit', notes)).rejects.toThrow(ForbiddenError)
   })
 
   it('hides workspaces from org members who don\'t belong to them, and from outsiders', async () => {

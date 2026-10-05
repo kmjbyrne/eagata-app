@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { LastOwnerError } from '../errors'
 import type { OrgId, UserId } from '../values/Ids'
-import { canManageWorkspaces, ensureOwnerRemains, InvalidOrgRoleError, parseOrgRole, type Membership, type OrgRole } from './Membership'
+import { ensureOwnerRemains, InvalidOrgRoleError, parseOrgRole, type Membership, type OrgRole } from './Membership'
 
 const member = (userId: string, role: OrgRole): Membership => ({ userId: userId as UserId, orgId: 'o1' as OrgId, role })
 const ada = 'ada' as UserId
@@ -13,12 +13,6 @@ describe('parseOrgRole', () => {
 
   it.each(['', 'Owner', 'editor'])('rejects "%s"', (role) => {
     expect(() => parseOrgRole(role)).toThrow(InvalidOrgRoleError)
-  })
-})
-
-describe('canManageWorkspaces', () => {
-  it.each([['owner', true], ['admin', true], ['member', false]] as const)('%s: %s', (role, expected) => {
-    expect(canManageWorkspaces(role)).toBe(expected)
   })
 })
 

@@ -1,4 +1,4 @@
-import { canManageWorkspaces } from '../entities/Membership'
+import { orgPermissions } from '../entities/permissions'
 import type { User } from '../entities/User'
 import type { Workspace } from '../entities/Workspace'
 import { ensureWorkspaceOwnerRemains, parseWorkspaceRole } from '../entities/WorkspaceMembership'
@@ -40,7 +40,7 @@ export class WorkspaceService {
   async create(orgSlug: string, name: string, slug?: string): Promise<Workspace> {
     const userId = await requireActiveUserId(this.repositories, this.currentUser)
     const { org, role } = await requireAccessibleOrg(this.repositories, orgSlug, userId)
-    if (!role || !canManageWorkspaces(role)) {
+    if (!role || !orgPermissions.can(role, 'workspaces.create')) {
       throw new ForbiddenError('Only organization owners and admins create workspaces')
     }
     const workspace: Workspace = {
@@ -59,7 +59,7 @@ export class WorkspaceService {
 
   /** Everyone with a workspace membership. Org owners and admins without one aren't listed. */
   async listMembers(orgSlug: string, workspaceSlug: string): Promise<WorkspaceMember[]> {
-    const { workspace } = await this.access.require(orgSlug, workspaceSlug)
+    const { workspace } = await this.access.require(orgSlug, workspaceSlug, 'members.view')
     const members: WorkspaceMember[] = []
     for (const membership of await this.repositories.workspaceMembers.listByWorkspace(workspace.id)) {
       const user = await this.repositories.users.findById(membership.userId)
@@ -77,7 +77,7 @@ export class WorkspaceService {
    * @throws AlreadyMemberError
    */
   async addMember(orgSlug: string, workspaceSlug: string, email: string, role: string): Promise<WorkspaceMember> {
-    const { workspace } = await this.access.require(orgSlug, workspaceSlug, 'owner')
+    const { workspace } = await this.access.require(orgSlug, workspaceSlug, 'members.manage')
     const parsedRole = parseWorkspaceRole(role)
     const user = await this.repositories.users.findByEmail(parseEmail(email))
     if (!user) {
@@ -89,7 +89,7 @@ export class WorkspaceService {
 
   /** @throws LastOwnerError if no owner would remain */
   async changeMemberRole(orgSlug: string, workspaceSlug: string, userId: UserId, role: string): Promise<void> {
-    const { workspace } = await this.access.require(orgSlug, workspaceSlug, 'owner')
+    const { workspace } = await this.access.require(orgSlug, workspaceSlug, 'members.manage')
     const parsedRole = parseWorkspaceRole(role)
     await this.repositories.transaction(async (tx) => {
       const membership = await tx.workspaceMembers.find(workspace.id, userId)
@@ -107,7 +107,7 @@ export class WorkspaceService {
    */
   async removeMember(orgSlug: string, workspaceSlug: string, userId: UserId): Promise<void> {
     const leaving = userId === await requireActiveUserId(this.repositories, this.currentUser)
-    const { workspace } = await this.access.require(orgSlug, workspaceSlug, leaving ? 'viewer' : 'owner')
+    const { workspace } = await this.access.require(orgSlug, workspaceSlug, leaving ? 'workspace.view' : 'members.manage')
     await this.repositories.transaction(async (tx) => {
       if (!(await tx.workspaceMembers.find(workspace.id, userId))) {
         throw new NotFoundError('That user is not a member of this workspace')
