@@ -1,0 +1,39 @@
+{
+  "name": "@kmjbyrne/sandbox",
+  "version": "0.0.0",
+  "description": "Nuxt layer for local development: JSON dev data, a sign-in stand-in, and dev tools. Never in a production build.",
+  "type": "module",
+  "main": "./nuxt.config.ts",
+  "exports": {
+    ".": "./nuxt.config.ts"
+  },
+  "files": [
+    "nuxt.config.ts",
+    "server",
+    "app",
+    "!**/*.test.ts",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "restricted"
+  },
+  "scripts": {
+    "typecheck": "nuxt typecheck"
+  },
+  "dependencies": {
+    "@kmjbyrne/core": "workspace:*",
+    "@kmjbyrne/json-store": "workspace:*",
+    "@kmjbyrne/oidc": "workspace:*"
+  },
+  "peerDependencies": {
+    "@kmjbyrne/nuxt-shell": "workspace:*",
+    "h3": "catalog:",
+    "nuxt": "^4.5.0",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@kmjbyrne/nuxt-shell": "workspace:*",
+    "h3": "catalog:",
+    "zod": "catalog:"
+  }
+}
