@@ -1,5 +1,5 @@
 import { fileURLToPath } from 'node:url'
-import { repositoryContract } from '@kmjbyrne/core/testing'
+import { repositoryContract } from '@kmjbyrne/core/contract'
 import { sql } from 'drizzle-orm'
 import { migrate } from 'drizzle-orm/mysql2/migrator'
 import { afterAll, beforeAll, describe } from 'vitest'

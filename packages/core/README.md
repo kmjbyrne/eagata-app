@@ -214,11 +214,13 @@ org's current and previous slugs, and workspace slugs within an org.
 
 ## Testing
 
-`@kmjbyrne/core/testing` has what tests need. It needs Vitest.
+`@kmjbyrne/core/contract` exports `repositoryContract(createRepositories)`, a
+Vitest suite that every implementation of `Repositories` must pass. Each test
+makes its own records, so one set of repositories can be shared between tests.
 
-- `repositoryContract(createRepositories)` is a Vitest suite that every
-  implementation of `Repositories` must pass. Each test makes its own records,
-  so one set of repositories can be shared between tests.
+`@kmjbyrne/core/testing` has the fakes. It doesn't import Vitest, so a test
+server can use them too.
+
 - `InMemoryRepositories` implements every repository on plain arrays. It passes
   the contract.
 - `FakeCurrentUser` is a `CurrentUser` you can sign in and out.
@@ -241,7 +243,7 @@ t.signInAs(ada)
 
 ```ts
 import { describe } from 'vitest'
-import { repositoryContract } from '@kmjbyrne/core/testing'
+import { repositoryContract } from '@kmjbyrne/core/contract'
 
 describe('MySQL repositories', () => {
   repositoryContract(() => repositories)
