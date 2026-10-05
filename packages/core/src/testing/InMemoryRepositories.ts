@@ -93,7 +93,7 @@ class InMemoryUserRepository implements UserRepository {
   }
 
   async countPlatformAdmins() {
-    return this.state().users.filter(user => user.isPlatformAdmin).length
+    return this.state().users.filter(user => user.isPlatformAdmin && !user.deactivatedAt).length
   }
 
   async create(user: User) {

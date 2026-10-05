@@ -26,6 +26,7 @@ function user(overrides: Partial<User> = {}): User {
     avatarUrl: null,
     isPlatformAdmin: false,
     identities: [],
+    deactivatedAt: null,
     ...overrides
   }
 }
@@ -81,7 +82,7 @@ export function repositoryContract(createRepositories: () => Repositories | Prom
       const repositories = await createRepositories()
       const ada = user({ identities: [google(id())] })
       await repositories.users.create(ada)
-      const changed = { ...ada, displayName: 'Ada L' as Name, avatarUrl: 'https://example.com/a.png', isPlatformAdmin: true, identities: [] }
+      const changed = { ...ada, displayName: 'Ada L' as Name, avatarUrl: 'https://example.com/a.png', isPlatformAdmin: true, identities: [], deactivatedAt: new Date('2026-03-01T12:00:00.123Z') }
       await repositories.users.update(changed)
 
       expect(await repositories.users.findById(ada.id)).toEqual({ ...changed, identities: ada.identities })
@@ -112,10 +113,11 @@ export function repositoryContract(createRepositories: () => Repositories | Prom
       await expect(repositories.users.linkIdentity(grace.id, identity)).rejects.toThrow(IdentityInUseError)
     })
 
-    it('counts platform admins', async () => {
+    it('counts active platform admins', async () => {
       const repositories = await createRepositories()
       const before = await repositories.users.countPlatformAdmins()
       await repositories.users.create(user({ isPlatformAdmin: true }))
+      await repositories.users.create(user({ isPlatformAdmin: true, deactivatedAt: new Date() }))
       await repositories.users.create(user())
 
       expect(await repositories.users.countPlatformAdmins()).toBe(before + 1)

@@ -24,7 +24,7 @@ import {
   type WorkspaceRepository,
   type WorkspaceRole
 } from '@kmjbyrne/core'
-import { and, asc, eq, inArray } from 'drizzle-orm'
+import { and, asc, eq, inArray, isNull } from 'drizzle-orm'
 import { drizzle } from 'drizzle-orm/mysql2'
 import * as schema from './schema'
 
@@ -109,7 +109,8 @@ class MysqlUserRepository implements UserRepository {
   }
 
   async countPlatformAdmins() {
-    const query = this.db.select({ id: schema.users.id }).from(schema.users).where(eq(schema.users.isPlatformAdmin, true))
+    const query = this.db.select({ id: schema.users.id }).from(schema.users)
+      .where(and(eq(schema.users.isPlatformAdmin, true), isNull(schema.users.deactivatedAt)))
     return (await (this.lock ? query.for('update') : query)).length
   }
 
@@ -120,7 +121,8 @@ class MysqlUserRepository implements UserRepository {
         displayName: user.displayName,
         email: user.email,
         avatarUrl: user.avatarUrl,
-        isPlatformAdmin: user.isPlatformAdmin
+        isPlatformAdmin: user.isPlatformAdmin,
+        deactivatedAt: user.deactivatedAt
       })
     }, () => new EmailTakenError(user.email))
     for (const identity of user.identities) {
@@ -133,7 +135,8 @@ class MysqlUserRepository implements UserRepository {
       displayName: user.displayName,
       email: user.email,
       avatarUrl: user.avatarUrl,
-      isPlatformAdmin: user.isPlatformAdmin
+      isPlatformAdmin: user.isPlatformAdmin,
+      deactivatedAt: user.deactivatedAt
     }).where(eq(schema.users.id, user.id)), () => new EmailTakenError(user.email))
   }
 
@@ -165,6 +168,7 @@ class MysqlUserRepository implements UserRepository {
       email: row.email as Email,
       avatarUrl: row.avatarUrl,
       isPlatformAdmin: row.isPlatformAdmin,
+      deactivatedAt: row.deactivatedAt,
       identities: identities.filter(identity => identity.userId === row.id)
         .map(identity => ({ provider: identity.provider, subject: identity.subject }))
     }))

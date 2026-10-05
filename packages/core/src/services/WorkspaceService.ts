@@ -10,7 +10,7 @@ import { parseEmail } from '../values/Email'
 import type { UserId, WorkspaceId } from '../values/Ids'
 import { parseName } from '../values/Name'
 import { parseSlug, suggestSlug } from '../values/Slug'
-import { requireAccessibleOrg, requireUserId, type AccessibleWorkspace } from './access'
+import { requireAccessibleOrg, requireActiveUserId, type AccessibleWorkspace } from './access'
 import type { WorkspaceAccess } from './WorkspaceAccess'
 
 export interface WorkspaceMember {
@@ -28,7 +28,7 @@ export class WorkspaceService {
 
   /** The org's workspaces the user can see, oldest first. */
   async list(orgSlug: string): Promise<AccessibleWorkspace[]> {
-    return (await requireAccessibleOrg(this.repositories, orgSlug, requireUserId(this.currentUser))).workspaces
+    return (await requireAccessibleOrg(this.repositories, orgSlug, await requireActiveUserId(this.repositories, this.currentUser))).workspaces
   }
 
   /**
@@ -38,7 +38,7 @@ export class WorkspaceService {
    * @throws SlugTakenError
    */
   async create(orgSlug: string, name: string, slug?: string): Promise<Workspace> {
-    const userId = requireUserId(this.currentUser)
+    const userId = await requireActiveUserId(this.repositories, this.currentUser)
     const { org, role } = await requireAccessibleOrg(this.repositories, orgSlug, userId)
     if (!role || !canManageWorkspaces(role)) {
       throw new ForbiddenError('Only organization owners and admins create workspaces')
@@ -106,7 +106,7 @@ export class WorkspaceService {
    * @throws LastOwnerError if no owner would remain
    */
   async removeMember(orgSlug: string, workspaceSlug: string, userId: UserId): Promise<void> {
-    const leaving = userId === requireUserId(this.currentUser)
+    const leaving = userId === await requireActiveUserId(this.repositories, this.currentUser)
     const { workspace } = await this.access.require(orgSlug, workspaceSlug, leaving ? 'viewer' : 'owner')
     await this.repositories.transaction(async (tx) => {
       if (!(await tx.workspaceMembers.find(workspace.id, userId))) {

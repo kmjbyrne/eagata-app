@@ -5,7 +5,7 @@ import { ForbiddenError, NotFoundError } from '../errors'
 import type { CurrentUser } from '../ports/CurrentUser'
 import type { Repositories } from '../ports/Repositories'
 import type { UserId } from '../values/Ids'
-import { parseSlugOrNotFound, requireAccessibleOrg, requireUserId } from './access'
+import { parseSlugOrNotFound, requireAccessibleOrg, requireActiveUserId } from './access'
 
 export interface WorkspaceGrant {
   org: Org
@@ -30,7 +30,7 @@ export class WorkspaceAccess {
    * @throws ForbiddenError if they can see it but their role is below `needed`
    */
   async require(orgSlug: string, workspaceSlug: string, needed: WorkspaceRole = 'viewer'): Promise<WorkspaceGrant> {
-    const userId = requireUserId(this.currentUser)
+    const userId = await requireActiveUserId(this.repositories, this.currentUser)
     const { org, workspaces } = await requireAccessibleOrg(this.repositories, orgSlug, userId)
     const slug = parseSlugOrNotFound(workspaceSlug)
     const found = workspaces.find(entry => entry.workspace.slug === slug)

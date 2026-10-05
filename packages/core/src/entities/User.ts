@@ -27,6 +27,13 @@ export interface User {
   isPlatformAdmin: boolean
   /** Empty until the user first signs in. */
   identities: UserIdentity[]
+  /**
+   * Set by a platform admin. A deactivated user can't sign in, and their
+   * sessions end, but nothing of theirs is removed: reactivating restores it.
+   */
+  deactivatedAt: Date | null
 }
 
 export const hasSignedIn = (user: User) => user.identities.length > 0
+
+export const isActive = (user: User) => user.deactivatedAt === null

@@ -1,5 +1,5 @@
 import type { ProviderIdentity, User } from '../entities/User'
-import { EmailNotVerifiedError, IdentityMismatchError } from '../errors'
+import { AccountDeactivatedError, EmailNotVerifiedError, IdentityMismatchError } from '../errors'
 import type { IdGenerator } from '../ports/IdGenerator'
 import type { Repositories } from '../ports/Repositories'
 import { provisionUser } from './provisionUser'
@@ -17,13 +17,18 @@ export class AuthService {
    * 2. Otherwise a verified email that matches a user links the identity to them.
    * 3. Otherwise a verified email signs up: a new user with a personal org.
    *
-   * An unverified email never links or signs up.
+   * An unverified email never links or signs up. A deactivated user is
+   * refused either way.
+   * @throws AccountDeactivatedError
    * @throws EmailNotVerifiedError
    * @throws IdentityMismatchError
    */
   signIn(identity: ProviderIdentity): Promise<User> {
     return this.repositories.transaction(async (tx) => {
       const known = await tx.users.findByIdentity(identity)
+      if (known?.deactivatedAt) {
+        throw new AccountDeactivatedError()
+      }
       if (known) {
         return this.refreshAvatar(tx, known, identity)
       }
@@ -32,6 +37,9 @@ export class AuthService {
       }
 
       const byEmail = await tx.users.findByEmail(identity.email)
+      if (byEmail?.deactivatedAt) {
+        throw new AccountDeactivatedError()
+      }
       if (byEmail?.identities.some(own => own.provider === identity.provider)) {
         throw new IdentityMismatchError(identity.provider)
       }

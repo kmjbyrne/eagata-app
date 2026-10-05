@@ -25,7 +25,8 @@ export async function provisionUser(tx: Repositories, ids: IdGenerator, input: N
     email: input.email,
     avatarUrl: null,
     isPlatformAdmin: input.isPlatformAdmin ?? false,
-    identities: []
+    identities: [],
+    deactivatedAt: null
   }
   await tx.users.create(user)
 

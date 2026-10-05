@@ -74,12 +74,12 @@ user may do in a workspace, or null for no access.
 
 ## Entities
 
-| Entity       | Fields                                                                     |
-| ------------ | -------------------------------------------------------------------------- |
-| `User`       | `id`, `displayName`, `email`, `avatarUrl`, `isPlatformAdmin`, `identities` |
-| `Org`        | `id`, `name`, `slug`, `previousSlugs`                                      |
-| `Workspace`  | `id`, `orgId`, `name`, `slug`, `createdAt`                                 |
-| `Membership` | `userId`, `orgId`, `role`                                                  |
+| Entity       | Fields                                                                                      |
+| ------------ | ------------------------------------------------------------------------------------------- |
+| `User`       | `id`, `displayName`, `email`, `avatarUrl`, `isPlatformAdmin`, `identities`, `deactivatedAt` |
+| `Org`        | `id`, `name`, `slug`, `previousSlugs`                                                       |
+| `Workspace`  | `id`, `orgId`, `name`, `slug`, `createdAt`                                                  |
+| `Membership` | `userId`, `orgId`, `role`                                                                   |
 
 An org contains workspaces. An app's own entities refer to these by id
 (`UserId`, `OrgId`, `WorkspaceId`), and never extend them.

@@ -39,7 +39,8 @@ export function defaultTenancyFixtures(): TenancyFixtures {
     email: `${person.key}@example.com`,
     avatarUrl: null,
     isPlatformAdmin: person.isPlatformAdmin ?? false,
-    identities: []
+    identities: [],
+    deactivatedAt: null
   }))
 
   const orgs: OrgRecord[] = [

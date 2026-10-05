@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { ProviderIdentity } from '../entities/User'
-import { EmailNotVerifiedError, IdentityMismatchError } from '../errors'
+import { AccountDeactivatedError, EmailNotVerifiedError, IdentityMismatchError } from '../errors'
 import { createTestServices } from '../testing/createTestServices'
 import { parseEmail } from '../values/Email'
 import type { UserId } from '../values/Ids'
@@ -90,7 +90,7 @@ describe('AuthService.signIn', () => {
     it('links a verified email to a user who has not signed in yet', async () => {
       const t = createTestServices()
       const created = await t.repositories.transaction(async (tx) => {
-        const user = { id: 'u-made' as UserId, displayName: parseName('Ada'), email: parseEmail('ada@example.com'), avatarUrl: null, isPlatformAdmin: false, identities: [] }
+        const user = { id: 'u-made' as UserId, displayName: parseName('Ada'), email: parseEmail('ada@example.com'), avatarUrl: null, isPlatformAdmin: false, identities: [], deactivatedAt: null }
         await tx.users.create(user)
         return user
       })
@@ -113,6 +113,15 @@ describe('AuthService.signIn', () => {
       await t.services.auth.signIn(identity())
 
       await expect(t.services.auth.signIn(identity({ subject: 'g-someone-else' }))).rejects.toThrow(IdentityMismatchError)
+    })
+
+    it('refuses a deactivated user, by identity or by email', async () => {
+      const t = createTestServices()
+      const ada = await t.services.auth.signIn(identity())
+      await t.repositories.users.update({ ...ada, deactivatedAt: new Date() })
+
+      await expect(t.services.auth.signIn(identity())).rejects.toThrow(AccountDeactivatedError)
+      await expect(t.services.auth.signIn(identity({ provider: 'microsoft', subject: 'm-ada' }))).rejects.toThrow(AccountDeactivatedError)
     })
 
     it('links an account at another provider to the same user', async () => {

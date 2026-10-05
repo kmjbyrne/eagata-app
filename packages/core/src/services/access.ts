@@ -23,19 +23,25 @@ export interface AccessibleOrg {
   workspaces: AccessibleWorkspace[]
 }
 
-export function requireUserId(currentUser: CurrentUser): UserId {
+function requireUserId(currentUser: CurrentUser): UserId {
   if (!currentUser.userId) {
     throw new NotSignedInError()
   }
   return currentUser.userId
 }
 
+/** The signed-in user. A deactivated user counts as signed out, so their sessions end at once. */
 export async function requireUser(tx: Repositories, currentUser: CurrentUser): Promise<User> {
   const user = await tx.users.findById(requireUserId(currentUser))
-  if (!user) {
+  if (!user || user.deactivatedAt) {
     throw new NotSignedInError()
   }
   return user
+}
+
+/** The signed-in, active user's id. Every service starts here, so a deactivated user's sessions stop working everywhere. */
+export async function requireActiveUserId(tx: Repositories, currentUser: CurrentUser): Promise<UserId> {
+  return (await requireUser(tx, currentUser)).id
 }
 
 /** The workspaces of one org the user can see, with their role in each. */

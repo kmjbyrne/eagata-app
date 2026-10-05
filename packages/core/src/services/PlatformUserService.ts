@@ -1,7 +1,7 @@
 import type { OrgRole } from '../entities/Membership'
 import type { Org } from '../entities/Org'
 import type { User } from '../entities/User'
-import { LastPlatformAdminError, NotFoundError } from '../errors'
+import { ForbiddenError, LastPlatformAdminError, NotFoundError } from '../errors'
 import type { CurrentUser } from '../ports/CurrentUser'
 import type { IdGenerator } from '../ports/IdGenerator'
 import type { Repositories } from '../ports/Repositories'
@@ -67,10 +67,35 @@ export class PlatformUserService {
       if (!user) {
         throw new NotFoundError('User not found')
       }
-      if (user.isPlatformAdmin && !value && await tx.users.countPlatformAdmins() <= 1) {
+      if (user.isPlatformAdmin && !user.deactivatedAt && !value && await tx.users.countPlatformAdmins() <= 1) {
         throw new LastPlatformAdminError()
       }
       const updated = { ...user, isPlatformAdmin: value }
+      await tx.users.update(updated)
+      return updated
+    })
+  }
+
+  /**
+   * Deactivating stops sign-in and ends the user's sessions. Nothing of
+   * theirs is removed, so reactivating restores their access.
+   * @throws ForbiddenError when deactivating yourself
+   * @throws LastPlatformAdminError when deactivating the only active platform admin
+   */
+  setDeactivated(id: UserId, value: boolean): Promise<User> {
+    return this.repositories.transaction(async (tx) => {
+      const admin = await requirePlatformAdmin(tx, this.currentUser)
+      const user = await tx.users.findById(id)
+      if (!user) {
+        throw new NotFoundError('User not found')
+      }
+      if (value && user.id === admin.id) {
+        throw new ForbiddenError('You can\'t deactivate yourself')
+      }
+      if (value && user.isPlatformAdmin && !user.deactivatedAt && await tx.users.countPlatformAdmins() <= 1) {
+        throw new LastPlatformAdminError()
+      }
+      const updated = { ...user, deactivatedAt: value ? (user.deactivatedAt ?? new Date()) : null }
       await tx.users.update(updated)
       return updated
     })

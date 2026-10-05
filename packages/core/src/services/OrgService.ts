@@ -2,7 +2,7 @@ import { NotFoundError } from '../errors'
 import type { CurrentUser } from '../ports/CurrentUser'
 import type { Repositories } from '../ports/Repositories'
 import type { Slug } from '../values/Slug'
-import { accessibleWorkspaces, parseSlugOrNotFound, requireAccessibleOrg, requireUserId, type AccessibleOrg } from './access'
+import { accessibleWorkspaces, parseSlugOrNotFound, requireAccessibleOrg, requireActiveUserId, type AccessibleOrg } from './access'
 
 export class OrgService {
   constructor(
@@ -15,7 +15,7 @@ export class OrgService {
    * see in each. Their personal org comes first, then the rest by name.
    */
   async listMine(): Promise<AccessibleOrg[]> {
-    const userId = requireUserId(this.currentUser)
+    const userId = await requireActiveUserId(this.repositories, this.currentUser)
     const orgIds = new Set((await this.repositories.memberships.listByUser(userId)).map(membership => membership.orgId))
     for (const membership of await this.repositories.workspaceMembers.listByUser(userId)) {
       const workspace = await this.repositories.workspaces.findById(membership.workspaceId)
@@ -52,8 +52,8 @@ export class OrgService {
   }
 
   /** @throws NotFoundError for an org the user can't reach, or an old slug */
-  getBySlug(slug: string): Promise<AccessibleOrg> {
-    return requireAccessibleOrg(this.repositories, slug, requireUserId(this.currentUser))
+  async getBySlug(slug: string): Promise<AccessibleOrg> {
+    return requireAccessibleOrg(this.repositories, slug, await requireActiveUserId(this.repositories, this.currentUser))
   }
 
   /**
@@ -62,7 +62,7 @@ export class OrgService {
    * @throws NotFoundError
    */
   async resolveSlug(slug: string): Promise<Slug> {
-    const userId = requireUserId(this.currentUser)
+    const userId = await requireActiveUserId(this.repositories, this.currentUser)
     const org = await this.repositories.orgs.findBySlugOrPrevious(parseSlugOrNotFound(slug))
     if (!org || !(await accessibleWorkspaces(this.repositories, org, userId))) {
       throw new NotFoundError('Organization not found')

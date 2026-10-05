@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { EmailTakenError, ForbiddenError, LastPlatformAdminError, NotFoundError } from '../errors'
+import { EmailTakenError, ForbiddenError, LastPlatformAdminError, NotFoundError, NotSignedInError } from '../errors'
 import { createTestServices } from '../testing/createTestServices'
 import type { UserId } from '../values/Ids'
 
@@ -56,6 +56,36 @@ describe('PlatformUserService', () => {
       expect((await t.services.platformUsers.list()).map(user => user.displayName)).toEqual(['Ada Lovelace', 'Pat Platform'])
       expect((await t.services.platformUsers.get(ada.id)).orgs.map(entry => entry.org.slug)).toEqual(['ada-lovelace', 'acme'])
       await expect(t.services.platformUsers.get('nobody' as UserId)).rejects.toThrow(NotFoundError)
+    })
+  })
+
+  describe('setDeactivated', () => {
+    it('deactivates a user, ending their session, and reactivates them with their access intact', async () => {
+      const { t, admin, ada } = await setup()
+      await t.services.platformUsers.setDeactivated(ada.id, true)
+      t.signInAs(ada)
+      await expect(t.services.orgs.listMine()).rejects.toThrow(NotSignedInError)
+      await expect(t.services.users.getMe()).rejects.toThrow(NotSignedInError)
+
+      t.signInAs(admin)
+      await t.services.platformUsers.setDeactivated(ada.id, false)
+      t.signInAs(ada)
+      expect((await t.services.orgs.listMine())[0]!.org.slug).toBe('ada-lovelace')
+    })
+
+    it('keeps the platform admin from deactivating themselves', async () => {
+      const { t, admin } = await setup()
+
+      await expect(t.services.platformUsers.setDeactivated(admin.id, true)).rejects.toThrow(ForbiddenError)
+    })
+
+    it('keeps one active platform admin', async () => {
+      const { t, admin, ada } = await setup()
+      await t.services.platformUsers.setPlatformAdmin(ada.id, true)
+      t.signInAs(ada)
+      await t.services.platformUsers.setDeactivated(admin.id, true)
+
+      await expect(t.services.platformUsers.setPlatformAdmin(ada.id, false)).rejects.toThrow(LastPlatformAdminError)
     })
   })
 

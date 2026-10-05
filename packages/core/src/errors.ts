@@ -59,6 +59,13 @@ export class LastPlatformAdminError extends ConflictError {
   }
 }
 
+/** A platform admin deactivated this account. */
+export class AccountDeactivatedError extends DomainError {
+  constructor() {
+    super('This account has been deactivated')
+  }
+}
+
 /** The provider hasn't verified the email, so it can't create or claim an account. */
 export class EmailNotVerifiedError extends DomainError {
   constructor(readonly email: string) {

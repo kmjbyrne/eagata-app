@@ -8,12 +8,13 @@ export interface UserRepository {
   findByIdentity(identity: UserIdentity): Promise<User | null>
   /** By display name. */
   list(): Promise<User[]>
+  /** Active ones only. */
   countPlatformAdmins(): Promise<number>
   /** @throws EmailTakenError */
   create(user: User): Promise<void>
   /**
-   * Saves the display name, email, avatar and platform role. Identities
-   * change only through `linkIdentity`.
+   * Saves the display name, email, avatar, platform role and deactivation.
+   * Identities change only through `linkIdentity`.
    * @throws EmailTakenError
    */
   update(user: User): Promise<void>

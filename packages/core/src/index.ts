@@ -2,7 +2,7 @@ export { canManageWorkspaces, ensureOwnerRemains, InvalidOrgRoleError, ORG_ROLES
 export type { Membership, OrgRole } from './entities/Membership'
 export { changeOrgSlug, orgSlugs } from './entities/Org'
 export type { Org } from './entities/Org'
-export { hasSignedIn } from './entities/User'
+export { hasSignedIn, isActive } from './entities/User'
 export type { ProviderIdentity, User, UserIdentity } from './entities/User'
 export { DEFAULT_WORKSPACE } from './entities/Workspace'
 export {
@@ -16,6 +16,7 @@ export {
 export type { WorkspaceMembership, WorkspaceRole } from './entities/WorkspaceMembership'
 export type { Workspace } from './entities/Workspace'
 export {
+  AccountDeactivatedError,
   AlreadyMemberError,
   ConflictError,
   DomainError,

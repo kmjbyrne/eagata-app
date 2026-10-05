@@ -37,7 +37,13 @@ const toUser = (record: UserRecord): User => ({
   email: record.email as Email,
   avatarUrl: record.avatarUrl,
   isPlatformAdmin: record.isPlatformAdmin,
-  identities: record.identities
+  identities: record.identities,
+  deactivatedAt: record.deactivatedAt ? new Date(record.deactivatedAt) : null
+})
+
+const toUserRecord = (user: User): UserRecord => ({
+  ...user,
+  deactivatedAt: user.deactivatedAt?.toISOString() ?? null
 })
 
 const toOrg = (record: OrgRecord): Org => ({
@@ -106,13 +112,13 @@ class JsonUserRepository implements UserRepository {
   }
 
   async countPlatformAdmins() {
-    return (await this.store.find('users', user => user.isPlatformAdmin)).length
+    return (await this.store.find('users', user => user.isPlatformAdmin && !user.deactivatedAt)).length
   }
 
   create(user: User) {
     return this.store.transaction(async (tx) => {
       await requireEmailFree(tx, user)
-      await tx.put('users', { ...user })
+      await tx.put('users', toUserRecord(user))
     })
   }
 
@@ -123,7 +129,7 @@ class JsonUserRepository implements UserRepository {
         return
       }
       await requireEmailFree(tx, user)
-      await tx.put('users', { ...user, identities: stored.identities })
+      await tx.put('users', { ...toUserRecord(user), identities: stored.identities })
     })
   }
 
