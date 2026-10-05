@@ -13,7 +13,10 @@ export function setupLayer() {
       runtimeConfig: { sessionSecret: 'route-tests-only-session-secret-0123456789' },
       nitro: {
         plugins: [fileURLToPath(new URL('./server/testAdapters.ts', import.meta.url))],
-        handlers: [{ route: '/__test/company-org', method: 'post', handler: fileURLToPath(new URL('./server/companyOrg.post.ts', import.meta.url)) }]
+        handlers: [
+          { route: '/__test/company-org', method: 'post', handler: fileURLToPath(new URL('./server/companyOrg.post.ts', import.meta.url)) },
+          { route: '/__test/deactivate', method: 'post', handler: fileURLToPath(new URL('./server/deactivate.post.ts', import.meta.url)) }
+        ]
       }
     }
   })

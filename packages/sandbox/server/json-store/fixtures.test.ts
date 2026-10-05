@@ -76,6 +76,9 @@ describe('defaultTenancyFixtures', () => {
 
     as('ada')
     expect(await services.orgs.resolveSlug('acme-old')).toBe('acme')
+
+    as('dana')
+    await expect(services.orgs.listMine()).rejects.toThrow('Sign in required')
   })
 })
 
@@ -86,6 +89,7 @@ describe('tenancyDevUsers', () => {
     expect(users.map(user => [user.name, user.description])).toEqual([
       ['Ada Lovelace', 'owner of Acme Ltd'],
       ['Alan Turing', 'member of Acme Ltd'],
+      ['Dana Deactivated', 'Deactivated, member of Acme Ltd'],
       ['Grace Hopper', 'admin of Acme Ltd, member of Globex Corporation'],
       ['Katherine Johnson', 'owner of Globex Corporation'],
       ['Mary Somerville', 'Personal org only'],

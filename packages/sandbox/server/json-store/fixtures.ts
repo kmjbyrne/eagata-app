@@ -8,7 +8,7 @@ export interface TenancyFixtures {
   workspaceMembers: WorkspaceMemberRecord[]
 }
 
-const day = (n: number) => new Date(Date.UTC(2026, 0, n)).toISOString()
+const day = (n: number): string => new Date(Date.UTC(2026, 0, n)).toISOString()
 
 /**
  * A small world that exercises every rule:
@@ -19,6 +19,7 @@ const day = (n: number) => new Date(Date.UTC(2026, 0, n)).toISOString()
  * - Alan is a plain Acme member, who sees only the workspace he was added to.
  * - Katherine owns Globex.
  * - Mary has only her personal org, plus Ada's personal workspace, shared with her.
+ * - Dana was an Acme member until a platform admin deactivated her: she can't sign in.
  * - Acme was once "acme-old", so old links redirect.
  *
  * Every user has a personal org with a General workspace. Nobody has signed
@@ -31,7 +32,8 @@ export function defaultTenancyFixtures(): TenancyFixtures {
     { key: 'grace', name: 'Grace Hopper', slug: 'grace-hopper' },
     { key: 'alan', name: 'Alan Turing', slug: 'alan-turing' },
     { key: 'katherine', name: 'Katherine Johnson', slug: 'katherine-johnson' },
-    { key: 'mary', name: 'Mary Somerville', slug: 'mary-somerville' }
+    { key: 'mary', name: 'Mary Somerville', slug: 'mary-somerville' },
+    { key: 'dana', name: 'Dana Deactivated', slug: 'dana-deactivated', deactivatedAt: day(3) }
   ]
   const users: UserRecord[] = people.map(person => ({
     id: `user-${person.key}`,
@@ -40,7 +42,7 @@ export function defaultTenancyFixtures(): TenancyFixtures {
     avatarUrl: null,
     isPlatformAdmin: person.isPlatformAdmin ?? false,
     identities: [],
-    deactivatedAt: null
+    deactivatedAt: person.deactivatedAt ?? null
   }))
 
   const orgs: OrgRecord[] = [
@@ -64,6 +66,7 @@ export function defaultTenancyFixtures(): TenancyFixtures {
     member('org-acme', 'user-ada', 'owner'),
     member('org-acme', 'user-grace', 'admin'),
     member('org-acme', 'user-alan', 'member'),
+    member('org-acme', 'user-dana', 'member'),
     member('org-globex', 'user-katherine', 'owner'),
     member('org-globex', 'user-grace', 'member')
   ]
@@ -75,6 +78,7 @@ export function defaultTenancyFixtures(): TenancyFixtures {
     share('ws-acme-general', 'user-ada', 'owner'),
     share('ws-acme-finance', 'user-ada', 'owner'),
     share('ws-acme-finance', 'user-alan', 'viewer'),
+    share('ws-acme-general', 'user-dana', 'viewer'),
     share('ws-globex-general', 'user-katherine', 'owner'),
     share('ws-globex-general', 'user-grace', 'editor'),
     share('ws-globex-research', 'user-katherine', 'owner'),

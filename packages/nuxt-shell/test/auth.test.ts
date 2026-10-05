@@ -1,3 +1,4 @@
+import { $fetch } from '@nuxt/test-utils/e2e'
 import { describe, expect, it } from 'vitest'
 import type { MeResponse } from '../shared/contracts/me'
 import { Browser, fakeCode } from './browser'
@@ -71,6 +72,19 @@ describe('GET /api/auth/callback', () => {
     const response = await browser.request('/api/auth/callback?error=access_denied')
 
     expect(response.headers.get('location')).toBe('/login?error=cancelled')
+  })
+})
+
+describe('a deactivated user', () => {
+  it('is sent back to login, and their open session stops working', async () => {
+    const before = new Browser()
+    await before.signIn({ email: 'dana@example.com' })
+    expect((await before.json('/api/me')).status).toBe(200)
+
+    await $fetch('/__test/deactivate', { method: 'POST', body: { email: 'dana@example.com' } })
+
+    expect((await before.json('/api/me')).status).toBe(401)
+    expect((await new Browser().signIn({ email: 'dana@example.com' })).headers.get('location')).toBe('/login?error=deactivated')
   })
 })
 

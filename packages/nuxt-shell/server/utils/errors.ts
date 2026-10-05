@@ -1,4 +1,5 @@
 import {
+  AccountDeactivatedError,
   ConflictError,
   DomainError,
   EmailNotVerifiedError,
@@ -17,7 +18,7 @@ export function domainErrorStatus(error: unknown): number | undefined {
   if (error instanceof NotSignedInError) {
     return 401
   }
-  if (error instanceof ForbiddenError || error instanceof EmailNotVerifiedError) {
+  if (error instanceof ForbiddenError || error instanceof EmailNotVerifiedError || error instanceof AccountDeactivatedError) {
     return 403
   }
   if (error instanceof NotFoundError) {

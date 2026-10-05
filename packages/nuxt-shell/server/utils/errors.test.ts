@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  AccountDeactivatedError,
   AlreadyMemberError,
   EmailNotVerifiedError,
   EmailTakenError,
@@ -22,6 +23,7 @@ describe('domainErrorStatus', () => {
     [new NotSignedInError(), 401],
     [new ForbiddenError('no'), 403],
     [new EmailNotVerifiedError('a@example.com'), 403],
+    [new AccountDeactivatedError(), 403],
     [new NotFoundError('gone'), 404],
     [new SlugTakenError('acme'), 409],
     [new EmailTakenError('a@example.com'), 409],
