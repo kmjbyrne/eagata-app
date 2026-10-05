@@ -193,6 +193,7 @@ place.
 | `workspace.view`    | Workspace `viewer` |
 | `members.view`      | Workspace `viewer` |
 | `members.manage`    | Workspace `owner`  |
+| `media.upload`      | Workspace `viewer` |
 | `org.view`          | Org `member`       |
 | `workspaces.create` | Org `admin`        |
 
@@ -352,3 +353,20 @@ The ports are `PasswordHasher` and `PasswordRepository`. Tests use
 `InMemoryPasswordRepository` and `PlainPasswordHasher` from
 `@kmjbyrne/core/passwords/testing`, and every repository passes
 `passwordRepositoryContract` from `@kmjbyrne/core/passwords/contract`.
+
+## Media
+
+`@kmjbyrne/core/media` is optional, like passwords. `MediaService` stores images
+uploaded in a workspace, under keys of the form
+`workspaces/<workspace id>/<year>/<month>/<uuid>.<ext>`:
+
+- `upload(orgSlug, workspaceSlug, bytes)` needs `media.upload`, which every
+  workspace role holds, so anyone can attach a screenshot to feedback. The type
+  comes from the file's bytes, never its name: JPEG, PNG, GIF or WebP, up to 15
+  MB.
+- `read(key)` serves an image only to people who can see its workspace, and to
+  platform admins. Anyone else, and a malformed or missing key, gets
+  `NotFoundError`.
+
+The port is `MediaStorage`. Tests use `InMemoryMediaStorage` and `PNG_BYTES`
+from `@kmjbyrne/core/media/testing`.

@@ -32,7 +32,9 @@ export function definePermissions<R extends string, const P extends string>(role
 export const workspacePermissions = definePermissions(WORKSPACE_ROLES, {
   'workspace.view': 'viewer',
   'members.view': 'viewer',
-  'members.manage': 'owner'
+  'members.manage': 'owner',
+  // Viewers too, so anyone in the workspace can attach a screenshot to feedback.
+  'media.upload': 'viewer'
 })
 
 export type WorkspacePermission = keyof typeof workspacePermissions.map

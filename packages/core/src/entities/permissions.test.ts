@@ -22,7 +22,7 @@ describe('definePermissions', () => {
 
 describe('the foundation\'s permissions', () => {
   it('lets only workspace owners manage members', () => {
-    expect(workspacePermissions.of('viewer')).toEqual(['workspace.view', 'members.view'])
+    expect(workspacePermissions.of('viewer')).toEqual(['workspace.view', 'members.view', 'media.upload'])
     expect(workspacePermissions.of('owner')).toContain('members.manage')
   })
 

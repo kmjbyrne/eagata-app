@@ -9,7 +9,9 @@
     "./contract": "./src/testing/repositoryContract.ts",
     "./passwords": "./src/passwords/index.ts",
     "./passwords/testing": "./src/passwords/testing.ts",
-    "./passwords/contract": "./src/testing/passwordRepositoryContract.ts"
+    "./passwords/contract": "./src/testing/passwordRepositoryContract.ts",
+    "./media": "./src/media/index.ts",
+    "./media/testing": "./src/media/testing.ts"
   },
   "files": [
     "src",

@@ -23,6 +23,9 @@ sandbox, the docs and the tooling. The format follows
 
 ### Added
 
+- `@kmjbyrne/core/media`: images uploaded per workspace, typed by their bytes,
+  and readable only by the workspace's people and platform admins. A
+  `media.upload` permission, held by every workspace role.
 - Inside the platform area, the user menu's Platform item becomes Application,
   back to the app, through a menu item's `whileInside`.
 - Self-service deactivation: `UserService.deactivateMe`, confirmed by typing the

@@ -6,7 +6,7 @@ import { effectiveWorkspaceRole, type WorkspaceRole } from '../entities/Workspac
 import { NotFoundError, NotSignedInError } from '../errors'
 import type { CurrentUser } from '../ports/CurrentUser'
 import type { Repositories } from '../ports/Repositories'
-import type { UserId } from '../values/Ids'
+import type { UserId, WorkspaceId } from '../values/Ids'
 import { parseSlug } from '../values/Slug'
 
 export interface AccessibleWorkspace {
@@ -55,6 +55,16 @@ export async function accessibleWorkspaces(tx: Repositories, org: Org, userId: U
     }
   }
   return orgRole || workspaces.length ? { org, role: orgRole, workspaces } : null
+}
+
+/** The user's role in one workspace, by id, or null if they can't see it. Three lookups. */
+export async function workspaceRoleById(tx: Repositories, workspaceId: WorkspaceId, userId: UserId): Promise<WorkspaceRole | null> {
+  const workspace = await tx.workspaces.findById(workspaceId)
+  if (!workspace) {
+    return null
+  }
+  const orgRole = (await tx.memberships.find(workspace.orgId, userId))?.role ?? null
+  return effectiveWorkspaceRole(orgRole, await tx.workspaceMembers.find(workspaceId, userId))
 }
 
 /**
