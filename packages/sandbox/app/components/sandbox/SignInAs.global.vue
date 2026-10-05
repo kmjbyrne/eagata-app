@@ -3,13 +3,14 @@ const { users, signInAs } = useSandboxUsers()
 </script>
 
 <template>
-  <UPageCard
+  <div
     v-if="users.length"
-    title="Sign in as"
-    description="Sandbox people, signed in through the real sign-in flow."
-    icon="i-lucide-users"
-    class="w-full max-w-sm"
+    class="flex w-full max-w-sm flex-col gap-3"
   >
+    <USeparator
+      label="or sign in as a test persona"
+      :ui="{ label: 'text-xs text-muted' }"
+    />
     <div class="flex flex-col">
       <UButton
         v-for="user in users"
@@ -25,5 +26,5 @@ const { users, signInAs } = useSandboxUsers()
         </span>
       </UButton>
     </div>
-  </UPageCard>
+  </div>
 </template>

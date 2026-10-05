@@ -196,9 +196,9 @@ export default defineAppConfig({
 })
 ```
 
-`settingsTabs` adds tabs after Profile and Security. `securityExtras` names
-global components rendered on the Security tab. `/profile` redirects to
-`/settings`.
+`brand` sets the sign-in page's name, logo URL and tagline. `settingsTabs` adds
+tabs after Profile and Security. `securityExtras` names global components
+rendered on the Security tab. `/profile` redirects to `/settings`.
 
 `loginExtras` and `userMenuExtras` name global components, rendered by name.
 

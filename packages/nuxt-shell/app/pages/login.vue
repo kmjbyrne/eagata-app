@@ -6,7 +6,7 @@ const { shell } = useAppConfig()
 </script>
 
 <template>
-  <div class="flex min-h-dvh flex-col items-center justify-center gap-4 p-4">
+  <div class="flex min-h-dvh flex-col items-center justify-center gap-8 p-4">
     <LoginForm />
     <component
       :is="name"

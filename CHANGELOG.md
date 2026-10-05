@@ -19,6 +19,10 @@ sandbox, the docs and the tooling. The format follows
 
 ### Changed
 
+- `@kmjbyrne/nuxt-shell`: a new sign-in page: the app's logo, name and tagline
+  over one sign-in button, from `shell.brand` in `app.config`. The sandbox lists
+  its people under "or sign in as a test persona".
+- The reference app: the Eagata logo and favicon.
 - `@kmjbyrne/nuxt-shell`: the database refuses a role core doesn't know, through
   CHECK constraints on `org_memberships`, `workspace_memberships` and
   `platform_roles`, built from core's role lists. Migration `0003`.

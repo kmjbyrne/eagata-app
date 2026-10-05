@@ -2,6 +2,7 @@
 import type { SignInError } from '../../shared/contracts/auth'
 
 const { public: { signInLabel, signInProvider } } = useRuntimeConfig()
+const { shell: { brand } } = useAppConfig()
 const route = useRoute()
 
 const messages: Record<SignInError, string> = {
@@ -16,11 +17,22 @@ const error = computed(() => messages[route.query.error as SignInError])
 </script>
 
 <template>
-  <UPageCard
-    title="Sign in"
-    icon="i-lucide-log-in"
-    class="w-full max-w-sm"
-  >
+  <div class="flex w-full max-w-sm flex-col items-center gap-6">
+    <div class="flex flex-col items-center gap-2 text-center">
+      <img
+        v-if="brand.logo"
+        :src="brand.logo"
+        alt=""
+        class="mb-2 size-16 object-contain"
+      >
+      <h1 class="text-3xl font-bold text-highlighted">
+        {{ brand.name }}
+      </h1>
+      <p class="text-sm text-muted">
+        {{ brand.tagline }}
+      </p>
+    </div>
+
     <UAlert
       v-if="error"
       color="error"
@@ -28,21 +40,29 @@ const error = computed(() => messages[route.query.error as SignInError])
       icon="i-lucide-circle-alert"
       :description="error"
     />
-    <UButton
-      :label="signInLabel"
-      to="/api/auth/login"
-      external
-      block
-      size="lg"
-      color="neutral"
-      variant="outline"
-    >
-      <template #leading>
-        <ProviderLogo
-          :provider="signInProvider"
-          class="size-5"
-        />
-      </template>
-    </UButton>
-  </UPageCard>
+
+    <div class="flex w-full flex-col items-center gap-3">
+      <UButton
+        :label="signInLabel"
+        to="/api/auth/login"
+        external
+        block
+        size="xl"
+        class="justify-center"
+      >
+        <template #leading>
+          <span class="flex size-6 items-center justify-center rounded-full bg-white">
+            <ProviderLogo
+              :provider="signInProvider"
+              class="size-4"
+            />
+          </span>
+        </template>
+      </UButton>
+      <p class="text-center text-xs text-muted">
+        Accounts are set up by an administrator. If yours isn't yet, signing in
+        will tell you so.
+      </p>
+    </div>
+  </div>
 </template>

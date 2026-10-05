@@ -11,7 +11,13 @@ export interface ShellMenuItem {
 // so the shell never imports the layers that fill them.
 export default defineAppConfig({
   shell: {
-    /** Global components rendered under the sign-in form, by name. */
+    /** The app's name and logo on the sign-in page. `logo` is a URL, or empty for none. */
+    brand: {
+      name: 'App',
+      logo: '',
+      tagline: 'Sign in to continue'
+    },
+    /** Global components rendered under the sign-in button, by name. */
     loginExtras: [] as string[],
     /** Extra user menu entries. */
     userMenuItems: [] as ShellMenuItem[],
