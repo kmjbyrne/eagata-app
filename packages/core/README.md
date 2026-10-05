@@ -130,6 +130,11 @@ deactivated user is refused with `AccountDeactivatedError`, whether matched by
 identity or by email. Each sign-in refreshes the user's avatar from the
 provider. The display name stays as the platform admin entered it.
 
+`bootstrapPlatformAdmin(repositories, ids, { email, displayName? })` makes
+someone a platform admin, creating them if they don't exist. It is for the first
+platform admin of a fresh install, and checks no permission, so only tools with
+direct database access call it.
+
 Platform admins create users with `platformUsers.create`. That also creates the
 user's personal org, its "General" workspace, and owner memberships of both. A
 personal org's slug comes from the user's name, with `-2`, `-3` and so on added
