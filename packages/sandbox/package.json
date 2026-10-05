@@ -29,12 +29,14 @@
   },
   "peerDependencies": {
     "@kmjbyrne/nuxt-shell": "workspace:*",
+    "@nuxt/ui": "^4.11.0",
     "h3": "catalog:",
     "nuxt": "^4.5.0",
     "zod": "catalog:"
   },
   "devDependencies": {
     "@kmjbyrne/nuxt-shell": "workspace:*",
+    "@nuxt/ui": "^4.11.3",
     "h3": "catalog:",
     "zod": "catalog:"
   }

@@ -51,6 +51,21 @@ The store is a `FileJsonStore`. It reads and seeds the file on first use, so
 plugin order doesn't matter. `useSandbox()` returns what `defineSandbox` set up,
 for the sandbox's own routes.
 
+## Components
+
+Nuxt UI components, for the app's sandbox to place through the shell's extension
+points. Nuxt prefixes them with their folder:
+
+| Component            | What it is                                                    |
+| -------------------- | ------------------------------------------------------------- |
+| `SandboxSignInAs`    | A card listing the dev users. Choosing one signs in as them.  |
+| `SandboxSwitchUser`  | A "Switch user" menu, for the user menu                       |
+| `SandboxStoreStatus` | When the data was seeded, a drift warning, and a reset button |
+
+Signing in as someone signs out, then runs the real sign-in with them as the
+login hint. The stand-in signs a hinted dev user straight in.
+`useSandboxUsers()` does this for any other control.
+
 ## Endpoints
 
 | Route                      | What it does                                                                                              |
