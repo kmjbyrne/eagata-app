@@ -19,7 +19,7 @@ export interface PlatformOrgSummary {
 }
 
 export interface PlatformOrgMember {
-  user: Pick<User, 'id' | 'displayName' | 'email' | 'avatarUrl'>
+  user: User
   role: OrgRole
 }
 
@@ -95,7 +95,7 @@ export class PlatformOrgService {
     for (const membership of await this.repositories.memberships.listByOrg(org.id)) {
       const user = await this.repositories.users.findById(membership.userId)
       if (user) {
-        members.push({ user: { id: user.id, displayName: user.displayName, email: user.email, avatarUrl: user.avatarUrl }, role: membership.role })
+        members.push({ user, role: membership.role })
       }
     }
     members.sort((a, b) => a.user.displayName.localeCompare(b.user.displayName))
