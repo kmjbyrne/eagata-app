@@ -132,6 +132,65 @@ migrations in `test/mysql-migrations`. Regenerate them with
 `pnpm db:test-generate` after changing the schema. The tests skip when
 `NUXT_TEST_DATABASE_URL` is unset.
 
+## Pages and Components
+
+| Page                       | What it is                                                                         |
+| -------------------------- | ---------------------------------------------------------------------------------- |
+| `/login`                   | The sign-in button, error messages, and any `loginExtras`                          |
+| `/`                        | Redirects to the last-used workspace, the only org's first workspace, or `/choose` |
+| `/choose`                  | Every org and workspace the user reaches, with their roles                         |
+| `/profile`                 | The user, their sign-in providers and their orgs                                   |
+| `/:org/:workspace/members` | Who the workspace is shared with. Owners add, change and remove.                   |
+
+The app supplies its own layout and workspace pages, and places these components
+in it:
+
+| Component              | What it is                                                                        |
+| ---------------------- | --------------------------------------------------------------------------------- |
+| `OrgSwitcher`          | The orgs the user reaches, and "All organizations"                                |
+| `WorkspaceSwitcher`    | The current org's workspaces, and "Create workspace" for org owners and admins    |
+| `CreateWorkspaceModal` | A name, and a `SlugInput`                                                         |
+| `SlugInput`            | Suggests a slug from the name until edited, and shows the rules and errors inline |
+| `UserMenu`             | The user, Profile, any `userMenuItems`, Sign out, and any `userMenuExtras`        |
+
+Switching navigates. It never changes hidden state, so two tabs on different
+orgs each act on their own.
+
+Composables: `useMe`, `useOrgs`, `useWorkspaces(orgSlug)`, `useCurrentWorkspace`
+(from the route) and `useSignOut`.
+
+Middleware sends signed-out visitors to `/login`, redirects old org slugs to the
+current one (on the server for the first page, with a 301), and remembers the
+workspace being viewed.
+
+### Extension Points
+
+Other layers fill these in their own `app.config.ts`. Nuxt merges the lists, so
+the shell never imports those layers:
+
+```ts
+export default defineAppConfig({
+  shell: {
+    loginExtras: ['SandboxSignInAs'],
+    userMenuItems: [
+      {
+        label: 'Platform',
+        icon: 'i-lucide-shield',
+        to: '/platform',
+        platformAdminOnly: true
+      }
+    ],
+    userMenuExtras: ['SandboxSwitchUser']
+  }
+})
+```
+
+`loginExtras` and `userMenuExtras` name global components, rendered by name.
+
+`shared/contracts/slug.ts` re-exports core's slug functions, so forms suggest
+and check slugs exactly as the server does. It is the one place frontend code
+reaches core, and only for pure functions.
+
 ## Testing
 
 The route tests in `test/` build and boot the layer itself as an app, with
