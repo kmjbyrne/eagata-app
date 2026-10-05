@@ -14,7 +14,7 @@ sandbox, the docs and the tooling. The format follows
 
 - `@varcharley/editor`: a compact editor, such as a feedback reply, no longer
   shows the block drag handle, which overflowed its box. Its padding is tighter
-  to match.
+  to match, and the reply box no longer clips the `/` command menu.
 - The org and workspace switchers navigate again. Their items were checkbox
   items, which Nuxt UI renders without a link.
 - The sidebar keeps its navigation on pages outside a workspace, such as

@@ -55,7 +55,7 @@ async function send() {
 
     <section
       aria-label="Reply"
-      class="mt-3 overflow-hidden rounded-lg border border-default"
+      class="mt-3 rounded-lg border border-default"
     >
       <EditorContent
         :key="editorKey"
