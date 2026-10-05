@@ -6,11 +6,32 @@ defineProps<{ collapsed?: boolean }>()
 const { me } = useMe()
 const { signOut } = useSignOut()
 const { shell } = useAppConfig()
+const colorMode = useColorMode()
+
+const appearances = [
+  { label: 'Light', value: 'light', icon: 'i-lucide-sun' },
+  { label: 'Dark', value: 'dark', icon: 'i-lucide-moon' },
+  { label: 'System', value: 'system', icon: 'i-lucide-monitor' }
+]
 
 const items = computed<DropdownMenuItem[][]>(() => [
   [{ type: 'label', label: me.value?.displayName, description: me.value?.email, avatar: { src: me.value?.avatarUrl ?? undefined, alt: me.value?.displayName } }],
   [
     { label: 'Profile', icon: 'i-lucide-user', to: '/profile' },
+    {
+      label: 'Appearance',
+      icon: 'i-lucide-sun-moon',
+      children: appearances.map(appearance => ({
+        label: appearance.label,
+        icon: appearance.icon,
+        type: 'checkbox' as const,
+        checked: colorMode.preference === appearance.value,
+        onSelect: (event: Event) => {
+          event.preventDefault()
+          colorMode.preference = appearance.value
+        }
+      }))
+    },
     ...shell.userMenuItems
       .filter(item => !item.platformAdminOnly || me.value?.isPlatformAdmin)
       .map(item => ({ label: item.label, icon: item.icon, to: item.to }))
