@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto'
 import { isPlatformAdmin } from '../entities/User'
 import { InvalidInputError, NotFoundError } from '../errors'
 import type { CurrentUser } from '../ports/CurrentUser'
+import type { WorkspaceId } from '../values/Ids'
 import type { Repositories } from '../ports/Repositories'
 import { requireUser, workspaceRoleById } from '../services/access'
 import type { WorkspaceAccess } from '../services/WorkspaceAccess'
@@ -52,6 +53,16 @@ export class MediaService {
    */
   async upload(orgSlug: string, workspaceSlug: string, bytes: Uint8Array): Promise<StoredMedia> {
     const { workspace } = await this.adapters.access.require(orgSlug, workspaceSlug, 'media.upload')
+    return this.store(workspace.id, bytes)
+  }
+
+  /**
+   * Stores an image under a workspace without checking access, for a service
+   * that already has, such as feedback's platform replies.
+   * @throws MediaTooLargeError
+   * @throws UnsupportedMediaError
+   */
+  async store(workspaceId: WorkspaceId, bytes: Uint8Array): Promise<StoredMedia> {
     if (bytes.byteLength > MEDIA_MAX_BYTES) {
       throw new MediaTooLargeError()
     }
@@ -62,7 +73,7 @@ export class MediaService {
     const now = this.adapters.now?.() ?? new Date()
     const month = String(now.getUTCMonth() + 1).padStart(2, '0')
     const id = this.adapters.newId?.() ?? randomUUID()
-    const key = parseMediaKey(`workspaces/${workspace.id}/${now.getUTCFullYear()}/${month}/${id}.${type.extension}`)
+    const key = parseMediaKey(`workspaces/${workspaceId}/${now.getUTCFullYear()}/${month}/${id}.${type.extension}`)
     await this.adapters.storage.put(key, bytes, type.contentType)
     return { key, src: `/media/${key}` }
   }

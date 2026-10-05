@@ -23,6 +23,10 @@ sandbox, the docs and the tooling. The format follows
 
 ### Added
 
+- `@kmjbyrne/core/feedback`: feedback from workspace members to the platform, as
+  in basecamp-app. Members see and answer only their own, and platform admins
+  answer everyone's and set the status. `MediaService.store` lets such a service
+  store an image once it has checked access itself.
 - `@kmjbyrne/nuxt-media`: image uploads per workspace, on local disk under
   `NUXT_MEDIA_DIR` (`./instance/media` by default), served at `/media/...` to
   the workspace's people and platform admins only, cached privately.

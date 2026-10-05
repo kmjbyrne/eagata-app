@@ -11,7 +11,10 @@
     "./passwords/testing": "./src/passwords/testing.ts",
     "./passwords/contract": "./src/testing/passwordRepositoryContract.ts",
     "./media": "./src/media/index.ts",
-    "./media/testing": "./src/media/testing.ts"
+    "./media/testing": "./src/media/testing.ts",
+    "./feedback": "./src/feedback/index.ts",
+    "./feedback/testing": "./src/feedback/testing.ts",
+    "./feedback/contract": "./src/testing/feedbackRepositoryContract.ts"
   },
   "files": [
     "src",

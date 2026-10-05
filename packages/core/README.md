@@ -370,3 +370,25 @@ uploaded in a workspace, under keys of the form
 
 The port is `MediaStorage`. Tests use `InMemoryMediaStorage` and `PNG_BYTES`
 from `@kmjbyrne/core/media/testing`.
+
+## Feedback
+
+`@kmjbyrne/core/feedback` is optional. Members raise feedback for the platform
+from inside a workspace, and platform admins answer it.
+
+- `submit(orgSlug, workspaceSlug, input)` needs `feedback.submit`, which
+  `feedbackPermissions` gives every workspace role. The body is sanitised HTML,
+  and must keep some text or an image. A page path is kept only when it's a
+  same-site path.
+- `listOwn`, `getOwn` and `replyAsAuthor` show a member only their own feedback
+  in the workspace. Anyone else's is not found. Replying to done feedback
+  reopens it.
+- `listAll`, `get`, `replyAsPlatform`, `setStatus` and `attachImage` are for
+  platform admins. Replying to new feedback marks it seen. `attachImage` stores
+  an image in the feedback's workspace, where its author can see it.
+
+Statuses are `new`, `seen` and `done`, and kinds are `bug`, `idea`, `question`
+and `other`. The ports are `FeedbackRepository` and `HtmlSanitizer`. Tests use
+`InMemoryFeedbackRepository` and `StripScriptsSanitizer` from
+`@kmjbyrne/core/feedback/testing`, and every repository passes
+`feedbackRepositoryContract` from `@kmjbyrne/core/feedback/contract`.
