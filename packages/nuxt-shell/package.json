@@ -8,7 +8,8 @@
     ".": "./nuxt.config.ts",
     "./types": "./types.ts",
     "./mysql": "./server/adapters/mysql/index.ts",
-    "./adapters": "./server/adapters/index.ts"
+    "./adapters": "./server/adapters/index.ts",
+    "./testing": "./testing/index.ts"
   },
   "files": [
     "nuxt.config.ts",
@@ -16,6 +17,7 @@
     "app",
     "server",
     "shared",
+    "testing",
     "!**/*.test.ts",
     "README.md"
   ],
@@ -30,12 +32,18 @@
     "@kmjbyrne/oidc": "workspace:*"
   },
   "peerDependencies": {
+    "@nuxt/test-utils": "^4.3.3",
     "@nuxt/ui": "^4.11.0",
     "drizzle-orm": "catalog:",
     "h3": "catalog:",
     "mysql2": "catalog:",
     "nuxt": "^4.5.0",
     "zod": "catalog:"
+  },
+  "peerDependenciesMeta": {
+    "@nuxt/test-utils": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@nuxt/test-utils": "^4.3.3",

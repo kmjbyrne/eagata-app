@@ -1,7 +1,7 @@
 import { $fetch } from '@nuxt/test-utils/e2e'
 import { describe, expect, it } from 'vitest'
 import type { MeResponse } from '../shared/contracts/me'
-import { Browser, fakeCode } from './browser'
+import { Browser, fakeCode } from '../testing'
 import { setupLayer } from './setup'
 
 await setupLayer()

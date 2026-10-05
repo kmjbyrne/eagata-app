@@ -3,7 +3,7 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import type { HomeResponse, MeResponse } from '../shared/contracts/me'
 import type { AccessibleOrgResponse, AccessibleWorkspaceResponse, ResolveSlugResponse } from '../shared/contracts/orgs'
 import type { WorkspaceMemberResponse, WorkspaceResponse } from '../shared/contracts/workspaces'
-import { Browser } from './browser'
+import { Browser } from '../testing'
 import { setupLayer } from './setup'
 
 await setupLayer()
