@@ -34,6 +34,23 @@ const email = parseEmail(' Ada@Example.com ')
 const name = parseName('Ada  Lovelace')
 ```
 
+## Slugs
+
+Orgs and workspaces are addressed by slug: `/acme/general`. A slug has 3 to 32
+lowercase letters, numbers and single hyphens, and doesn't start or end with a
+hyphen. `parseSlug` checks those rules. `parseOrgSlug` also rejects
+`RESERVED_ORG_SLUGS`, the names of the app's fixed top-level routes such as
+`login` and `platform`, so an org can never hide one. Keep that list in step
+with the routes.
+
+`suggestSlug(name)` turns a name into a valid slug. It drops accents, joins the
+words with hyphens, and cuts at a word boundary. It also drops company suffixes
+such as "Ltd" and "Inc" from the end. "Café Ólafsson Ltd" becomes
+`cafe-olafsson`. A name too short for a slug gets `-1` added, and a name with no
+letters or numbers throws.
+
+## Errors
+
 Entities are plain interfaces. Every error the domain throws on purpose extends
 `DomainError`, so an adapter can map it to a response.
 
