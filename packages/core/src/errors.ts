@@ -59,9 +59,20 @@ export class LastPlatformAdminError extends ConflictError {
   }
 }
 
-/** Signed in at the provider, but nobody has added this person here. */
-export class NotInvitedError extends DomainError {
+/** The provider hasn't verified the email, so it can't create or claim an account. */
+export class EmailNotVerifiedError extends DomainError {
   constructor(readonly email: string) {
-    super(`No account has been set up for ${email}`)
+    super(`${email} isn't verified with the sign-in provider`)
+  }
+}
+
+/**
+ * The email belongs to a user already linked to a different account at the
+ * same provider. Linking a second one could hand the user to whoever the
+ * provider has since given the email to.
+ */
+export class IdentityMismatchError extends ConflictError {
+  constructor(readonly provider: string) {
+    super(`This email is linked to a different ${provider} account`)
   }
 }

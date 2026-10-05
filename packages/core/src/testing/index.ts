@@ -1,3 +1,5 @@
+export { createTestServices } from './createTestServices'
 export { FakeCurrentUser } from './FakeCurrentUser'
 export { InMemoryTenancyStore } from './InMemoryTenancyStore'
 export { repositoryContract } from './repositoryContract'
+export { SequentialIdGenerator } from './SequentialIdGenerator'

@@ -22,11 +22,12 @@ export {
   EmailTakenError,
   ForbiddenError,
   IdentityInUseError,
+  EmailNotVerifiedError,
+  IdentityMismatchError,
   InvalidInputError,
   LastOwnerError,
   LastPlatformAdminError,
   NotFoundError,
-  NotInvitedError,
   NotSignedInError,
   SlugTakenError
 } from './errors'
@@ -56,3 +57,6 @@ export type { TenancyRepositories, TenancyStore } from './ports/TenancyStore'
 export type { UserRepository } from './ports/UserRepository'
 export type { WorkspaceMembershipRepository } from './ports/WorkspaceMembershipRepository'
 export type { WorkspaceRepository } from './ports/WorkspaceRepository'
+export { AuthService } from './services/AuthService'
+export { createCoreServices } from './services/CoreServices'
+export type { CoreAdapters, CoreServices } from './services/CoreServices'

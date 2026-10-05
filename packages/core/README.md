@@ -108,7 +108,36 @@ can map it to a response:
 | `ConflictError`     | Clashes with stored data. Subclasses below.              | 409  |
 
 The conflicts are `SlugTakenError`, `EmailTakenError`, `AlreadyMemberError`,
-`IdentityInUseError`, `LastOwnerError` and `LastPlatformAdminError`.
+`IdentityInUseError`, `IdentityMismatchError`, `LastOwnerError` and
+`LastPlatformAdminError`.
+
+## Signing In and Signing Up
+
+`AuthService.signIn(identity)` takes what a provider asserted, and returns the
+user to sign in. It runs in one transaction:
+
+1. A user who already has this identity (provider and subject) is signed in,
+   whatever email the provider now reports.
+2. Otherwise, a verified email that matches a user links the identity to that
+   user. If that user already has a different account at the same provider, it
+   throws `IdentityMismatchError`, because the provider may have given the email
+   to someone new.
+3. Otherwise, a verified email signs up: a new user, named from the provider's
+   `name` or the email, with a personal org named after them, a "General"
+   workspace, and owner memberships of both.
+
+An unverified email never links or signs up. It throws `EmailNotVerifiedError`.
+Each sign-in refreshes the user's avatar from the provider. The display name is
+left as it is.
+
+A personal org's slug comes from the user's name, with `-2`, `-3` and so on
+added until it is free. Reserved slugs are skipped.
+
+## Services
+
+`createCoreServices({ store, currentUser, ids })` builds every service on the
+given adapters. It is cheap, so build it per request with that request's
+`CurrentUser`.
 
 ## Ports
 
@@ -140,6 +169,19 @@ org's current and previous slugs, and workspace slugs within an org.
 - `InMemoryTenancyStore` implements every repository on plain arrays. It passes
   the contract.
 - `FakeCurrentUser` is a `CurrentUser` you can sign in and out.
+- `SequentialIdGenerator` makes the ids `id-1`, `id-2` and so on.
+- `createTestServices()` builds every service on those. Its `signUp(name)` signs
+  a user up as a provider would, and `signInAs(user)` makes them the current
+  user:
+
+```ts
+import { createTestServices } from '@kmjbyrne/core/testing'
+
+const t = createTestServices()
+const ada = await t.signUp('Ada Lovelace')
+const admin = await t.signUp('Pat Platform', { platformAdmin: true })
+t.signInAs(ada)
+```
 
 ```ts
 import { describe } from 'vitest'

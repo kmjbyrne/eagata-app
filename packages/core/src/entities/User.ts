@@ -13,6 +13,7 @@ export interface UserIdentity {
 export interface ProviderIdentity extends UserIdentity {
   email: Email
   emailVerified: boolean
+  name: string | null
   picture: string | null
 }
 
