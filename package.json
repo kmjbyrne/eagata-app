@@ -7,7 +7,7 @@
     "build": "nuxt build",
     "dev": "scripts/ensure-env && nuxt dev sandbox --dotenv ../.env",
     "preview": "nuxt preview",
-    "postinstall": "NUXT_PLATFORM=true nuxt prepare && NUXT_PLATFORM=true nuxt prepare sandbox",
+    "postinstall": "NUXT_PLATFORM=true nuxt prepare && NUXT_PLATFORM=true nuxt prepare sandbox && pnpm --filter './packages/nuxt-*' exec nuxt prepare && pnpm --filter @kmjbyrne/nuxt-feedback exec nuxt prepare platform",
     "lint": "NUXT_PLATFORM=true nuxt prepare > /dev/null && eslint .",
     "typecheck": "NUXT_PLATFORM=true nuxt typecheck && NUXT_PLATFORM=true nuxt typecheck sandbox && tsc -p tsconfig.tools.json && pnpm -r --if-present typecheck",
     "test": "vitest run",
@@ -20,6 +20,7 @@
   "dependencies": {
     "@iconify-json/lucide": "^1.2.139",
     "@iconify-json/simple-icons": "^1.2.98",
+    "@kmjbyrne/nuxt-feedback": "workspace:*",
     "@kmjbyrne/nuxt-passwords": "workspace:*",
     "@kmjbyrne/nuxt-platform": "workspace:*",
     "@kmjbyrne/nuxt-shell": "workspace:*",

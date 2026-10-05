@@ -11,7 +11,8 @@ export default defineConfig({
   dialect: 'mysql',
   schema: [
     './node_modules/@kmjbyrne/nuxt-shell/server/adapters/mysql/schema.ts',
-    './node_modules/@kmjbyrne/nuxt-passwords/server/adapters/mysql/schema.ts'
+    './node_modules/@kmjbyrne/nuxt-passwords/server/adapters/mysql/schema.ts',
+    './node_modules/@kmjbyrne/nuxt-feedback/server/adapters/mysql/schema.ts'
   ],
   out: './server/migrations',
   dbCredentials: {

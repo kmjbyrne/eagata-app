@@ -7,7 +7,13 @@ if (!['true', 'false'].includes(platform)) {
 }
 
 export default defineNuxtConfig({
-  extends: ['@kmjbyrne/nuxt-shell', '@kmjbyrne/nuxt-passwords', '@varcharley/editor', ...(platform === 'true' ? ['@kmjbyrne/nuxt-platform'] : [])],
+  extends: [
+    '@kmjbyrne/nuxt-shell',
+    '@kmjbyrne/nuxt-passwords',
+    // Brings media, for images, and the editor.
+    '@kmjbyrne/nuxt-feedback',
+    ...(platform === 'true' ? ['@kmjbyrne/nuxt-platform', '@kmjbyrne/nuxt-feedback/platform'] : [])
+  ],
 
   modules: [
     '@nuxt/eslint',

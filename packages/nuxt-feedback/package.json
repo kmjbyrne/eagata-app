@@ -1,0 +1,56 @@
+{
+  "name": "@kmjbyrne/nuxt-feedback",
+  "version": "0.1.0",
+  "description": "Nuxt layer for feedback from workspace members to the platform, with rich text and images",
+  "type": "module",
+  "main": "./nuxt.config.ts",
+  "exports": {
+    ".": "./nuxt.config.ts",
+    "./platform": "./platform/nuxt.config.ts",
+    "./types": "./types.ts",
+    "./mysql": "./server/adapters/mysql/index.ts",
+    "./adapters": "./server/adapters/index.ts"
+  },
+  "files": [
+    "nuxt.config.ts",
+    "types.ts",
+    "app",
+    "server",
+    "shared",
+    "platform",
+    "!**/*.test.ts",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "restricted"
+  },
+  "scripts": {
+    "typecheck": "nuxt typecheck && nuxt typecheck platform",
+    "db:test-generate": "drizzle-kit generate --config drizzle.test.config.ts"
+  },
+  "dependencies": {
+    "@kmjbyrne/core": "workspace:*",
+    "@kmjbyrne/nuxt-media": "workspace:*",
+    "@kmjbyrne/nuxt-shell": "workspace:*",
+    "@varcharley/editor": "workspace:*",
+    "sanitize-html": "^2.18.0"
+  },
+  "peerDependencies": {
+    "@nuxt/ui": "^4.11.0",
+    "drizzle-orm": "catalog:",
+    "h3": "catalog:",
+    "mysql2": "catalog:",
+    "nuxt": "^4.5.0",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@nuxt/test-utils": "^4.3.3",
+    "@nuxt/ui": "^4.11.3",
+    "@types/sanitize-html": "^2.16.2",
+    "drizzle-kit": "catalog:",
+    "drizzle-orm": "catalog:",
+    "h3": "catalog:",
+    "mysql2": "catalog:",
+    "zod": "catalog:"
+  }
+}

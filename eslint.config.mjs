@@ -16,11 +16,18 @@ const deepImports = {
     '@kmjbyrne/*/*',
     '!@kmjbyrne/core/testing',
     '!@kmjbyrne/core/contract',
+    '!@kmjbyrne/core/feedback',
+    '!@kmjbyrne/core/feedback/testing',
+    '!@kmjbyrne/core/feedback/contract',
     '!@kmjbyrne/core/media',
     '!@kmjbyrne/core/media/testing',
     '!@kmjbyrne/core/passwords',
     '!@kmjbyrne/core/passwords/testing',
     '!@kmjbyrne/core/passwords/contract',
+    '!@kmjbyrne/nuxt-feedback/types',
+    '!@kmjbyrne/nuxt-feedback/mysql',
+    '!@kmjbyrne/nuxt-feedback/adapters',
+    '!@kmjbyrne/nuxt-feedback/platform',
     '!@kmjbyrne/nuxt-media/types',
     '!@kmjbyrne/nuxt-media/adapters',
     '!@kmjbyrne/nuxt-passwords/types',
@@ -54,7 +61,7 @@ const restrict = (...patterns) => ({ 'no-restricted-imports': ['error', { patter
 
 const shell = [noDevTools, noPlatform]
 const platform = [noDevTools, ban(['@kmjbyrne/oidc'], 'The platform layer uses the shell, not the OIDC client.')]
-// Optional layers on the shell: passwords and media.
+// Optional layers on the shell: passwords, media and feedback.
 const passwords = [noDevTools, noPlatform, ban(['@kmjbyrne/oidc'], 'Optional layers use the shell, not the OIDC client.')]
 const sandbox = [noPlatform]
 const app = [noDevTools]
@@ -90,10 +97,13 @@ export default withNuxt(
   { name: 'dependencies/nuxt-platform', files: ['packages/nuxt-platform/**'], rules: restrict(...platform) },
   { name: 'dependencies/nuxt-passwords', files: ['packages/nuxt-passwords/**'], rules: restrict(...passwords) },
   { name: 'dependencies/nuxt-media', files: ['packages/nuxt-media/**'], rules: restrict(...passwords) },
+  { name: 'dependencies/nuxt-feedback', files: ['packages/nuxt-feedback/**'], rules: restrict(...passwords) },
   { name: 'dependencies/sandbox', files: ['packages/sandbox/**', 'sandbox/**'], rules: restrict(...sandbox) },
   { name: 'dependencies/app', files: ['app/**', 'server/**', 'shared/**', 'core/**', 'scripts/**'], rules: restrict(...app) },
   { name: 'dependencies/nuxt-shell-frontend', files: ['packages/nuxt-shell/app/**'], rules: restrict(...shell, ...frontend) },
   { name: 'dependencies/nuxt-platform-frontend', files: ['packages/nuxt-platform/app/**'], rules: restrict(...platform, ...frontend) },
+  { name: 'dependencies/nuxt-feedback-frontend', files: ['packages/nuxt-feedback/app/**', 'packages/nuxt-feedback/platform/app/**'], rules: restrict(...passwords, ...frontend) },
+  { name: 'dependencies/nuxt-media-frontend', files: ['packages/nuxt-media/app/**'], rules: restrict(...passwords, ...frontend) },
   { name: 'dependencies/nuxt-passwords-frontend', files: ['packages/nuxt-passwords/app/**'], rules: restrict(...passwords, ...frontend) },
   { name: 'dependencies/sandbox-frontend', files: ['packages/sandbox/app/**', 'sandbox/app/**'], rules: restrict(...sandbox, ...frontend) },
   { name: 'dependencies/app-frontend', files: ['app/**'], rules: restrict(...app, ...frontend) }

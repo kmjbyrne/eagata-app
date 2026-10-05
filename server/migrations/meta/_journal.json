@@ -36,6 +36,13 @@
       "when": 1791241730913,
       "tag": "0004_lethal_nova",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1791243611706,
+      "tag": "0005_lovely_gunslinger",
+      "breakpoints": true
     }
   ]
 }

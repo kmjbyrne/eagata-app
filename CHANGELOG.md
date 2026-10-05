@@ -25,6 +25,18 @@ sandbox, the docs and the tooling. The format follows
 
 ### Added
 
+- The reference app: feedback in every workspace's navigation, the inbox with
+  the platform, migration `0005`, and the editor demo uploading real images.
+- `@kmjbyrne/sandbox`: `feedbackCollections` and `JsonFeedbackRepository`.
+- `@kmjbyrne/nuxt-feedback`: feedback pages in every workspace, with rich text
+  and images, and the platform inbox in the `@kmjbyrne/nuxt-feedback/platform`
+  sub-layer. MariaDB tables `feedback` and `feedback_replies`.
+- `@kmjbyrne/nuxt-media`: `useMediaUpload()`, the editor's `upload` for any
+  page.
+- `@kmjbyrne/nuxt-platform`: `navItems`, links other layers add to the platform
+  sidebar.
+- Tooling: installing prepares every layer, so tests and type checks never
+  depend on a route test having built one first.
 - `@kmjbyrne/core/feedback`: feedback from workspace members to the platform, as
   in basecamp-app. Members see and answer only their own, and platform admins
   answer everyone's and set the status. `MediaService.store` lets such a service

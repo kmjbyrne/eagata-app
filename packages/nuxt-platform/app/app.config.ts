@@ -1,6 +1,8 @@
 // Adds the platform area to the shell's user menu, for platform admins only.
 export default defineAppConfig({
   platform: {
+    /** Extra links in the platform sidebar, after Organizations and Users. */
+    navItems: [] as { label: string, icon?: string, to: string }[],
     /** Global components rendered on a user's platform page, by name. Each gets a `user-id` prop. */
     userExtras: [] as string[]
   },

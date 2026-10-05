@@ -33,6 +33,16 @@ one, and the access check runs once per image, not once per view.
 
 Content stores `src`, an app-owned URL, never a storage URL.
 
+In pages, `useMediaUpload()` uploads to the workspace in the URL and resolves
+with `{ key, src }`, in the shape the editor's `upload` prop takes:
+
+```vue
+<EditorContent v-model="html" :upload="useMediaUpload()" />
+```
+
+Pass a URL for a route that stores images its own way, such as a platform
+reply's.
+
 ## Settings
 
 | Setting          | What it does                                                              | Default            |

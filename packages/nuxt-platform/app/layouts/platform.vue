@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import type { NavigationMenuItem } from '@nuxt/ui'
 
+const { platform } = useAppConfig()
+
 const items: NavigationMenuItem[][] = [
   [
     { label: 'Organizations', icon: 'i-lucide-building-2', to: '/platform/organizations' },
-    { label: 'Users', icon: 'i-lucide-users', to: '/platform/users' }
+    { label: 'Users', icon: 'i-lucide-users', to: '/platform/users' },
+    ...platform.navItems
   ],
   [{ label: 'Back to the app', icon: 'i-lucide-arrow-left', to: '/' }]
 ]
