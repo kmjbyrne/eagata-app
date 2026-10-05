@@ -12,6 +12,11 @@ sandbox, the docs and the tooling. The format follows
 
 ### Added
 
+- `@kmjbyrne/core/passwords`: optional passwords. `PasswordService` signs in,
+  links a provider account once the password confirms it, sets and changes
+  passwords, and sends reset and invite links. Rate limited per account and per
+  email address.
+
 - `@kmjbyrne/nuxt-shell`: request logging with evlog. Every `/api` request
   writes one wide event: method, path, status, duration, request id, the
   signed-in user's id, and any error. Expected refusals, such as 401 and 404,

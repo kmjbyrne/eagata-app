@@ -6,7 +6,10 @@
   "exports": {
     ".": "./src/index.ts",
     "./testing": "./src/testing/index.ts",
-    "./contract": "./src/testing/repositoryContract.ts"
+    "./contract": "./src/testing/repositoryContract.ts",
+    "./passwords": "./src/passwords/index.ts",
+    "./passwords/testing": "./src/passwords/testing.ts",
+    "./passwords/contract": "./src/testing/passwordRepositoryContract.ts"
   },
   "files": [
     "src",

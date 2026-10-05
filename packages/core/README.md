@@ -320,3 +320,35 @@ describe('MySQL repositories', () => {
 | `DomainError`                                         | The base of every deliberate error                              |
 | `InvalidInputError`                                   | Input that breaks a value's rules                               |
 | `NotFoundError`, `ForbiddenError`, `NotSignedInError` | Lookups and access                                              |
+
+## Passwords
+
+`@kmjbyrne/core/passwords` is optional. An app without passwords never imports
+it, and the main entry doesn't depend on it. `@kmjbyrne/nuxt-passwords` wires it
+into a Nuxt app.
+
+`PasswordService` mirrors basecamp-app:
+
+- `signIn(email, password)` answers an unknown email and a wrong password with
+  the same `InvalidCredentialsError`. A deactivated account is only revealed
+  once the password is right.
+- `linkIdentity(pending, password)` links the provider account that sign-in
+  matched by email, once the user proves the account with its password.
+  `linkProof()` is the `LinkProof` that makes `AuthService.signIn` ask: users
+  with a password are asked, users without one link on the verified email.
+- `setPassword({ current?, password })` sets the signed-in user's password. One
+  they already have must be confirmed.
+- `requestReset(email, url)` and `resetPassword(token, password)`: a single-use
+  link, valid for 30 minutes. Asking says nothing about whether the email has an
+  account.
+- `sendInvite(userId, url)` lets a platform admin email a link to choose a
+  password, valid for 72 hours.
+
+Passwords are 10 to 256 characters, the only rule, per NIST SP 800-63B. Five
+failed checks per account in 15 minutes lock it out for the rest of the window,
+and an address gets three reset emails an hour.
+
+The ports are `PasswordHasher` and `PasswordRepository`. Tests use
+`InMemoryPasswordRepository` and `PlainPasswordHasher` from
+`@kmjbyrne/core/passwords/testing`, and every repository passes
+`passwordRepositoryContract` from `@kmjbyrne/core/passwords/contract`.

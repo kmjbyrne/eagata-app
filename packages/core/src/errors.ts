@@ -13,8 +13,8 @@ export class InvalidInputError extends DomainError {}
 export class NotFoundError extends DomainError {}
 
 export class NotSignedInError extends DomainError {
-  constructor() {
-    super('Sign in required')
+  constructor(message = 'Sign in required') {
+    super(message)
   }
 }
 
