@@ -1,8 +1,8 @@
 # @kmjbyrne/nuxt-media
 
-Images uploaded in a workspace, such as screenshots in feedback. Kept on local
-disk for now, behind core's `MediaStorage` port, so S3 can replace it without
-touching anything that stores image URLs.
+Images uploaded in a workspace, or by a person as their own, such as feedback
+screenshots. Kept on local disk for now, behind core's `MediaStorage` port, so
+S3 can replace it without touching anything that stores image URLs.
 
 ```ts
 export default defineNuxtConfig({
@@ -29,7 +29,8 @@ one, and the access check runs once per image, not once per view.
 | Route                                             | What it does                                           |
 | ------------------------------------------------- | ------------------------------------------------------ |
 | `POST /api/orgs/:org/workspaces/:workspace/media` | One image as multipart `file`. Answers `{ key, src }`. |
-| `GET /media/workspaces/:workspace/...`            | The image, to people who may see it                    |
+| `POST /api/me/media`                              | One image of the signed-in user's own                  |
+| `GET /media/...`                                  | The image, to people who may see it                    |
 
 Content stores `src`, an app-owned URL, never a storage URL.
 

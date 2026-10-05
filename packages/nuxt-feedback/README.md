@@ -20,15 +20,18 @@ export default defineNuxtConfig({
 It extends `@kmjbyrne/nuxt-media`, for screenshots, and `@varcharley/editor`,
 for writing.
 
-## Members
+## People
 
-Anyone in a workspace, viewers included, can raise feedback from it at
-`/:org/:workspace/feedback`: a kind (bug, idea, question or other), a subject,
-and a rich-text body with images pasted or dropped in. The page they came from
-is recorded, so the platform can see where they were. Members see and answer
-only their own feedback. Replying to feedback marked done reopens it.
+Anyone signed in can raise feedback at `/feedback`: a kind (bug, idea, question
+or other), a subject, and a rich-text body with images pasted or dropped in.
+Feedback is the person's own, the same from every workspace, and it outlives any
+workspace. The page they came from, and the workspace they were in, are recorded
+for context. People see and answer only their own feedback. Replying to feedback
+marked done reopens it. Their images are stored as their own, through
+`/api/me/media`.
 
-Link it from the app's navigation, as the reference app's layout does.
+Link `/feedback` from the app's layout, as the reference app does at the foot of
+its sidebar.
 
 ## The Platform Inbox
 
@@ -36,9 +39,9 @@ Link it from the app's navigation, as the reference app's layout does.
 `/platform/feedback`, linked from the platform sidebar through its `navItems`.
 Platform admins see every workspace's feedback, open first, reply, and set the
 status: new, seen or done. Replying to new feedback marks it seen. Images in a
-platform reply are stored in the feedback's workspace, where its author can open
-them. Extend the sub-layer only with the platform area, so a build without the
-platform carries none of it.
+platform reply are stored as the author's own, so they can open them. Extend the
+sub-layer only with the platform area, so a build without the platform carries
+none of it.
 
 ## Storage
 
@@ -49,14 +52,13 @@ embeds, with images only from the app's own `/media`.
 
 ## Routes
 
-| Route                                                     | Who              |
-| --------------------------------------------------------- | ---------------- |
-| `GET`, `POST /api/orgs/:org/workspaces/:ws/feedback`      | The member's own |
-| `GET /api/orgs/:org/workspaces/:ws/feedback/:id`          | The member's own |
-| `POST /api/orgs/:org/workspaces/:ws/feedback/:id/replies` | The member's own |
-| `GET /api/protected/feedback`, `GET .../:id`              | Platform admins  |
-| `POST /api/protected/feedback/:id/replies`, `/media`      | Platform admins  |
-| `PUT /api/protected/feedback/:id/status`                  | Platform admins  |
+| Route                                                | Who             |
+| ---------------------------------------------------- | --------------- |
+| `GET`, `POST /api/me/feedback`                       | The author      |
+| `GET /api/me/feedback/:id`, `POST .../:id/replies`   | The author      |
+| `GET /api/protected/feedback`, `GET .../:id`         | Platform admins |
+| `POST /api/protected/feedback/:id/replies`, `/media` | Platform admins |
+| `PUT /api/protected/feedback/:id/status`             | Platform admins |
 
 ## Tests
 

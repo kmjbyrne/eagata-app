@@ -28,29 +28,32 @@ sandbox, the docs and the tooling. The format follows
 
 ### Added
 
-- The reference app: feedback at the foot of every workspace's sidebar, the
-  inbox with the platform, migration `0005`, and the editor demo uploading real
+- The reference app: feedback at the foot of the sidebar, the inbox with the
+  platform, migrations `0005` and `0006`, and the editor demo uploading real
   images.
 - `@kmjbyrne/sandbox`: `feedbackCollections` and `JsonFeedbackRepository`.
-- `@kmjbyrne/nuxt-feedback`: feedback pages in every workspace, with rich text
-  and images, and the platform inbox in the `@kmjbyrne/nuxt-feedback/platform`
-  sub-layer. MariaDB tables `feedback` and `feedback_replies`.
+- `@kmjbyrne/nuxt-feedback`: feedback at `/feedback`, each person's own from
+  anywhere in the app, with rich text and images, and the platform inbox in the
+  `@kmjbyrne/nuxt-feedback/platform` sub-layer. MariaDB tables `feedback` and
+  `feedback_replies`.
 - `@kmjbyrne/nuxt-media`: `useMediaUpload()`, the editor's `upload` for any
   page.
 - `@kmjbyrne/nuxt-platform`: `navItems`, links other layers add to the platform
   sidebar.
 - Tooling: installing prepares every layer, so tests and type checks never
   depend on a route test having built one first.
-- `@kmjbyrne/core/feedback`: feedback from workspace members to the platform, as
-  in basecamp-app. Members see and answer only their own, and platform admins
-  answer everyone's and set the status. `MediaService.store` lets such a service
-  store an image once it has checked access itself.
+- `@kmjbyrne/core/feedback`: feedback from people to the platform, as in
+  basecamp-app, owned by its author rather than a workspace. People see and
+  answer only their own, and platform admins answer everyone's and set the
+  status. `MediaService.store` lets such a service store an image once it has
+  checked access itself.
 - `@kmjbyrne/nuxt-media`: image uploads per workspace, on local disk under
   `NUXT_MEDIA_DIR` (`./instance/media` by default), served at `/media/...` to
   the workspace's people and platform admins only, cached privately.
-- `@kmjbyrne/core/media`: images uploaded per workspace, typed by their bytes,
-  and readable only by the workspace's people and platform admins. A
-  `media.upload` permission, held by every workspace role.
+- `@kmjbyrne/core/media`: images uploaded per workspace or as a person's own,
+  typed by their bytes, and readable only by the workspace's people, or that
+  person, and platform admins. A `media.upload` permission, held by every
+  workspace role.
 - Inside the platform area, the user menu's Platform item becomes Application,
   back to the app, through a menu item's `whileInside`.
 - Self-service deactivation: `UserService.deactivateMe`, confirmed by typing the
