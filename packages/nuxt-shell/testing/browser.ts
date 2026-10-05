@@ -48,7 +48,9 @@ export class Browser {
 
 /** Sets up a user as a platform admin would, so they can sign in. */
 export function createUser(email: string, name?: string): Promise<{ id: string }> {
-  return $fetch('/__test/user', { method: 'POST', body: { email, name } })
+  // Untyped, as useApi is: comparing a URL against every route an app has defeats TypeScript.
+  const post = $fetch as unknown as (url: string, options: { method: 'POST', body: unknown }) => Promise<{ id: string }>
+  return post('/__test/user', { method: 'POST', body: { email, name } })
 }
 
 export function fakeCode(claims: Partial<FakeCode> & { nonce: string, email: string }): string {

@@ -1,0 +1,43 @@
+{
+  "name": "@kmjbyrne/nuxt-media",
+  "version": "0.1.0",
+  "description": "Nuxt layer for images uploaded per workspace, kept on local disk and served only to the workspace's people",
+  "type": "module",
+  "main": "./nuxt.config.ts",
+  "exports": {
+    ".": "./nuxt.config.ts",
+    "./types": "./types.ts",
+    "./adapters": "./server/adapters/index.ts"
+  },
+  "files": [
+    "nuxt.config.ts",
+    "types.ts",
+    "app",
+    "server",
+    "shared",
+    "!**/*.test.ts",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "restricted"
+  },
+  "scripts": {
+    "typecheck": "nuxt typecheck"
+  },
+  "dependencies": {
+    "@kmjbyrne/core": "workspace:*",
+    "@kmjbyrne/nuxt-shell": "workspace:*"
+  },
+  "peerDependencies": {
+    "@nuxt/ui": "^4.11.0",
+    "h3": "catalog:",
+    "nuxt": "^4.5.0",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@nuxt/test-utils": "^4.3.3",
+    "@nuxt/ui": "^4.11.3",
+    "h3": "catalog:",
+    "zod": "catalog:"
+  }
+}

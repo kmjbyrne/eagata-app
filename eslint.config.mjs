@@ -16,9 +16,13 @@ const deepImports = {
     '@kmjbyrne/*/*',
     '!@kmjbyrne/core/testing',
     '!@kmjbyrne/core/contract',
+    '!@kmjbyrne/core/media',
+    '!@kmjbyrne/core/media/testing',
     '!@kmjbyrne/core/passwords',
     '!@kmjbyrne/core/passwords/testing',
     '!@kmjbyrne/core/passwords/contract',
+    '!@kmjbyrne/nuxt-media/types',
+    '!@kmjbyrne/nuxt-media/adapters',
     '!@kmjbyrne/nuxt-passwords/types',
     '!@kmjbyrne/nuxt-passwords/mysql',
     '!@kmjbyrne/nuxt-passwords/adapters',
@@ -50,7 +54,8 @@ const restrict = (...patterns) => ({ 'no-restricted-imports': ['error', { patter
 
 const shell = [noDevTools, noPlatform]
 const platform = [noDevTools, ban(['@kmjbyrne/oidc'], 'The platform layer uses the shell, not the OIDC client.')]
-const passwords = [noDevTools, noPlatform, ban(['@kmjbyrne/oidc'], 'The passwords layer uses the shell, not the OIDC client.')]
+// Optional layers on the shell: passwords and media.
+const passwords = [noDevTools, noPlatform, ban(['@kmjbyrne/oidc'], 'Optional layers use the shell, not the OIDC client.')]
 const sandbox = [noPlatform]
 const app = [noDevTools]
 
@@ -84,6 +89,7 @@ export default withNuxt(
   { name: 'dependencies/nuxt-shell', files: ['packages/nuxt-shell/**'], rules: restrict(...shell) },
   { name: 'dependencies/nuxt-platform', files: ['packages/nuxt-platform/**'], rules: restrict(...platform) },
   { name: 'dependencies/nuxt-passwords', files: ['packages/nuxt-passwords/**'], rules: restrict(...passwords) },
+  { name: 'dependencies/nuxt-media', files: ['packages/nuxt-media/**'], rules: restrict(...passwords) },
   { name: 'dependencies/sandbox', files: ['packages/sandbox/**', 'sandbox/**'], rules: restrict(...sandbox) },
   { name: 'dependencies/app', files: ['app/**', 'server/**', 'shared/**', 'core/**', 'scripts/**'], rules: restrict(...app) },
   { name: 'dependencies/nuxt-shell-frontend', files: ['packages/nuxt-shell/app/**'], rules: restrict(...shell, ...frontend) },

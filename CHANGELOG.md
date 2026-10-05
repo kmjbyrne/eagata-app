@@ -23,6 +23,9 @@ sandbox, the docs and the tooling. The format follows
 
 ### Added
 
+- `@kmjbyrne/nuxt-media`: image uploads per workspace, on local disk under
+  `NUXT_MEDIA_DIR` (`./instance/media` by default), served at `/media/...` to
+  the workspace's people and platform admins only, cached privately.
 - `@kmjbyrne/core/media`: images uploaded per workspace, typed by their bytes,
   and readable only by the workspace's people and platform admins. A
   `media.upload` permission, held by every workspace role.
