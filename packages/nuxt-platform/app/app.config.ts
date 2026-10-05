@@ -5,6 +5,12 @@ export default defineAppConfig({
     userExtras: [] as string[]
   },
   shell: {
-    userMenuItems: [{ label: 'Platform', icon: 'i-lucide-shield', to: '/platform', platformAdminOnly: true }]
+    userMenuItems: [{
+      label: 'Platform',
+      icon: 'i-lucide-shield',
+      to: '/platform',
+      platformAdminOnly: true,
+      whileInside: { label: 'Application', icon: 'i-lucide-layout-grid', to: '/' }
+    }]
   }
 })

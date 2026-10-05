@@ -5,6 +5,8 @@ export interface ShellMenuItem {
   to: string
   /** Shown only to platform admins. */
   platformAdminOnly?: boolean
+  /** Shown in its place while the user is inside `to`, such as a way back to the app. */
+  whileInside?: { label: string, icon?: string, to: string }
 }
 
 // Extension points. Other layers add to these lists, and Nuxt merges them,

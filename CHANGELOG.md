@@ -23,6 +23,8 @@ sandbox, the docs and the tooling. The format follows
 
 ### Added
 
+- Inside the platform area, the user menu's Platform item becomes Application,
+  back to the app, through a menu item's `whileInside`.
 - Self-service deactivation: `UserService.deactivateMe`, confirmed by typing the
   user's own email, `POST /api/me/deactivate`, and an Account section with a
   confirmation dialog on Settings, Security. Only a platform admin can

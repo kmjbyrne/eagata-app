@@ -173,13 +173,13 @@ migrations in `test/mysql-migrations`. Regenerate them with
 The app supplies its own layout and workspace pages, and places these components
 in it:
 
-| Component              | What it is                                                                        |
-| ---------------------- | --------------------------------------------------------------------------------- |
-| `OrgSwitcher`          | The orgs the user reaches, and "All organizations"                                |
-| `WorkspaceSwitcher`    | The current org's workspaces, and "Create workspace" for org owners and admins    |
-| `CreateWorkspaceModal` | A name, and a `SlugInput`                                                         |
-| `SlugInput`            | Suggests a slug from the name until edited, and shows the rules and errors inline |
-| `UserMenu`             | The user, Profile, any `userMenuItems`, Sign out, and any `userMenuExtras`        |
+| Component              | What it is                                                                                                                                              |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `OrgSwitcher`          | The orgs the user reaches, and "All organizations"                                                                                                      |
+| `WorkspaceSwitcher`    | The current org's workspaces, and "Create workspace" for org owners and admins                                                                          |
+| `CreateWorkspaceModal` | A name, and a `SlugInput`                                                                                                                               |
+| `SlugInput`            | Suggests a slug from the name until edited, and shows the rules and errors inline                                                                       |
+| `UserMenu`             | The user, Settings, Appearance, any `userMenuItems`, Sign out, and any `userMenuExtras`. An item with `whileInside` swaps for it while inside its `to`. |
 
 Switching navigates. It never changes hidden state, so two tabs on different
 orgs each act on their own.
@@ -205,7 +205,12 @@ export default defineAppConfig({
         label: 'Platform',
         icon: 'i-lucide-shield',
         to: '/platform',
-        platformAdminOnly: true
+        platformAdminOnly: true,
+        whileInside: {
+          label: 'Application',
+          icon: 'i-lucide-layout-grid',
+          to: '/'
+        }
       }
     ],
     userMenuExtras: ['SandboxSwitchUser'],

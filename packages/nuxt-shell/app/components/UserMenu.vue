@@ -7,6 +7,9 @@ const { me } = useMe()
 const { signOut } = useSignOut()
 const { shell } = useAppConfig()
 const colorMode = useColorMode()
+const route = useRoute()
+
+const inside = (to: string) => route.path === to || route.path.startsWith(`${to}/`)
 
 const appearances = [
   { label: 'Light', value: 'light', icon: 'i-lucide-sun' },
@@ -34,6 +37,7 @@ const items = computed<DropdownMenuItem[][]>(() => [
     },
     ...shell.userMenuItems
       .filter(item => !item.platformAdminOnly || me.value?.isPlatformAdmin)
+      .map(item => item.whileInside && inside(item.to) ? item.whileInside : item)
       .map(item => ({ label: item.label, icon: item.icon, to: item.to }))
   ],
   [{ label: 'Sign out', icon: 'i-lucide-log-out', onSelect: signOut }]
