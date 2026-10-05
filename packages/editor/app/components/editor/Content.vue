@@ -17,7 +17,7 @@ const props = withDefaults(defineProps<{
   fetchRemote?: EditorFetchRemote
   placeholder?: string
   toolbarTo?: string
-  /** A shorter body with less padding, for a reply box rather than a document. */
+  /** A small box, such as a reply, rather than a document: less padding, and no block drag handle. */
   compact?: boolean
   /**
    * The fixed toolbar strip. Without it, formatting is still there: a bubble
@@ -241,7 +241,7 @@ function showTableBubble({ editor, view, state }: ShouldShow) {
     :ui="{
       base: [
         compact
-          ? 'min-h-32 px-4 py-3 sm:px-12'
+          ? 'min-h-24 px-4 py-3'
           : slots.header ? 'min-h-96 px-4 pt-2 pb-4 sm:px-14 sm:pb-14' : 'min-h-96 p-4 sm:p-14',
         '[&_table]:w-full [&_table]:border-collapse',
         '[&_td]:border [&_td]:border-default [&_td]:px-3 [&_td]:py-2 [&_th]:border [&_th]:border-default [&_th]:bg-elevated [&_th]:px-3 [&_th]:py-2 [&_th]:text-left',
@@ -332,7 +332,10 @@ function showTableBubble({ editor, view, state }: ShouldShow) {
       :items="suggestionItems"
     />
 
+    <!-- Compact boxes, such as replies, have no gutter for it: blocks there
+         are formatted from the bubble toolbar and / commands. -->
     <UEditorDragHandle
+      v-if="!compact"
       v-slot="{ ui, onClick }"
       :editor="editor"
       @node-change="onNodeChange"
