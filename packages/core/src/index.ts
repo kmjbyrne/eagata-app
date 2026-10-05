@@ -1,6 +1,26 @@
-export type { ProviderIdentity, User, UserIdentity } from './entities/User'
+export { canManageWorkspaces, ensureOwnerRemains, InvalidOrgRoleError, ORG_ROLES, parseOrgRole } from './entities/Membership'
+export type { Membership, OrgRole } from './entities/Membership'
+export { changeOrgSlug, orgSlugs } from './entities/Org'
+export type { Org } from './entities/Org'
 export { hasSignedIn } from './entities/User'
-export { DomainError, ForbiddenError, InvalidInputError, NotFoundError, NotSignedInError } from './errors'
+export type { ProviderIdentity, User, UserIdentity } from './entities/User'
+export { DEFAULT_WORKSPACE } from './entities/Workspace'
+export type { Workspace } from './entities/Workspace'
+export {
+  AlreadyMemberError,
+  ConflictError,
+  DomainError,
+  EmailTakenError,
+  ForbiddenError,
+  IdentityInUseError,
+  InvalidInputError,
+  LastOwnerError,
+  LastPlatformAdminError,
+  NotFoundError,
+  NotInvitedError,
+  NotSignedInError,
+  SlugTakenError
+} from './errors'
 export { EMAIL_MAX_LENGTH, InvalidEmailError, parseEmail } from './values/Email'
 export type { Email } from './values/Email'
 export { parseOrgId, parseUserId, parseWorkspaceId } from './values/Ids'

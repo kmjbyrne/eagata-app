@@ -49,10 +49,55 @@ such as "Ltd" and "Inc" from the end. "Café Ólafsson Ltd" becomes
 `cafe-olafsson`. A name too short for a slug gets `-1` added, and a name with no
 letters or numbers throws.
 
+## Two Kinds of Roles
+
+The **platform role** belongs to a user and covers the whole platform. A user is
+a platform admin (`isPlatformAdmin`) or not. Platform admins create orgs and
+users, and assign memberships. Being one doesn't make a user a member of any
+org.
+
+The **org role** belongs to a membership and covers one org: `owner`, `admin` or
+`member`. Owners and admins run their org day to day, which for now means
+creating workspaces. An app that needs finer permissions keeps them as its own
+data, keyed by org and user.
+
+## Entities
+
+| Entity       | Fields                                                                     |
+| ------------ | -------------------------------------------------------------------------- |
+| `User`       | `id`, `displayName`, `email`, `avatarUrl`, `isPlatformAdmin`, `identities` |
+| `Org`        | `id`, `name`, `slug`, `previousSlugs`                                      |
+| `Workspace`  | `id`, `orgId`, `name`, `slug`, `createdAt`                                 |
+| `Membership` | `userId`, `orgId`, `role`                                                  |
+
+An org contains workspaces. An app's own entities refer to these by id
+(`UserId`, `OrgId`, `WorkspaceId`), and never extend them.
+
+The rules that live on the entities:
+
+- `changeOrgSlug` moves the old slug to `previousSlugs`, so old links keep
+  working. Moving back to an old slug takes it off the list.
+- `ensureOwnerRemains` throws `LastOwnerError` if a role change or removal would
+  leave an org with no owner.
+- `canManageWorkspaces` is true for owners and admins.
+- A new org's first workspace is `DEFAULT_WORKSPACE`: "General", at `general`.
+
 ## Errors
 
-Entities are plain interfaces. Every error the domain throws on purpose extends
-`DomainError`, so an adapter can map it to a response.
+Every error the domain throws on purpose extends `DomainError`, so an adapter
+can map it to a response:
+
+| Error               | Meaning                                                  | HTTP |
+| ------------------- | -------------------------------------------------------- | ---- |
+| `InvalidInputError` | Input breaks a value's rules. Subclasses name the value. | 400  |
+| `NotSignedInError`  | No one is signed in                                      | 401  |
+| `ForbiddenError`    | Signed in, but not allowed                               | 403  |
+| `NotInvitedError`   | Signed in at the provider, but no account exists here    | 403  |
+| `NotFoundError`     | Missing, or exists but the caller may not see it         | 404  |
+| `ConflictError`     | Clashes with stored data. Subclasses below.              | 409  |
+
+The conflicts are `SlugTakenError`, `EmailTakenError`, `AlreadyMemberError`,
+`IdentityInUseError`, `LastOwnerError` and `LastPlatformAdminError`.
 
 ## API
 

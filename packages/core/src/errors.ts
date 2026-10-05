@@ -19,3 +19,49 @@ export class NotSignedInError extends DomainError {
 }
 
 export class ForbiddenError extends DomainError {}
+
+/** The request conflicts with what is already stored. Adapters map these to 409. */
+export class ConflictError extends DomainError {}
+
+export class SlugTakenError extends ConflictError {
+  constructor(readonly slug: string) {
+    super(`The slug "${slug}" is taken`)
+  }
+}
+
+export class EmailTakenError extends ConflictError {
+  constructor(readonly email: string) {
+    super(`A user already has the email "${email}"`)
+  }
+}
+
+export class AlreadyMemberError extends ConflictError {
+  constructor() {
+    super('That user is already a member of this organization')
+  }
+}
+
+export class IdentityInUseError extends ConflictError {
+  constructor(readonly provider: string) {
+    super(`This ${provider} account is already linked to another user`)
+  }
+}
+
+export class LastOwnerError extends ConflictError {
+  constructor() {
+    super('An organization needs at least one owner. Make someone else an owner first')
+  }
+}
+
+export class LastPlatformAdminError extends ConflictError {
+  constructor() {
+    super('The platform needs at least one platform admin. Make someone else a platform admin first')
+  }
+}
+
+/** Signed in at the provider, but nobody has added this person here. */
+export class NotInvitedError extends DomainError {
+  constructor(readonly email: string) {
+    super(`No account has been set up for ${email}`)
+  }
+}
