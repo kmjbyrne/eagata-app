@@ -101,7 +101,7 @@ async function deactivate() {
         external
         color="neutral"
         variant="outline"
-        class="self-start"
+        class="w-fit self-start"
       >
         <template #leading>
           <ProviderLogo
@@ -127,7 +127,7 @@ async function deactivate() {
       <UButton
         label="Deactivate account"
         color="error"
-        class="self-start"
+        class="w-fit self-start"
         @click="confirming = true"
       />
     </UPageCard>

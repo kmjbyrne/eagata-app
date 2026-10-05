@@ -71,7 +71,7 @@ async function save() {
         type="submit"
         :label="status.hasPassword ? 'Update' : 'Set password'"
         :loading="saving"
-        class="self-start"
+        class="w-fit self-start"
       />
     </form>
   </UPageCard>

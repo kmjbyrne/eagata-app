@@ -22,7 +22,7 @@ const { orgs } = useOrgs()
         label="Platform admin"
         icon="i-lucide-shield"
         variant="subtle"
-        class="self-start"
+        class="w-fit self-start"
       />
     </UPageCard>
 

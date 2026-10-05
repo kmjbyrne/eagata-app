@@ -12,6 +12,8 @@ sandbox, the docs and the tooling. The format follows
 
 ### Fixed
 
+- Buttons in settings and platform cards no longer stretch to full width on wide
+  screens.
 - `@kmjbyrne/nuxt-shell`: a refreshed, replayed or stale sign-in callback
   redirects, to `/` when signed in and to `/login` with "This sign-in expired"
   otherwise, instead of answering 400. Its log line leaves out the provider's
@@ -19,6 +21,10 @@ sandbox, the docs and the tooling. The format follows
 
 ### Added
 
+- Self-service deactivation: `UserService.deactivateMe`, confirmed by typing the
+  user's own email, `POST /api/me/deactivate`, and an Account section with a
+  confirmation dialog on Settings, Security. Only a platform admin can
+  reactivate, and the last active platform admin can't deactivate themselves.
 - The reference app: passwords, with migration `0004`, and the sandbox password
   `sandbox-password` for Ada and Grace. `NUXT_APP_URL` and `NUXT_TRUST_PROXY` in
   `.env.example`.

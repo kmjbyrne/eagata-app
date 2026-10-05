@@ -29,7 +29,7 @@ async function send() {
       color="neutral"
       variant="outline"
       :loading="sending"
-      class="self-start"
+      class="w-fit self-start"
       @click="send"
     />
   </UPageCard>
