@@ -99,6 +99,46 @@ can map it to a response:
 The conflicts are `SlugTakenError`, `EmailTakenError`, `AlreadyMemberError`,
 `IdentityInUseError`, `LastOwnerError` and `LastPlatformAdminError`.
 
+## Ports
+
+Core reaches storage, ids, the session and sign-in only through these
+interfaces. Adapters elsewhere implement them.
+
+| Port                   | What it does                                                          |
+| ---------------------- | --------------------------------------------------------------------- |
+| `UserRepository`       | Users and their linked identities                                     |
+| `OrgRepository`        | Orgs by id, current slug, or current-or-previous slug                 |
+| `WorkspaceRepository`  | Workspaces by org and slug, oldest first                              |
+| `MembershipRepository` | Memberships by org or by user                                         |
+| `TenancyStore`         | All four repositories, plus `transaction` for writes that go together |
+| `IdGenerator`          | New ids                                                               |
+| `CurrentUser`          | The signed-in user's id, or null                                      |
+| `SignInProvider`       | Starts and completes a sign-in with an identity provider              |
+
+The repositories enforce uniqueness themselves, so two requests at once can't
+both win: emails across users, identities across users, org slugs across every
+org's current and previous slugs, and workspace slugs within an org.
+
+## Testing
+
+`@kmjbyrne/core/testing` has what tests need. It needs Vitest.
+
+- `repositoryContract(createStore)` is a Vitest suite that every implementation
+  of the repositories must pass. Run it against an adapter's `TenancyStore`.
+  Each test makes its own records, so the store can be shared.
+- `InMemoryTenancyStore` implements every repository on plain arrays. It passes
+  the contract.
+- `FakeCurrentUser` is a `CurrentUser` you can sign in and out.
+
+```ts
+import { describe } from 'vitest'
+import { repositoryContract } from '@kmjbyrne/core/testing'
+
+describe('MysqlTenancyStore', () => {
+  repositoryContract(() => store)
+})
+```
+
 ## API
 
 | Export                                                | What it is                                                      |

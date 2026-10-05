@@ -38,3 +38,11 @@ export {
   suggestSlug
 } from './values/Slug'
 export type { Slug } from './values/Slug'
+export type { CurrentUser } from './ports/CurrentUser'
+export type { IdGenerator } from './ports/IdGenerator'
+export type { MembershipRepository } from './ports/MembershipRepository'
+export type { OrgRepository } from './ports/OrgRepository'
+export type { AuthorizationOptions, AuthorizationRequest, SignInProvider } from './ports/SignInProvider'
+export type { TenancyRepositories, TenancyStore } from './ports/TenancyStore'
+export type { UserRepository } from './ports/UserRepository'
+export type { WorkspaceRepository } from './ports/WorkspaceRepository'

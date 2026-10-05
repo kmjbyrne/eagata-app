@@ -4,7 +4,8 @@
   "description": "The shared domain: users, organizations, workspaces, memberships and sign-in rules",
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./testing": "./src/testing/index.ts"
   },
   "files": [
     "src",
@@ -17,8 +18,17 @@
   "scripts": {
     "typecheck": "tsc -p ."
   },
+  "peerDependencies": {
+    "vitest": "^5.0.0"
+  },
+  "peerDependenciesMeta": {
+    "vitest": {
+      "optional": true
+    }
+  },
   "devDependencies": {
     "@types/node": "^24.0.0",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "vitest": "^5.0.3"
   }
 }
