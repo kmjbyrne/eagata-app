@@ -8,6 +8,7 @@ export const passwordSignInBody = z.object({ email, password })
 export const linkAccountBody = z.object({ password })
 export const forgotPasswordBody = z.object({ email })
 export const resetPasswordBody = z.object({ token: z.string().max(256), password })
+export const inviteBody = z.object({ userId: z.string().max(64) })
 export const setPasswordBody = z.object({ current: password.optional(), password })
 
 export const passwordStatusResponse = z.object({ hasPassword: z.boolean() })

@@ -9,7 +9,10 @@ if (existsSync('.env')) {
 // for both: after upgrading @kmjbyrne/nuxt-shell, run `pnpm db:generate`.
 export default defineConfig({
   dialect: 'mysql',
-  schema: ['./node_modules/@kmjbyrne/nuxt-shell/server/adapters/mysql/schema.ts'],
+  schema: [
+    './node_modules/@kmjbyrne/nuxt-shell/server/adapters/mysql/schema.ts',
+    './node_modules/@kmjbyrne/nuxt-passwords/server/adapters/mysql/schema.ts'
+  ],
   out: './server/migrations',
   dbCredentials: {
     url: process.env.NUXT_DATABASE_URL ?? ''

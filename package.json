@@ -20,6 +20,7 @@
   "dependencies": {
     "@iconify-json/lucide": "^1.2.139",
     "@iconify-json/simple-icons": "^1.2.98",
+    "@kmjbyrne/nuxt-passwords": "workspace:*",
     "@kmjbyrne/nuxt-platform": "workspace:*",
     "@kmjbyrne/nuxt-shell": "workspace:*",
     "@nuxt/ui": "^4.11.3",

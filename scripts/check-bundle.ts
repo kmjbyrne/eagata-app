@@ -7,7 +7,7 @@ import { join } from 'node:path'
 
 const OUTPUT = '.output'
 
-const SANDBOX = ['/_sandbox/', 'FakeOidcClient', 'Dev sign-in', 'defineSandbox', 'tenancyDevUsers', 'Dana Deactivated', 'pat@example.com', 'lowdb']
+const SANDBOX = ['/_sandbox/', 'FakeOidcClient', 'Dev sign-in', 'defineSandbox', 'tenancyDevUsers', 'Dana Deactivated', 'pat@example.com', 'lowdb', 'sandboxFixtures1']
 const PLATFORM = ['/api/protected/', 'Show personal organizations', 'PlatformCreateOrgModal']
 
 function build(platform: boolean) {

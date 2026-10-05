@@ -1,6 +1,7 @@
 import { OidcSignInProvider } from '@kmjbyrne/nuxt-shell/adapters'
 import { FakeOidcClient } from '@kmjbyrne/sandbox/oidc'
-import { JsonStoreRepositories, tenancyCollections, tenancyDevUsers } from '@kmjbyrne/sandbox/json-store'
+import { combineCollections } from '@kmjbyrne/json-store'
+import { JsonPasswordRepository, JsonStoreRepositories, passwordCollections, tenancyCollections, tenancyDevUsers } from '@kmjbyrne/sandbox/json-store'
 
 // The dev data and sign-in stand-in, handed to the app's container in place
 // of the database and the real provider.
@@ -18,13 +19,13 @@ export default defineNitroPlugin(() => {
 
   const standInSignIn = signIn ? signIn === 'sandbox' : !oidc.clientId
   const sandbox = defineSandbox({
-    collections: tenancyCollections(),
+    collections: combineCollections(tenancyCollections(), passwordCollections()),
     devUsers: tenancyDevUsers,
     signIn: standInSignIn,
     data: dataStore === 'json'
   })
   if (dataStore === 'json') {
-    provideAdapters({ repositories: new JsonStoreRepositories(sandbox.store) })
+    provideAdapters({ repositories: new JsonStoreRepositories(sandbox.store), passwordRepository: new JsonPasswordRepository(sandbox.store) })
   }
   if (standInSignIn) {
     provideAdapters({ signIn: new OidcSignInProvider(useRuntimeConfig().public.signInProvider, new FakeOidcClient()) })

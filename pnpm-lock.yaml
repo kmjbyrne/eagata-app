@@ -190,6 +190,9 @@ importers:
       '@iconify-json/simple-icons':
         specifier: ^1.2.98
         version: 1.2.98
+      '@kmjbyrne/nuxt-passwords':
+        specifier: workspace:*
+        version: link:packages/nuxt-passwords
       '@kmjbyrne/nuxt-platform':
         specifier: workspace:*
         version: link:packages/nuxt-platform

@@ -29,6 +29,13 @@
       "when": 1791240351962,
       "tag": "0003_high_blindfold",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1791241730913,
+      "tag": "0004_lethal_nova",
+      "breakpoints": true
     }
   ]
 }

@@ -113,7 +113,7 @@ describe('/api/me/password', () => {
   })
 })
 
-describe('POST /api/protected/users/:id/password-invite', () => {
+describe('POST /api/auth/password/invite', () => {
   it('lets only a platform admin email a set-password link', async () => {
     await createUser('pat@example.com')
     await $fetch('/__test/platform-admin', { method: 'POST', body: { email: 'pat@example.com' } })
@@ -123,8 +123,8 @@ describe('POST /api/protected/users/:id/password-invite', () => {
     const outsider = new Browser()
     await outsider.signIn({ email: 'dana@example.com' })
 
-    expect((await outsider.request(`/api/protected/users/${dana.id}/password-invite`, send('POST'))).status).toBe(403)
-    expect((await pat.request(`/api/protected/users/${dana.id}/password-invite`, send('POST'))).status).toBe(202)
+    expect((await outsider.request('/api/auth/password/invite', send('POST', { userId: dana.id }))).status).toBe(403)
+    expect((await pat.request('/api/auth/password/invite', send('POST', { userId: dana.id }))).status).toBe(202)
     expect(await tokenSentTo('dana@example.com')).toBeTruthy()
   })
 })

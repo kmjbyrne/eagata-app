@@ -7,7 +7,7 @@ const sending = ref(false)
 async function send() {
   sending.value = true
   try {
-    await $fetch(`/api/protected/users/${props.userId}/password-invite`, { method: 'POST' })
+    await $fetch('/api/auth/password/invite', { method: 'POST', body: { userId: props.userId } })
     toast.add({ title: 'Sent a link to set their password. It lasts 72 hours.', color: 'success' })
   } catch (failure) {
     toast.add({ title: failureMessage(failure), color: 'error' })

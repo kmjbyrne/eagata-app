@@ -11,6 +11,9 @@ if (existsSync('.env')) {
 const mariadb = ['packages/*/server/adapters/mysql/**/*.test.ts']
 
 export default defineConfig({
+  server: {
+    allowedHosts: ['eagata.com']
+  },
   test: {
     // Route tests build and boot a Nuxt server first.
     hookTimeout: 180_000,

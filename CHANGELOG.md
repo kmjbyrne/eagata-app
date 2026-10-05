@@ -19,6 +19,11 @@ sandbox, the docs and the tooling. The format follows
 
 ### Added
 
+- The reference app: passwords, with migration `0004`, and the sandbox password
+  `sandbox-password` for Ada and Grace. `NUXT_APP_URL` and `NUXT_TRUST_PROXY` in
+  `.env.example`.
+- `@kmjbyrne/sandbox`: `passwordCollections` and `JsonPasswordRepository`, for
+  apps with passwords.
 - `@kmjbyrne/nuxt-passwords`: the optional passwords layer. An email and
   password form on the sign-in page, `/link-account` to confirm the password
   before linking Google, forgot and reset pages, a Password section on Settings,

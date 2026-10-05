@@ -46,10 +46,13 @@ admin creates, can sign in. Any other email is refused as not invited. Untick
 | Mary Somerville   | Only her personal org, plus Ada's shared workspace        |
 | Dana Deactivated  | Deactivated member of Acme. Signing in as her is refused. |
 
-Every email is `<first name>@example.com`. Acme (`acme`, once `acme-old`) has
-General and Finance, and Globex (`globex`) has General and Research. Everyone
-has a personal org with a General workspace. Old links such as
-`/acme-old/finance` redirect.
+Every email is `<first name>@example.com`. Ada and Grace also have the password
+`sandbox-password`, so signing in as them with "Continue with Google" asks for
+it once before linking. Everyone else links straight away, and can set a
+password under Settings, Security. Emails, such as reset links, are printed in
+the server log. Acme (`acme`, once `acme-old`) has General and Finance, and
+Globex (`globex`) has General and Research. Everyone has a personal org with a
+General workspace. Old links such as `/acme-old/finance` redirect.
 
 The defaults live in `packages/sandbox/server/json-store/fixtures.ts`. The
 reference app uses them as they are. An app adds to them, or replaces them, in
