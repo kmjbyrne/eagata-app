@@ -1,0 +1,28 @@
+{
+  "name": "@kmjbyrne/nuxt-shell",
+  "version": "0.0.0",
+  "description": "Nuxt layer for every app on the foundation: sign-in, sessions, orgs, workspaces and the service container",
+  "type": "module",
+  "main": "./nuxt.config.ts",
+  "exports": {
+    ".": "./nuxt.config.ts",
+    "./types": "./types.ts"
+  },
+  "files": [
+    "nuxt.config.ts",
+    "types.ts",
+    "server",
+    "!**/*.test.ts",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "restricted"
+  },
+  "dependencies": {
+    "@kmjbyrne/core": "workspace:*",
+    "@kmjbyrne/oidc": "workspace:*"
+  },
+  "peerDependencies": {
+    "nuxt": "^4.5.0"
+  }
+}

@@ -28,6 +28,9 @@ sandbox, the docs and the tooling. The format follows
   transactions, in memory or in one JSON file, with a contract suite every store
   must pass.
 - `@kmjbyrne/core`: errors, branded ids, `Email`, `Name` and the `User` entity.
+- `@kmjbyrne/nuxt-shell`: the Nuxt layer every app extends, starting with the
+  service container, `provideAdapters`, `registerServices`, and the OIDC,
+  session and id adapters. The reference app extends it.
 - Packages publish to npm with restricted access, so installing them needs an
   npm login.
 

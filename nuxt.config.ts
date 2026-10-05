@@ -1,5 +1,7 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+  extends: ['@kmjbyrne/nuxt-shell'],
+
   modules: [
     '@nuxt/eslint',
     '@nuxt/ui'
