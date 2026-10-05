@@ -45,11 +45,15 @@ export function effectiveWorkspaceRole(orgRole: OrgRole | null, membership: Work
 }
 
 /**
- * Checks that a workspace still has an owner member after a member's role
- * changes, or after they leave (`role` null).
+ * Checks that changing a member's role, or removing them (`role` null),
+ * doesn't take away a workspace's last owner member. Changes to anyone who
+ * isn't an owner pass, even in a workspace that only org admins manage.
  * @throws LastOwnerError
  */
 export function ensureWorkspaceOwnerRemains(memberships: WorkspaceMembership[], userId: UserId, role: WorkspaceRole | null): void {
+  if (!memberships.some(membership => membership.userId === userId && membership.role === 'owner')) {
+    return
+  }
   const owners = memberships.filter(membership =>
     membership.userId === userId ? role === 'owner' : membership.role === 'owner'
   )

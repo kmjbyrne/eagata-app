@@ -58,6 +58,13 @@ describe('ensureWorkspaceOwnerRemains', () => {
     expect(() => ensureWorkspaceOwnerRemains(soleOwner, 'ada' as UserId, null)).toThrow(LastOwnerError)
   })
 
+  it('allows changes to non-owners in a workspace with no owner members', () => {
+    const managedByOrgAdmins = [member('grace', 'viewer')]
+
+    expect(() => ensureWorkspaceOwnerRemains(managedByOrgAdmins, 'grace' as UserId, 'editor')).not.toThrow()
+    expect(() => ensureWorkspaceOwnerRemains(managedByOrgAdmins, 'grace' as UserId, null)).not.toThrow()
+  })
+
   it('allows it when another owner remains, and changes to other members', () => {
     expect(() => ensureWorkspaceOwnerRemains([...soleOwner, member('mary', 'owner')], 'ada' as UserId, null)).not.toThrow()
     expect(() => ensureWorkspaceOwnerRemains(soleOwner, 'grace' as UserId, null)).not.toThrow()

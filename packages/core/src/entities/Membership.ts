@@ -30,11 +30,15 @@ export function parseOrgRole(input: string): OrgRole {
 export const canManageWorkspaces = (role: OrgRole) => role === 'owner' || role === 'admin'
 
 /**
- * Checks that an org still has an owner after a member's role changes, or
- * after they leave (`role` null).
+ * Checks that changing a member's role, or removing them (`role` null),
+ * doesn't take away an org's last owner. Changes to anyone who isn't an owner
+ * pass.
  * @throws LastOwnerError
  */
 export function ensureOwnerRemains(memberships: Membership[], userId: UserId, role: OrgRole | null): void {
+  if (!memberships.some(membership => membership.userId === userId && membership.role === 'owner')) {
+    return
+  }
   const owners = memberships.filter(membership =>
     membership.userId === userId ? role === 'owner' : membership.role === 'owner'
   )

@@ -36,6 +36,10 @@ describe('ensureOwnerRemains', () => {
     expect(() => ensureOwnerRemains(twoOwners, ada, null)).not.toThrow()
   })
 
+  it('allows changes to non-owners even with no owner at all', () => {
+    expect(() => ensureOwnerRemains([member('grace', 'member')], 'grace' as UserId, 'admin')).not.toThrow()
+  })
+
   it('allows changes to other members', () => {
     expect(() => ensureOwnerRemains(soleOwner, 'grace' as UserId, null)).not.toThrow()
   })
