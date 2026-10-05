@@ -25,8 +25,9 @@ sandbox, the docs and the tooling. The format follows
 
 ### Added
 
-- The reference app: feedback in every workspace's navigation, the inbox with
-  the platform, migration `0005`, and the editor demo uploading real images.
+- The reference app: feedback at the foot of every workspace's sidebar, the
+  inbox with the platform, migration `0005`, and the editor demo uploading real
+  images.
 - `@kmjbyrne/sandbox`: `feedbackCollections` and `JsonFeedbackRepository`.
 - `@kmjbyrne/nuxt-feedback`: feedback pages in every workspace, with rich text
   and images, and the platform inbox in the `@kmjbyrne/nuxt-feedback/platform`

@@ -12,10 +12,14 @@ const items = computed<NavigationMenuItem[]>(() => {
   return [
     { label: 'Home', icon: 'i-lucide-house', to: base, exact: true },
     { label: 'Members', icon: 'i-lucide-users', to: `${base}/members` },
-    { label: 'Editor', icon: 'i-lucide-pen-line', to: `${base}/editor` },
-    { label: 'Feedback', icon: 'i-lucide-message-square', to: `${base}/feedback` }
+    { label: 'Editor', icon: 'i-lucide-pen-line', to: `${base}/editor` }
   ]
 })
+
+// Pinned to the foot of the sidebar, above the user menu.
+const footerItems = computed<NavigationMenuItem[]>(() => org.value && workspace.value
+  ? [{ label: 'Feedback', icon: 'i-lucide-message-square', to: `/${org.value.org.slug}/${workspace.value.slug}/feedback` }]
+  : [])
 </script>
 
 <template>
@@ -39,6 +43,13 @@ const items = computed<NavigationMenuItem[]>(() => {
           orientation="vertical"
           tooltip
           popover
+        />
+        <UNavigationMenu
+          :collapsed="collapsed"
+          :items="footerItems"
+          orientation="vertical"
+          tooltip
+          class="mt-auto"
         />
       </template>
 
