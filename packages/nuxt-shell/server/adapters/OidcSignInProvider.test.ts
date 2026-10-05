@@ -3,7 +3,7 @@ import type { OidcClientLike } from '@kmjbyrne/oidc'
 import { OidcSignInProvider } from './OidcSignInProvider'
 
 const client: OidcClientLike = {
-  authorizationRequest: async options => ({ url: `https://idp.example.com/?hint=${options?.loginHint ?? ''}`, state: 's', nonce: 'n', codeVerifier: 'v' }),
+  authorizationRequest: async options => ({ url: `https://idp.example.com/?hint=${options?.loginHint ?? ''}`, state: 's', nonce: 'n', codeVerifier: 'v', redirectUri: 'https://app.example.com/api/auth/callback' }),
   complete: async () => ({ issuer: 'https://idp.example.com', subject: 'sub-1', email: ' Ada@Example.com ', emailVerified: true, name: 'Ada', picture: null })
 }
 

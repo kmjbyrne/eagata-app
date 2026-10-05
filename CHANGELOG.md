@@ -24,6 +24,8 @@ sandbox, the docs and the tooling. The format follows
   default.
 - `@kmjbyrne/oidc` accepts a `loginHint` that preselects an account.
 - `@kmjbyrne/oidc` returns the `name` claim.
+- `@kmjbyrne/oidc`: `OIDC_PRESETS` with Google's issuer settings, and a redirect
+  URI that can be given per sign-in.
 - `@kmjbyrne/json-store`: collections of JSON documents with Zod schemas and
   transactions, in memory or in one JSON file, with a contract suite every store
   must pass.

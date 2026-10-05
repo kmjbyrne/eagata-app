@@ -27,11 +27,10 @@ and `codeVerifier` somewhere only this browser can read back, such as a sealed
 cookie, and redirect to its `url`:
 
 ```ts
-import { OidcClient } from '@kmjbyrne/oidc'
+import { OIDC_PRESETS, OidcClient } from '@kmjbyrne/oidc'
 
 const client = new OidcClient({
-  issuer: 'https://accounts.google.com',
-  issuerAliases: ['accounts.google.com'],
+  ...OIDC_PRESETS.google,
   clientId: process.env.OIDC_CLIENT_ID!,
   clientSecret: process.env.OIDC_CLIENT_SECRET!,
   redirectUri: 'https://app.example.com/api/auth/callback'
@@ -59,6 +58,14 @@ const identity = await client.complete(code, request)
 | `picture`       | A profile picture URL, or `null`                           |
 
 Key accounts on `issuer` and `subject`, never on the email, which can change.
+
+`OIDC_PRESETS` holds the issuer settings of known providers, so a known provider
+needs only a client id and secret. It has `google` so far.
+
+The redirect URI can also be given per sign-in, as
+`authorizationRequest({ redirectUri })`. The returned request carries it, so
+pass it to `complete` too: the token exchange must name the same one. An app on
+several hosts can then use each request's own origin.
 
 ## API
 

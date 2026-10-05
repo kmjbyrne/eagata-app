@@ -6,7 +6,8 @@ export interface OidcClientConfig {
   issuerAliases?: string[]
   clientId: string
   clientSecret: string
-  redirectUri: string
+  /** Used when a request doesn't give its own. */
+  redirectUri?: string
   /** For each discovery and token request. Defaults to 10 seconds. */
   timeoutMs?: number
 }
@@ -17,6 +18,8 @@ export interface AuthorizationRequest {
   state: string
   nonce: string
   codeVerifier: string
+  /** The token exchange must name the same redirect URI. */
+  redirectUri: string
 }
 
 /** What the provider asserted about the person who just signed in. */
@@ -33,12 +36,17 @@ export interface OidcIdentity {
 export interface AuthorizationOptions {
   /** The account to preselect, usually an email. Sent as `login_hint`. */
   loginHint?: string
+  /** Where the provider sends the person back. Defaults to the configured one. */
+  redirectUri?: string
 }
 
 export interface OidcClientLike {
   authorizationRequest(options?: AuthorizationOptions): Promise<AuthorizationRequest>
-  complete(code: string, request: Pick<AuthorizationRequest, 'nonce' | 'codeVerifier'>): Promise<OidcIdentity>
+  complete(code: string, request: CompleteRequest): Promise<OidcIdentity>
 }
+
+/** The round trip's secrets. The redirect URI defaults to the configured one, and must match the authorization request's. */
+export type CompleteRequest = Pick<AuthorizationRequest, 'nonce' | 'codeVerifier'> & { redirectUri?: string }
 
 interface Discovery {
   issuer: string
@@ -78,13 +86,14 @@ export class OidcClient implements OidcClientLike {
 
   async authorizationRequest(options: AuthorizationOptions = {}): Promise<AuthorizationRequest> {
     const { authorization_endpoint } = await this.discover()
+    const redirectUri = this.requireRedirectUri(options.redirectUri)
     const state = randomToken()
     const nonce = randomToken()
     const codeVerifier = randomToken()
     const params = new URLSearchParams({
       response_type: 'code',
       client_id: this.config.clientId,
-      redirect_uri: this.config.redirectUri,
+      redirect_uri: redirectUri,
       scope: 'openid email profile',
       state,
       nonce,
@@ -95,10 +104,10 @@ export class OidcClient implements OidcClientLike {
     if (options.loginHint) {
       params.set('login_hint', options.loginHint)
     }
-    return { url: `${authorization_endpoint}?${params}`, state, nonce, codeVerifier }
+    return { url: `${authorization_endpoint}?${params}`, state, nonce, codeVerifier, redirectUri }
   }
 
-  async complete(code: string, request: Pick<AuthorizationRequest, 'nonce' | 'codeVerifier'>): Promise<OidcIdentity> {
+  async complete(code: string, request: CompleteRequest): Promise<OidcIdentity> {
     const { token_endpoint, issuer } = await this.discover()
     const response = await this.request('Token exchange', token_endpoint, {
       method: 'POST',
@@ -106,7 +115,7 @@ export class OidcClient implements OidcClientLike {
       body: new URLSearchParams({
         grant_type: 'authorization_code',
         code,
-        redirect_uri: this.config.redirectUri,
+        redirect_uri: this.requireRedirectUri(request.redirectUri),
         client_id: this.config.clientId,
         client_secret: this.config.clientSecret,
         code_verifier: request.codeVerifier
@@ -170,6 +179,14 @@ export class OidcClient implements OidcClientLike {
     }
     this.discovery = { value, expiresAt: Date.now() + DISCOVERY_TTL_MS }
     return value
+  }
+
+  private requireRedirectUri(redirectUri: string | undefined): string {
+    const chosen = redirectUri ?? this.config.redirectUri
+    if (!chosen) {
+      throw new OidcError('No redirect URI: configure one, or pass one with the request')
+    }
+    return chosen
   }
 
   private async request(label: string, url: string, init: RequestInit = {}): Promise<Response> {

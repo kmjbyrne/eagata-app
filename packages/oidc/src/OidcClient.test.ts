@@ -70,6 +70,21 @@ describe('OidcClient', () => {
       })
     })
 
+    it('uses a redirect URI given with the request over the configured one', async () => {
+      const { fetchFn } = fakeFetch({ body: {} })
+      const request = await new OidcClient(CONFIG, fetchFn).authorizationRequest({ redirectUri: 'http://localhost:3001/api/auth/callback' })
+
+      expect(new URL(request.url).searchParams.get('redirect_uri')).toBe('http://localhost:3001/api/auth/callback')
+      expect(request.redirectUri).toBe('http://localhost:3001/api/auth/callback')
+    })
+
+    it('needs a redirect URI from the config or the request', async () => {
+      const { fetchFn } = fakeFetch({ body: {} })
+      const { redirectUri: _, ...withoutRedirect } = CONFIG
+
+      await expect(new OidcClient(withoutRedirect, fetchFn).authorizationRequest()).rejects.toThrow(OidcError)
+    })
+
     it('sends a login hint only when given one', async () => {
       const { fetchFn } = fakeFetch({ body: {} })
       const client = new OidcClient(CONFIG, fetchFn)
@@ -111,7 +126,14 @@ describe('OidcClient', () => {
   })
 
   describe('complete', () => {
-    const request = { nonce: 'n-1', codeVerifier: 'v-1' }
+    const request = { nonce: 'n-1', codeVerifier: 'v-1', redirectUri: CONFIG.redirectUri }
+
+    it('exchanges the code naming the request\'s redirect URI', async () => {
+      const { fetchFn, calls } = fakeFetch({ body: { id_token: jwt(validClaims()) } })
+      await new OidcClient(CONFIG, fetchFn).complete('code-1', { ...request, redirectUri: 'http://localhost:3001/api/auth/callback' })
+
+      expect(calls[1]!.body!.get('redirect_uri')).toBe('http://localhost:3001/api/auth/callback')
+    })
 
     it('exchanges the code with the secret and verifier, and returns the identity', async () => {
       const { fetchFn, calls } = fakeFetch({ body: { id_token: jwt(validClaims()) } })
