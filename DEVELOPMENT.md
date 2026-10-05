@@ -128,3 +128,30 @@ own build folder and port, or the two will break each other's files:
 ```bash
 NUXT_BUILD_DIR=.nuxt-agent pnpm exec nuxt dev sandbox --dotenv ../.env --port 3460
 ```
+
+## Docker
+
+The `Dockerfile` builds two images. No secrets enter either: settings come from
+`NUXT_*` variables when a container runs.
+
+```bash
+docker build --target app -t eagata-app .
+docker build --target app --build-arg NUXT_PLATFORM=true -t eagata-app .
+docker build --target tools -t eagata-tools .
+```
+
+`app` is the production server, about 245 MB. `NUXT_PLATFORM` is a build
+argument, off by default, so an image built without it ships none of the
+platform's code.
+
+`tools` runs deliberate, one-off operations against the database. It does
+nothing unless given a command, so nothing migrates by accident. Run migrations
+as their own step, before starting a new `app`:
+
+```bash
+docker run --rm -e NUXT_DATABASE_URL=... eagata-tools drizzle-kit migrate
+docker run --rm -e NUXT_DATABASE_URL=... eagata-tools tsx scripts/platform-grant.ts you@example.com "Your Name"
+```
+
+The `app` container needs `NUXT_DATABASE_URL`, `NUXT_SESSION_SECRET`, and the
+OIDC client settings.

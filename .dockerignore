@@ -1,0 +1,30 @@
+# Secrets. Pass them to the container at runtime, never into the build.
+**/.env
+**/.env.*
+!.env.example
+**/secrets/
+
+# Rebuilt inside the image
+**/node_modules
+.output
+**/.data
+**/.nuxt
+**/.nuxt-*
+.nitro
+.cache
+dist
+
+# Not needed to build
+.git
+instance/
+Dockerfile
+logs
+*.log
+.DS_Store
+.fleet
+.idea
+
+# Local development only, never part of the image. Its manifest stays, so
+# the install matches the lockfile.
+sandbox/*
+!sandbox/package.json
