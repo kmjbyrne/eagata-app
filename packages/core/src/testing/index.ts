@@ -1,7 +1,9 @@
 export { companyOrg } from './companyOrg'
 export type { CompanyOrgSetup } from './companyOrg'
 export { createTestServices } from './createTestServices'
+export { CountingRateLimiter } from './CountingRateLimiter'
 export { FakeCurrentUser } from './FakeCurrentUser'
+export { RecordingEmailSender } from './RecordingEmailSender'
 export { InMemoryRepositories } from './InMemoryRepositories'
 export { SequentialIdGenerator } from './SequentialIdGenerator'
 /** Creates a user with their personal org, as a platform admin would, without the permission check. For test setup only. */

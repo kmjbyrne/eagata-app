@@ -7,7 +7,8 @@ import {
   InvalidInputError,
   NotFoundError,
   NotInvitedError,
-  NotSignedInError
+  NotSignedInError,
+  TooManyAttemptsError
 } from '@kmjbyrne/core'
 import type { EventHandlerRequest, H3Event } from 'h3'
 
@@ -27,6 +28,9 @@ export function domainErrorStatus(error: unknown): number | undefined {
   }
   if (error instanceof ConflictError) {
     return 409
+  }
+  if (error instanceof TooManyAttemptsError) {
+    return 429
   }
   if (error instanceof InvalidInputError) {
     return 400

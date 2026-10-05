@@ -226,6 +226,9 @@ interfaces. Adapters elsewhere implement them.
 | `IdGenerator`          | New ids                                                              |
 | `CurrentUser`          | The signed-in user's id, or null                                     |
 | `SignInProvider`       | Starts and completes a sign-in with an identity provider             |
+| `LinkProof`            | Whether linking a provider account needs proof, such as a password   |
+| `EmailSender`          | Sends an email                                                       |
+| `RateLimiter`          | Counts attempts per key, for limits such as failed passwords         |
 
 The repositories enforce uniqueness themselves, so two requests at once can't
 both win: emails across users, identities across users, org slugs across every
@@ -243,6 +246,8 @@ server can use them too.
 - `InMemoryRepositories` implements every repository on plain arrays. It passes
   the contract.
 - `FakeCurrentUser` is a `CurrentUser` you can sign in and out.
+- `RecordingEmailSender` keeps sent messages in `outbox`, and
+  `CountingRateLimiter` counts attempts with no time window.
 - `SequentialIdGenerator` makes the ids `id-1`, `id-2` and so on.
 - `provisionUser(tx, ids, input)` creates a user with their personal org, as a
   platform admin would, without the permission check. For test setup only.

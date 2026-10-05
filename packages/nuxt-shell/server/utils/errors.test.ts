@@ -13,7 +13,8 @@ import {
   NotFoundError,
   NotInvitedError,
   NotSignedInError,
-  SlugTakenError
+  SlugTakenError,
+  TooManyAttemptsError
 } from '@kmjbyrne/core'
 import { domainErrorStatus } from './errors'
 
@@ -32,7 +33,8 @@ describe('domainErrorStatus', () => {
     [new AlreadyMemberError('workspace'), 409],
     [new IdentityMismatchError('google'), 409],
     [new LastOwnerError('organization'), 409],
-    [new LastPlatformAdminError(), 409]
+    [new LastPlatformAdminError(), 409],
+    [new TooManyAttemptsError(60_000), 429]
   ])('maps %s to %i', (error, status) => {
     expect(domainErrorStatus(error)).toBe(status)
   })
