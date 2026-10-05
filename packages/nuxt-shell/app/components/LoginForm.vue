@@ -48,15 +48,15 @@ const error = computed(() => messages[route.query.error as SignInError])
         external
         block
         size="xl"
-        class="justify-center"
+        color="neutral"
+        variant="outline"
+        class="justify-center gap-3 rounded-lg py-3 font-semibold"
       >
         <template #leading>
-          <span class="flex size-6 items-center justify-center rounded-full bg-white">
-            <ProviderLogo
-              :provider="signInProvider"
-              class="size-4"
-            />
-          </span>
+          <ProviderLogo
+            :provider="signInProvider"
+            class="size-5"
+          />
         </template>
       </UButton>
       <p class="text-center text-xs text-muted">
