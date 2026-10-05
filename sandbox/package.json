@@ -1,0 +1,11 @@
+{
+  "name": "sandbox",
+  "private": true,
+  "type": "module",
+  "description": "The reference app's dev wrapper. Never built for production.",
+  "dependencies": {
+    "@kmjbyrne/json-store": "workspace:*",
+    "@kmjbyrne/nuxt-shell": "workspace:*",
+    "@kmjbyrne/sandbox": "workspace:*"
+  }
+}

@@ -7,7 +7,8 @@
   "exports": {
     ".": "./nuxt.config.ts",
     "./types": "./types.ts",
-    "./mysql": "./server/adapters/mysql/index.ts"
+    "./mysql": "./server/adapters/mysql/index.ts",
+    "./adapters": "./server/adapters/index.ts"
   },
   "files": [
     "nuxt.config.ts",
