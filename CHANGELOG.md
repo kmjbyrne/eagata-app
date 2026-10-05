@@ -17,6 +17,12 @@ sandbox, the docs and the tooling. The format follows
   password, before linking a provider account to an existing user: `signIn` then
   returns `link-required` instead of linking.
 
+### Changed
+
+- `@kmjbyrne/nuxt-shell`: the provider name moved to public config, as
+  `NUXT_PUBLIC_SIGN_IN_PROVIDER` in place of `NUXT_OIDC_PROVIDER`, so pages can
+  show its logo.
+
 ## 0.1.0 - 2026-10-05
 
 The first release of the foundation: shared packages for users, organizations,

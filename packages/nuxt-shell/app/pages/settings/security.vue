@@ -5,7 +5,7 @@ useHead({ title: 'Security · Settings' })
 
 const { me } = useMe()
 const { shell } = useAppConfig()
-const { public: { signInLabel } } = useRuntimeConfig()
+const { public: { signInLabel, signInProvider } } = useRuntimeConfig()
 const route = useRoute()
 
 // "Continue with Google" names the provider, so the connect button can too.
@@ -45,7 +45,10 @@ const outcome = computed(() => outcomes[route.query.connect as ConnectOutcome])
           class="flex items-center justify-between gap-4 py-2"
         >
           <span class="flex items-center gap-2 capitalize">
-            <UIcon name="i-lucide-key-round" />
+            <ProviderLogo
+              :provider="identity.provider"
+              class="size-5"
+            />
             {{ identity.provider }}
           </span>
           <UBadge
@@ -64,11 +67,19 @@ const outcome = computed(() => outcomes[route.query.connect as ConnectOutcome])
       <UButton
         v-if="!me.providerLinked"
         :label="`Connect ${provider}`"
-        icon="i-lucide-link"
         to="/api/auth/login?intent=connect"
         external
+        color="neutral"
+        variant="outline"
         class="self-start"
-      />
+      >
+        <template #leading>
+          <ProviderLogo
+            :provider="signInProvider"
+            class="size-5"
+          />
+        </template>
+      </UButton>
     </UPageCard>
 
     <component

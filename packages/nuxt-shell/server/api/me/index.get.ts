@@ -9,6 +9,6 @@ export default defineServiceHandler(async (event): Promise<MeResponse> => {
     avatarUrl: user.avatarUrl,
     isPlatformAdmin: user.isPlatformAdmin,
     identities: user.identities.map(identity => ({ provider: identity.provider })),
-    providerLinked: user.identities.some(identity => identity.provider === useRuntimeConfig().oidc.provider)
+    providerLinked: user.identities.some(identity => identity.provider === useRuntimeConfig().public.signInProvider)
   }
 })

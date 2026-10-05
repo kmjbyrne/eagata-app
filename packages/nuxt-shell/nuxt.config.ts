@@ -18,9 +18,6 @@ export default defineNuxtConfig({
       secretAccessKey: ''
     },
     oidc: {
-      // Stored with each linked account. A provider with a preset in
-      // @kmjbyrne/oidc, such as "google", needs no issuer settings.
-      provider: 'google',
       // For a provider without a preset. Overrides the preset's.
       issuer: '',
       // Comma-separated other spellings of the issuer in ID tokens.
@@ -31,6 +28,10 @@ export default defineNuxtConfig({
       redirectUri: ''
     },
     public: {
+      // Stored with each linked account, and picks the button's logo. A
+      // provider with a preset in @kmjbyrne/oidc, such as "google", needs no
+      // issuer settings.
+      signInProvider: 'google',
       // The sign-in button's label.
       signInLabel: 'Continue with Google'
     }

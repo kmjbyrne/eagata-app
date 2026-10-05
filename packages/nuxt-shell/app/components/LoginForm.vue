@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { SignInError } from '../../shared/contracts/auth'
 
-const { public: { signInLabel } } = useRuntimeConfig()
+const { public: { signInLabel, signInProvider } } = useRuntimeConfig()
 const route = useRoute()
 
 const messages: Record<SignInError, string> = {
@@ -34,8 +34,15 @@ const error = computed(() => messages[route.query.error as SignInError])
       external
       block
       size="lg"
-      icon="i-lucide-arrow-right"
-      trailing
-    />
+      color="neutral"
+      variant="outline"
+    >
+      <template #leading>
+        <ProviderLogo
+          :provider="signInProvider"
+          class="size-5"
+        />
+      </template>
+    </UButton>
   </UPageCard>
 </template>

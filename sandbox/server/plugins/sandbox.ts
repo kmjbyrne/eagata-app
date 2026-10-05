@@ -27,6 +27,6 @@ export default defineNitroPlugin(() => {
     provideAdapters({ repositories: new JsonStoreRepositories(sandbox.store) })
   }
   if (standInSignIn) {
-    provideAdapters({ signIn: new OidcSignInProvider(oidc.provider, new FakeOidcClient()) })
+    provideAdapters({ signIn: new OidcSignInProvider(useRuntimeConfig().public.signInProvider, new FakeOidcClient()) })
   }
 })

@@ -34,13 +34,14 @@ function createDefaultAdapters(): Partial<CoreAdapters> {
 
 /** A provider with a preset needs only its client id and secret. Explicit settings win. */
 function createSignInProvider(oidc: ReturnType<typeof useRuntimeConfig>['oidc']): SignInProvider {
-  const preset = OIDC_PRESETS[oidc.provider]
+  const provider = useRuntimeConfig().public.signInProvider
+  const preset = OIDC_PRESETS[provider]
   const issuer = oidc.issuer || preset?.issuer
   if (!issuer) {
-    return missingAdapter(`No issuer for the OIDC provider "${oidc.provider}". Set NUXT_OIDC_ISSUER, or use a provider with a preset: ${Object.keys(OIDC_PRESETS).join(', ')}`)
+    return missingAdapter(`No issuer for the OIDC provider "${provider}". Set NUXT_OIDC_ISSUER, or use a provider with a preset: ${Object.keys(OIDC_PRESETS).join(', ')}`)
   }
   const aliases = oidc.issuerAliases ? oidc.issuerAliases.split(',').map(alias => alias.trim()).filter(Boolean) : preset?.issuerAliases
-  return new OidcSignInProvider(oidc.provider, new OidcClient({
+  return new OidcSignInProvider(provider, new OidcClient({
     issuer,
     issuerAliases: aliases,
     clientId: oidc.clientId,
