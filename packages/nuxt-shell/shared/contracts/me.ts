@@ -14,6 +14,9 @@ export const meResponse = z.object({
 
 export type MeResponse = z.infer<typeof meResponse>
 
+/** The user's own email, typed to confirm. */
+export const deactivateMeBody = z.object({ email: z.string().max(255) })
+
 /** Remembers the workspace being viewed, for where `/` goes next time. */
 export const lastWorkspaceBody = z.object({
   org: z.string(),

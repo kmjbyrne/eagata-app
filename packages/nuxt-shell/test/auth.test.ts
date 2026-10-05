@@ -127,6 +127,25 @@ describe('connecting another account while signed in', () => {
   })
 })
 
+describe('POST /api/me/deactivate', () => {
+  const post = (body: unknown) => ({ method: 'POST', body: JSON.stringify(body), headers: { 'content-type': 'application/json' } })
+
+  it('deactivates the account and signs out, once confirmed with the user\'s email', async () => {
+    await createUser('leaving@example.com')
+    const browser = new Browser()
+    await browser.signIn({ email: 'leaving@example.com' })
+
+    expect((await browser.request('/api/me/deactivate', post({ email: 'wrong@example.com' }))).status).toBe(400)
+    expect((await browser.request('/api/me/deactivate', post({ email: 'leaving@example.com' }))).status).toBe(204)
+    expect((await browser.json('/api/me')).status).toBe(401)
+    expect((await new Browser().signIn({ email: 'leaving@example.com' })).headers.get('location')).toBe('/login?error=deactivated')
+  })
+
+  it('needs a signed-in user', async () => {
+    expect((await new Browser().request('/api/me/deactivate', post({ email: 'x@example.com' }))).status).toBe(401)
+  })
+})
+
 describe('POST /api/auth/logout', () => {
   it('ends the session', async () => {
     await createUser('grace@example.com')

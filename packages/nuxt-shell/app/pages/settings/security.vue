@@ -19,6 +19,24 @@ const outcomes: Record<ConnectOutcome, { color: 'success' | 'error' | 'neutral',
   'provider': { color: 'error', text: 'The provider could not confirm the account. Try again.' }
 }
 const outcome = computed(() => outcomes[route.query.connect as ConnectOutcome])
+
+const confirming = ref(false)
+const confirmEmail = ref('')
+const deactivating = ref(false)
+const deactivateError = ref<string>()
+
+async function deactivate() {
+  deactivating.value = true
+  deactivateError.value = undefined
+  try {
+    await $fetch('/api/me/deactivate', { method: 'POST', body: { email: confirmEmail.value } })
+    await navigateTo('/login?error=deactivated', { external: true })
+  } catch (failure) {
+    deactivateError.value = (failure as { data?: { message?: string } }).data?.message ?? 'Something went wrong. Try again.'
+  } finally {
+    deactivating.value = false
+  }
+}
 </script>
 
 <template>
@@ -99,5 +117,61 @@ const outcome = computed(() => outcomes[route.query.connect as ConnectOutcome])
       v-for="name in shell.securityExtras"
       :key="name"
     />
+
+    <UPageCard
+      title="Account"
+      description="Deactivating signs you out everywhere and stops you signing in. Nothing of yours is removed, and an administrator can reactivate you."
+      variant="subtle"
+      :ui="{ root: 'ring-error/30' }"
+    >
+      <UButton
+        label="Deactivate account"
+        color="error"
+        class="self-start"
+        @click="confirming = true"
+      />
+    </UPageCard>
+
+    <UModal
+      v-model:open="confirming"
+      title="Deactivate your account?"
+      :description="`Type ${me.email} to confirm.`"
+    >
+      <template #body>
+        <form
+          class="flex flex-col gap-3"
+          @submit.prevent="deactivate"
+        >
+          <UAlert
+            v-if="deactivateError"
+            color="error"
+            variant="subtle"
+            icon="i-lucide-circle-alert"
+            :description="deactivateError"
+          />
+          <UInput
+            v-model="confirmEmail"
+            :placeholder="me.email"
+            autocomplete="off"
+            class="w-full"
+          />
+          <div class="flex justify-end gap-2">
+            <UButton
+              label="Cancel"
+              color="neutral"
+              variant="ghost"
+              @click="confirming = false"
+            />
+            <UButton
+              type="submit"
+              label="Deactivate"
+              color="error"
+              :loading="deactivating"
+              :disabled="confirmEmail.trim().toLowerCase() !== me.email"
+            />
+          </div>
+        </form>
+      </template>
+    </UModal>
   </div>
 </template>
