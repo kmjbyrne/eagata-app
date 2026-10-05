@@ -6,8 +6,8 @@ export const meResponse = z.object({
   email: z.string(),
   avatarUrl: z.string().nullable(),
   isPlatformAdmin: z.boolean(),
-  /** Which providers the user signs in with. Subjects stay on the server. */
-  identities: z.array(z.object({ provider: z.string() })),
+  /** Which providers the user signs in with, and since when. Subjects stay on the server. */
+  identities: z.array(z.object({ provider: z.string(), linkedAt: z.iso.datetime() })),
   /** Whether the user has linked an account at the app's configured provider. */
   providerLinked: z.boolean()
 })

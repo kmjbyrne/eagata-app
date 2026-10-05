@@ -15,6 +15,7 @@ import {
   type Slug,
   type User,
   type UserId,
+  type LinkedIdentity,
   type UserIdentity,
   type UserRepository,
   type Workspace,
@@ -37,12 +38,13 @@ const toUser = (record: UserRecord): User => ({
   email: record.email as Email,
   avatarUrl: record.avatarUrl,
   isPlatformAdmin: record.isPlatformAdmin,
-  identities: record.identities,
+  identities: record.identities.map(identity => ({ ...identity, linkedAt: new Date(identity.linkedAt) })),
   deactivatedAt: record.deactivatedAt ? new Date(record.deactivatedAt) : null
 })
 
 const toUserRecord = (user: User): UserRecord => ({
   ...user,
+  identities: user.identities.map(identity => ({ ...identity, linkedAt: identity.linkedAt.toISOString() })),
   deactivatedAt: user.deactivatedAt?.toISOString() ?? null
 })
 
@@ -133,7 +135,7 @@ class JsonUserRepository implements UserRepository {
     })
   }
 
-  linkIdentity(userId: UserId, identity: UserIdentity) {
+  linkIdentity(userId: UserId, identity: LinkedIdentity) {
     return this.store.transaction(async (tx) => {
       const [owner] = await tx.find('users', user => user.identities.some(own => sameIdentity(own, identity)))
       if (owner && owner.id !== userId) {
@@ -141,7 +143,7 @@ class JsonUserRepository implements UserRepository {
       }
       const user = await tx.get('users', userId)
       if (user && !owner) {
-        await tx.put('users', { ...user, identities: [...user.identities, { provider: identity.provider, subject: identity.subject }] })
+        await tx.put('users', { ...user, identities: [...user.identities, { provider: identity.provider, subject: identity.subject, linkedAt: identity.linkedAt.toISOString() }] })
       }
     })
   }

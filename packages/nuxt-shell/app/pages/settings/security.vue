@@ -44,13 +44,25 @@ const outcome = computed(() => outcomes[route.query.connect as ConnectOutcome])
           :key="identity.provider"
           class="flex items-center justify-between gap-4 py-2"
         >
-          <span class="flex items-center gap-2 capitalize">
+          <div class="flex items-center gap-3">
             <ProviderLogo
               :provider="identity.provider"
               class="size-5"
             />
-            {{ identity.provider }}
-          </span>
+            <div>
+              <p class="capitalize">
+                {{ identity.provider }}
+              </p>
+              <p class="text-sm text-muted">
+                Linked
+                <NuxtTime
+                  :datetime="identity.linkedAt"
+                  date-style="medium"
+                  time-style="short"
+                />
+              </p>
+            </div>
+          </div>
           <UBadge
             label="Connected"
             color="success"

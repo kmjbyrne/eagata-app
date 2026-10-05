@@ -48,7 +48,7 @@ describe('AuthService.signIn', () => {
       const ada = await t.addUser('Ada Lovelace', { email: 'ada@example.com' })
       const signedIn = await signIn(t, identity({ picture: 'https://example.com/ada.png' }))
 
-      expect(signedIn).toMatchObject({ id: ada.id, avatarUrl: 'https://example.com/ada.png', identities: [{ provider: 'google', subject: 'g-ada' }] })
+      expect(signedIn).toMatchObject({ id: ada.id, avatarUrl: 'https://example.com/ada.png', identities: [{ provider: 'google', subject: 'g-ada', linkedAt: expect.any(Date) }] })
       expect(await t.repositories.orgs.list()).toHaveLength(1)
     })
 
@@ -128,7 +128,7 @@ describe('AuthService.signIn', () => {
     it('signs in an account linked before, without asking again', async () => {
       const t = createTestServices({ linkProof: { requiredFor: async () => true } })
       const ada = await t.addUser('Ada Lovelace', { email: 'ada@example.com' })
-      await t.repositories.users.linkIdentity(ada.id, { provider: 'google', subject: 'g-ada' })
+      await t.repositories.users.linkIdentity(ada.id, { provider: 'google', subject: 'g-ada', linkedAt: new Date() })
 
       expect((await t.services.auth.signIn(identity())).kind).toBe('signed-in')
     })
@@ -142,7 +142,7 @@ describe('AuthService.connectIdentity', () => {
     t.signInAs(ada)
     const user = await t.services.auth.connectIdentity(identity({ email: parseEmail('someone-else@gmail.com') }))
 
-    expect(user.identities).toEqual([{ provider: 'google', subject: 'g-ada' }])
+    expect(user.identities).toEqual([{ provider: 'google', subject: 'g-ada', linkedAt: expect.any(Date) }])
   })
 
   it('refuses an account another user has, and a second account at the same provider', async () => {

@@ -9,6 +9,11 @@ export interface UserIdentity {
   subject: string
 }
 
+/** A provider account linked to a user, and when it was linked. */
+export interface LinkedIdentity extends UserIdentity {
+  linkedAt: Date
+}
+
 /** What a provider asserted about the person who just signed in with it. */
 export interface ProviderIdentity extends UserIdentity {
   email: Email
@@ -26,7 +31,7 @@ export interface User {
   /** Platform role: runs the platform itself, and belongs to no org because of it. */
   isPlatformAdmin: boolean
   /** Empty until the user first signs in. */
-  identities: UserIdentity[]
+  identities: LinkedIdentity[]
   /**
    * Set by a platform admin. A deactivated user can't sign in, and their
    * sessions end, but nothing of theirs is removed: reactivating restores it.

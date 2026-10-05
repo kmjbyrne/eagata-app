@@ -3,7 +3,7 @@ export type { Membership, OrgRole } from './entities/Membership'
 export { changeOrgSlug, orgSlugs } from './entities/Org'
 export type { Org } from './entities/Org'
 export { hasSignedIn, isActive } from './entities/User'
-export type { ProviderIdentity, User, UserIdentity } from './entities/User'
+export type { LinkedIdentity, ProviderIdentity, User, UserIdentity } from './entities/User'
 export { DEFAULT_WORKSPACE } from './entities/Workspace'
 export {
   effectiveWorkspaceRole,

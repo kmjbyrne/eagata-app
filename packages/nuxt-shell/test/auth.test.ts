@@ -28,7 +28,7 @@ describe('GET /api/auth/callback', () => {
 
     expect(response.status).toBe(302)
     expect(response.headers.get('location')).toBe('/')
-    expect(me.body).toMatchObject({ displayName: 'Ada Lovelace', email: 'ada@example.com', isPlatformAdmin: false, identities: [{ provider: 'test' }] })
+    expect(me.body).toMatchObject({ displayName: 'Ada Lovelace', email: 'ada@example.com', isPlatformAdmin: false, identities: [{ provider: 'test', linkedAt: expect.any(String) }] })
   })
 
   it('rejects a state that doesn\'t match the one this browser started with', async () => {

@@ -15,6 +15,7 @@ import {
   type Slug,
   type User,
   type UserId,
+  type LinkedIdentity,
   type UserIdentity,
   type UserRepository,
   type Workspace,
@@ -140,7 +141,7 @@ class MysqlUserRepository implements UserRepository {
     }).where(eq(schema.users.id, user.id)), () => new EmailTakenError(user.email))
   }
 
-  async linkIdentity(userId: UserId, identity: UserIdentity) {
+  async linkIdentity(userId: UserId, identity: LinkedIdentity) {
     const owner = await this.findByIdentity(identity)
     if (owner?.id === userId) {
       return
@@ -149,7 +150,7 @@ class MysqlUserRepository implements UserRepository {
       throw new IdentityInUseError(identity.provider)
     }
     await mapDuplicate(
-      () => this.db.insert(schema.userIdentities).values({ userId, provider: identity.provider, subject: identity.subject }),
+      () => this.db.insert(schema.userIdentities).values({ userId, provider: identity.provider, subject: identity.subject, createdAt: identity.linkedAt }),
       () => new IdentityInUseError(identity.provider)
     )
   }
@@ -170,7 +171,7 @@ class MysqlUserRepository implements UserRepository {
       isPlatformAdmin: row.isPlatformAdmin,
       deactivatedAt: row.deactivatedAt,
       identities: identities.filter(identity => identity.userId === row.id)
-        .map(identity => ({ provider: identity.provider, subject: identity.subject }))
+        .map(identity => ({ provider: identity.provider, subject: identity.subject, linkedAt: identity.createdAt }))
     }))
   }
 }

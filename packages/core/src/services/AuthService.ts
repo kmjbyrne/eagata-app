@@ -25,7 +25,8 @@ export class AuthService {
   constructor(
     private readonly repositories: Repositories,
     private readonly currentUser: CurrentUser,
-    private readonly linkProof: LinkProof = noProofNeeded
+    private readonly linkProof: LinkProof = noProofNeeded,
+    private readonly now: () => Date = () => new Date()
   ) {}
 
   /**
@@ -68,10 +69,11 @@ export class AuthService {
       if (user.identities.some(own => own.provider === identity.provider)) {
         throw new IdentityMismatchError(identity.provider)
       }
-      const link = { provider: identity.provider, subject: identity.subject }
+      const key = { provider: identity.provider, subject: identity.subject }
       if (await this.linkProof.requiredFor(user.id)) {
-        return { kind: 'link-required', link: { userId: user.id, identity: link, email: identity.email, picture: identity.picture } }
+        return { kind: 'link-required', link: { userId: user.id, identity: key, email: identity.email, picture: identity.picture } }
       }
+      const link = { ...key, linkedAt: this.now() }
       await tx.users.linkIdentity(user.id, link)
       return { kind: 'signed-in', user: await this.refreshAvatar(tx, { ...user, identities: [...user.identities, link] }, identity.picture) }
     })
@@ -96,7 +98,7 @@ export class AuthService {
       if (user.identities.some(own => own.provider === identity.provider)) {
         throw new IdentityMismatchError(identity.provider)
       }
-      const link = { provider: identity.provider, subject: identity.subject }
+      const link = { provider: identity.provider, subject: identity.subject, linkedAt: this.now() }
       await tx.users.linkIdentity(user.id, link)
       return this.refreshAvatar(tx, { ...user, identities: [...user.identities, link] }, identity.picture)
     })

@@ -10,7 +10,12 @@ export const userRecord = z.object({
   email: z.string(),
   avatarUrl: z.string().nullable(),
   isPlatformAdmin: z.boolean(),
-  identities: z.array(z.object({ provider: z.string(), subject: z.string() })),
+  identities: z.array(z.object({
+    provider: z.string(),
+    subject: z.string(),
+    // Dev data saved before link times were kept reads as linked on load.
+    linkedAt: z.iso.datetime().default(() => new Date().toISOString())
+  })),
   // Defaults, so dev data saved before it existed still loads.
   deactivatedAt: z.iso.datetime().nullable().default(null)
 })

@@ -1,6 +1,6 @@
 import { orgSlugs, type Org } from '../entities/Org'
 import type { Membership } from '../entities/Membership'
-import type { User, UserIdentity } from '../entities/User'
+import type { LinkedIdentity, User, UserIdentity } from '../entities/User'
 import type { Workspace } from '../entities/Workspace'
 import type { WorkspaceMembership } from '../entities/WorkspaceMembership'
 import { AlreadyMemberError, EmailTakenError, IdentityInUseError, SlugTakenError } from '../errors'
@@ -109,7 +109,7 @@ class InMemoryUserRepository implements UserRepository {
     }
   }
 
-  async linkIdentity(userId: UserId, identity: UserIdentity) {
+  async linkIdentity(userId: UserId, identity: LinkedIdentity) {
     const owner = this.state().users.find(user => user.identities.some(own => sameIdentity(own, identity)))
     if (owner && owner.id !== userId) {
       throw new IdentityInUseError(identity.provider)

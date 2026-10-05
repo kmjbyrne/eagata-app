@@ -1,4 +1,4 @@
-import type { User, UserIdentity } from '../entities/User'
+import type { LinkedIdentity, User, UserIdentity } from '../entities/User'
 import type { Email } from '../values/Email'
 import type { UserId } from '../values/Ids'
 
@@ -19,5 +19,5 @@ export interface UserRepository {
    */
   update(user: User): Promise<void>
   /** Does nothing if the user already has it. @throws IdentityInUseError */
-  linkIdentity(userId: UserId, identity: UserIdentity): Promise<void>
+  linkIdentity(userId: UserId, identity: LinkedIdentity): Promise<void>
 }

@@ -11,7 +11,7 @@ import type { OrgId, UserId, WorkspaceId } from '../values/Ids'
 import type { Name } from '../values/Name'
 import type { Slug } from '../values/Slug'
 
-const google = (subject: string) => ({ provider: 'google', subject })
+const google = (subject: string) => ({ provider: 'google', subject, linkedAt: new Date('2026-01-02T03:04:05.678Z') })
 
 /** Ids are unique per call, so a repositories shared between tests never clashes. */
 let sequence = 0
