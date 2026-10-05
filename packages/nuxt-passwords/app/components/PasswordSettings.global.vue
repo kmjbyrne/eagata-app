@@ -5,6 +5,9 @@ const toast = useToast()
 const { data: status, refresh } = await useFetch<PasswordStatusResponse>('/api/me/password')
 
 const current = ref('')
+// Read-only until focused, so the browser doesn't fill it on load: confirming
+// the password should be a deliberate act.
+const editingCurrent = ref(false)
 const password = ref('')
 const error = ref<string>()
 const saving = ref(false)
@@ -52,8 +55,10 @@ async function save() {
         v-model="current"
         type="password"
         placeholder="Current password"
-        autocomplete="current-password"
+        autocomplete="off"
+        :readonly="!editingCurrent"
         required
+        @focus="editingCurrent = true"
       />
       <UInput
         v-model="password"
