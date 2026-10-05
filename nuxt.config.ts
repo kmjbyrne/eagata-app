@@ -20,6 +20,11 @@ export default defineNuxtConfig({
 
   css: ['~/assets/css/main.css'],
 
+  // Charcoal with mint. People can still choose light under Appearance.
+  colorMode: {
+    preference: 'dark'
+  },
+
   compatibilityDate: '2026-06-30',
 
   eslint: {
