@@ -1,0 +1,16 @@
+{
+  // Shared by the plain TypeScript packages. Nuxt layers use Nuxt's generated config.
+  "compilerOptions": {
+    "target": "ES2023",
+    "lib": ["ES2023"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "types": ["node"],
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "isolatedModules": true,
+    "skipLibCheck": true,
+    "noEmit": true
+  }
+}
