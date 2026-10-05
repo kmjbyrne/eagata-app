@@ -84,10 +84,21 @@ pnpm db:migrate
 pnpm platform:grant you@example.com "Your Name"
 ```
 
-The sign-in stand-in stays on until you set a real OIDC client
-(`NUXT_OIDC_CLIENT_ID` and `NUXT_OIDC_CLIENT_SECRET`). After changing the
-shell's schema, or an app's own tables, generate a migration with
-`pnpm db:generate`.
+## Switches
+
+Two settings in `.env` decide what the sandbox fakes, with no code changes:
+
+| Setting           | Values                                                  |
+| ----------------- | ------------------------------------------------------- |
+| `NUXT_DATA_STORE` | `json` (the dev data) or `mysql` (`NUXT_DATABASE_URL`)  |
+| `NUXT_SIGN_IN`    | `sandbox` (the dev sign-in) or `provider` (real Google) |
+
+Unset, `NUXT_SIGN_IN` picks `sandbox` unless `NUXT_OIDC_CLIENT_ID` is set.
+`provider` needs `NUXT_OIDC_CLIENT_ID` and `NUXT_OIDC_CLIENT_SECRET`, and the
+redirect URI `http://localhost:3000/api/auth/callback` registered with Google.
+The sandbox's tools hide themselves when they don't apply: "Sign in as" with
+real sign-in, and the store status with the database. After changing the shell's
+schema, or an app's own tables, generate a migration with `pnpm db:generate`.
 
 ## How the Sandbox Works
 

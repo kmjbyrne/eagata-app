@@ -10,7 +10,10 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     // json for the sandbox's dev data, or mysql for NUXT_DATABASE_URL.
-    dataStore: 'json'
+    dataStore: 'json',
+    // sandbox for the dev sign-in, or provider for the real one. Empty picks
+    // sandbox unless an OIDC client id is set.
+    signIn: ''
   },
 
   // Lets a second dev server, such as an agent's or a test's, run beside

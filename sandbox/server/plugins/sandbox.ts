@@ -5,13 +5,18 @@ import { JsonStoreRepositories, tenancyCollections, tenancyDevUsers } from '@kmj
 // The dev data and sign-in stand-in, handed to the app's container in place
 // of the database and the real provider.
 export default defineNitroPlugin(() => {
-  const { dataStore, oidc } = useRuntimeConfig()
+  const { dataStore, signIn, oidc } = useRuntimeConfig()
   if (dataStore !== 'json' && dataStore !== 'mysql') {
     throw new Error(`NUXT_DATA_STORE must be json or mysql, got "${dataStore}"`)
   }
+  if (signIn && signIn !== 'sandbox' && signIn !== 'provider') {
+    throw new Error(`NUXT_SIGN_IN must be sandbox or provider, got "${signIn}"`)
+  }
+  if (signIn === 'provider' && !oidc.clientId) {
+    throw new Error('NUXT_SIGN_IN=provider needs NUXT_OIDC_CLIENT_ID and NUXT_OIDC_CLIENT_SECRET')
+  }
 
-  // With a real client configured, sign-in goes to the real provider.
-  const standInSignIn = !oidc.clientId
+  const standInSignIn = signIn ? signIn === 'sandbox' : !oidc.clientId
   const sandbox = defineSandbox({
     collections: tenancyCollections(),
     devUsers: tenancyDevUsers,
