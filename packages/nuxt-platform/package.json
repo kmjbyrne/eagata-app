@@ -1,6 +1,6 @@
 {
   "name": "@kmjbyrne/nuxt-platform",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Nuxt layer for the platform admin area: organizations, members and users, for the app's operators",
   "type": "module",
   "main": "./nuxt.config.ts",

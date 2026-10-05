@@ -1,6 +1,6 @@
 {
   "name": "@kmjbyrne/json-store",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Named collections of JSON documents, in memory or in one JSON file, for development and tests",
   "type": "module",
   "exports": {

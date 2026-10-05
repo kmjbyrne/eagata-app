@@ -1,6 +1,6 @@
 {
   "name": "@kmjbyrne/oidc",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "OpenID Connect authorization code flow with PKCE, for Node",
   "type": "module",
   "exports": {

@@ -1,6 +1,6 @@
 {
   "name": "@kmjbyrne/core",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "The shared domain: users, organizations, workspaces, memberships and sign-in rules",
   "type": "module",
   "exports": {

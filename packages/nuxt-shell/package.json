@@ -1,6 +1,6 @@
 {
   "name": "@kmjbyrne/nuxt-shell",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Nuxt layer for every app on the foundation: sign-in, sessions, orgs, workspaces and the service container",
   "type": "module",
   "main": "./nuxt.config.ts",

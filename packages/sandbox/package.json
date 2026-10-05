@@ -1,6 +1,6 @@
 {
   "name": "@kmjbyrne/sandbox",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Nuxt layer for local development: JSON dev data, a sign-in stand-in, and dev tools. Never in a production build.",
   "type": "module",
   "main": "./nuxt.config.ts",
