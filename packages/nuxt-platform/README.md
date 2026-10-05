@@ -48,6 +48,18 @@ The `platform` page middleware keeps others out of the pages, for their sake
 only. The layer adds a "Platform" item to the shell's user menu, shown to
 platform admins only.
 
+## Pages
+
+| Page                           | What it is                                                                                                                                          |
+| ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/platform/organizations`      | Company orgs, with personal ones on request. "Create organization" asks for a name, a slug and an owner, with a shortcut to create the owner first. |
+| `/platform/organizations/:org` | Members and their roles, adding and removing members, workspaces, and changing the slug                                                             |
+| `/platform/users`              | Every user, marked platform admin, deactivated, or not signed in yet. "Create user".                                                                |
+| `/platform/users/:id`          | Their orgs, and switches for the platform role and deactivation                                                                                     |
+
+Refusals such as "an organization needs at least one owner" come from the
+domain, and show as they are.
+
 ## API
 
 Every route is under `/api/protected/`, answers 401 to anyone signed out and 403
