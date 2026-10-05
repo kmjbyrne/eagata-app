@@ -50,3 +50,36 @@ export default defineNitroPlugin(() => {
 The store is a `FileJsonStore`. It reads and seeds the file on first use, so
 plugin order doesn't matter. `useSandbox()` returns what `defineSandbox` set up,
 for the sandbox's own routes.
+
+## Tenancy on the JSON Store
+
+`@kmjbyrne/sandbox/json-store` stores core's tenancy data in the sandbox's JSON
+file:
+
+- `tenancyCollections(fixtures?)` defines the `users`, `orgs`, `workspaces`,
+  `memberships` and `workspaceMembers` collections, seeded from fixtures.
+  Combine them with an app's own collections using `combineCollections`.
+- `JsonStoreRepositories` implements core's `Repositories` on the store, and
+  passes `repositoryContract`. Supply it with `provideAdapters`.
+- `defaultTenancyFixtures()` is a small world that exercises every rule. An app
+  can use it, add to it, or replace it.
+- `tenancyDevUsers(store)` lists everyone with their company roles, for "Sign in
+  as".
+
+The default fixtures, all with `@example.com` emails:
+
+| Person            | Who they are                                            |
+| ----------------- | ------------------------------------------------------- |
+| Pat Platform      | Platform admin, in no company                           |
+| Ada Lovelace      | Owner of Acme. Shares her personal workspace with Mary. |
+| Grace Hopper      | Admin of Acme, not its owner. Plain member of Globex.   |
+| Alan Turing       | Plain member of Acme, who sees only Finance             |
+| Katherine Johnson | Owner of Globex                                         |
+| Mary Somerville   | Only her personal org, plus Ada's shared workspace      |
+
+Acme (`acme`, once `acme-old`) has General and Finance. Globex (`globex`) has
+General and Research. Everyone has a personal org with a General workspace.
+Nobody has signed in yet, so the first sign-in links each account.
+
+Every user now has a personal org, so the brief's "user with no orgs" can't
+exist. Mary reaches two orgs, so she lands on `/choose`.

@@ -5,7 +5,8 @@
   "type": "module",
   "main": "./nuxt.config.ts",
   "exports": {
-    ".": "./nuxt.config.ts"
+    ".": "./nuxt.config.ts",
+    "./json-store": "./server/json-store/index.ts"
   },
   "files": [
     "nuxt.config.ts",
