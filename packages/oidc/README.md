@@ -27,24 +27,24 @@ and `codeVerifier` somewhere only this browser can read back, such as a sealed
 cookie, and redirect to its `url`:
 
 ```ts
-import { OidcClient } from "@kmjbyrne/oidc";
+import { OidcClient } from '@kmjbyrne/oidc'
 
 const client = new OidcClient({
-  issuer: "https://accounts.google.com",
-  issuerAliases: ["accounts.google.com"],
+  issuer: 'https://accounts.google.com',
+  issuerAliases: ['accounts.google.com'],
   clientId: process.env.OIDC_CLIENT_ID!,
   clientSecret: process.env.OIDC_CLIENT_SECRET!,
-  redirectUri: "https://app.example.com/api/auth/callback",
-});
+  redirectUri: 'https://app.example.com/api/auth/callback'
+})
 
-const request = await client.authorizationRequest();
+const request = await client.authorizationRequest()
 ```
 
 On the callback, check that the returned `state` matches the stored one, then
 complete the sign-in with the code:
 
 ```ts
-const identity = await client.complete(code, request);
+const identity = await client.complete(code, request)
 ```
 
 `identity` is an `OidcIdentity`:

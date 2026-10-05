@@ -31,5 +31,19 @@
   "packageManager": "pnpm@12.9.1",
   "volta": {
     "node": "24.21.0"
+  },
+  "prettier": {
+    "semi": false,
+    "singleQuote": true,
+    "trailingComma": "none",
+    "overrides": [
+      {
+        "files": "*.md",
+        "options": {
+          "printWidth": 80,
+          "proseWrap": "always"
+        }
+      }
+    ]
   }
 }
