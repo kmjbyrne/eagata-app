@@ -10,7 +10,9 @@ export const submitFeedbackBody = z.object({
   kind: z.string().max(32),
   subject: z.string().max(1024),
   body: html,
-  pagePath: z.string().max(4096).nullish()
+  pagePath: z.string().max(4096).nullish(),
+  /** The workspace the author is in, for context. */
+  from: z.object({ org: z.string().max(64), workspace: z.string().max(64) }).nullish()
 })
 
 export const feedbackReplyBody = z.object({ body: html })
@@ -27,8 +29,8 @@ export const feedbackSummaryResponse = z.object({
   replyCount: z.number(),
   pagePath: z.string().nullable(),
   author: person,
-  /** Where it came from, for the inbox to show and link. */
-  place: z.object({ workspaceId: z.string(), workspaceName: z.string(), workspaceSlug: z.string(), orgName: z.string(), orgSlug: z.string() }),
+  /** The workspace it was sent from, if any, for the inbox to show. */
+  place: z.object({ workspaceId: z.string(), workspaceName: z.string(), workspaceSlug: z.string(), orgName: z.string(), orgSlug: z.string() }).nullable(),
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime()
 })

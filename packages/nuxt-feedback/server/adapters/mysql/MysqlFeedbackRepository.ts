@@ -1,14 +1,14 @@
 import type { UserId, WorkspaceId } from '@kmjbyrne/core'
 import type { Feedback, FeedbackId, FeedbackKind, FeedbackReply, FeedbackRepository, FeedbackStatus, FeedbackSummary } from '@kmjbyrne/core/feedback'
 import type { Database } from '@kmjbyrne/nuxt-shell/mysql'
-import { and, asc, count, desc, eq } from 'drizzle-orm'
+import { asc, count, desc, eq } from 'drizzle-orm'
 import { feedback, feedbackReplies } from './schema'
 
 type Row = typeof feedback.$inferSelect
 
 const toItem = (row: Row): Omit<Feedback, 'replies'> => ({
   id: row.id as FeedbackId,
-  workspaceId: row.workspaceId as WorkspaceId,
+  workspaceId: row.workspaceId as WorkspaceId | null,
   authorId: row.authorId as UserId,
   kind: row.kind as FeedbackKind,
   subject: row.subject,
@@ -22,11 +22,11 @@ const toItem = (row: Row): Omit<Feedback, 'replies'> => ({
 export class MysqlFeedbackRepository implements FeedbackRepository {
   constructor(private readonly db: Database) {}
 
-  async list(filter?: { workspaceId: WorkspaceId, authorId: UserId }): Promise<FeedbackSummary[]> {
+  async list(filter?: { authorId: UserId }): Promise<FeedbackSummary[]> {
     const replyCount = count(feedbackReplies.id)
     const rows = await this.db.select({ item: feedback, replyCount }).from(feedback)
       .leftJoin(feedbackReplies, eq(feedbackReplies.feedbackId, feedback.id))
-      .where(filter ? and(eq(feedback.workspaceId, filter.workspaceId), eq(feedback.authorId, filter.authorId)) : undefined)
+      .where(filter ? eq(feedback.authorId, filter.authorId) : undefined)
       .groupBy(feedback.id)
       .orderBy(desc(feedback.updatedAt), desc(feedback.id))
     return rows.map(({ item, replyCount }) => {

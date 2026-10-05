@@ -1,10 +1,10 @@
-import { workspacePermissions } from '../entities/permissions'
 import type { User } from '../entities/User'
 import { InvalidInputError, NotFoundError } from '../errors'
 import type { MediaService, StoredMedia } from '../media/MediaService'
 import type { CurrentUser } from '../ports/CurrentUser'
 import type { IdGenerator } from '../ports/IdGenerator'
 import type { Repositories } from '../ports/Repositories'
+import { requireUser } from '../services/access'
 import { requirePlatformAdmin } from '../services/platform'
 import type { WorkspaceAccess } from '../services/WorkspaceAccess'
 import type { UserId, WorkspaceId } from '../values/Ids'
@@ -13,9 +13,6 @@ import type { FeedbackRepository, FeedbackSummary, HtmlSanitizer } from './ports
 
 export const FEEDBACK_SUBJECT_MAX_LENGTH = 255
 export const FEEDBACK_PAGE_PATH_MAX_LENGTH = 2048
-
-/** Anyone in a workspace can raise feedback from it, viewers included. */
-export const feedbackPermissions = workspacePermissions.extend({ 'feedback.submit': 'viewer' })
 
 export class InvalidFeedbackSubjectError extends InvalidInputError {
   constructor(readonly input: string) {
@@ -34,6 +31,8 @@ export interface FeedbackInput {
   subject: string
   body: string
   pagePath?: string | null
+  /** The workspace they're in, for context. It must be one they can see. */
+  from?: { org: string, workspace: string } | null
 }
 
 export interface FeedbackPerson {
@@ -50,11 +49,11 @@ export interface FeedbackPlace {
   orgSlug: string
 }
 
-export type FeedbackSummaryView = FeedbackSummary & { author: FeedbackPerson, place: FeedbackPlace }
+export type FeedbackSummaryView = FeedbackSummary & { author: FeedbackPerson, place: FeedbackPlace | null }
 
 export type FeedbackView = Omit<Feedback, 'replies'> & {
   author: FeedbackPerson
-  place: FeedbackPlace
+  place: FeedbackPlace | null
   replies: (FeedbackReply & { author: FeedbackPerson })[]
 }
 
@@ -70,9 +69,9 @@ export interface FeedbackAdapters {
 }
 
 /**
- * Things members raise for the platform from a workspace. Members see and
- * answer only their own. Platform admins see every workspace's, answer them,
- * and set their status.
+ * Things people raise for the platform. Each person sees and answers only
+ * their own, from anywhere in the app. Platform admins see everyone's, answer
+ * them, and set their status.
  */
 export class FeedbackService {
   constructor(private readonly adapters: FeedbackAdapters) {}
@@ -81,18 +80,20 @@ export class FeedbackService {
     return this.adapters.now?.() ?? new Date()
   }
 
-  async submit(orgSlug: string, workspaceSlug: string, input: FeedbackInput): Promise<FeedbackView> {
-    const { workspace, userId } = await this.adapters.access.require(orgSlug, workspaceSlug, 'feedback.submit', feedbackPermissions)
+  /** @throws NotFoundError if `from` names a workspace they can't see */
+  async submit(input: FeedbackInput): Promise<FeedbackView> {
+    const user = await requireUser(this.adapters.repositories, this.adapters.currentUser)
     const subject = input.subject.trim()
     if (!subject || subject.length > FEEDBACK_SUBJECT_MAX_LENGTH) {
       throw new InvalidFeedbackSubjectError(input.subject)
     }
+    const from = input.from ? (await this.adapters.access.require(input.from.org, input.from.workspace)).workspace.id : null
     const now = this.now()
     const id = this.adapters.ids.next() as FeedbackId
     await this.adapters.feedback.create({
       id,
-      workspaceId: workspace.id,
-      authorId: userId,
+      authorId: user.id,
+      workspaceId: from,
       kind: parseFeedbackKind(input.kind),
       subject,
       body: this.parseBody(input.body),
@@ -104,25 +105,25 @@ export class FeedbackService {
     return this.view(await this.require(id))
   }
 
-  /** The signed-in member's own feedback in the workspace, latest activity first. */
-  async listOwn(orgSlug: string, workspaceSlug: string): Promise<FeedbackSummaryView[]> {
-    const { workspace, userId } = await this.adapters.access.require(orgSlug, workspaceSlug)
-    return this.summaries(await this.adapters.feedback.list({ workspaceId: workspace.id, authorId: userId }))
+  /** The signed-in user's own feedback, latest activity first. */
+  async listOwn(): Promise<FeedbackSummaryView[]> {
+    const user = await requireUser(this.adapters.repositories, this.adapters.currentUser)
+    return this.summaries(await this.adapters.feedback.list({ authorId: user.id }))
   }
 
   /** Someone else's feedback is not found, never forbidden, so ids reveal nothing. */
-  async getOwn(orgSlug: string, workspaceSlug: string, id: string): Promise<FeedbackView> {
-    return this.view(await this.requireOwn(orgSlug, workspaceSlug, id))
+  async getOwn(id: string): Promise<FeedbackView> {
+    return this.view(await this.requireOwn(id))
   }
 
   /** A reply on done feedback reopens it, so the platform sees it again. */
-  async replyAsAuthor(orgSlug: string, workspaceSlug: string, id: string, body: string): Promise<FeedbackView> {
-    const feedback = await this.requireOwn(orgSlug, workspaceSlug, id)
+  async replyAsAuthor(id: string, body: string): Promise<FeedbackView> {
+    const feedback = await this.requireOwn(id)
     await this.reply(feedback, feedback.authorId, false, body, feedback.status === 'done' ? 'new' : undefined)
     return this.view(await this.require(feedback.id))
   }
 
-  /** Every workspace's feedback, for platform admins. */
+  /** Everyone's feedback, for platform admins. */
   async listAll(): Promise<FeedbackSummaryView[]> {
     await requirePlatformAdmin(this.adapters.repositories, this.adapters.currentUser)
     return this.summaries(await this.adapters.feedback.list())
@@ -148,15 +149,11 @@ export class FeedbackService {
     return this.view(await this.require(feedback.id))
   }
 
-  /**
-   * Stores an image for a platform reply, in the feedback's workspace, where
-   * the author can see it. Platform admins aren't members, so they can't
-   * upload there directly.
-   */
+  /** Stores an image for a platform reply as the author's own, so they can open it. */
   async attachImage(id: string, bytes: Uint8Array): Promise<StoredMedia> {
     await requirePlatformAdmin(this.adapters.repositories, this.adapters.currentUser)
     const feedback = await this.require(id)
-    return this.adapters.media.store(feedback.workspaceId, bytes)
+    return this.adapters.media.storeForUser(feedback.authorId, bytes)
   }
 
   private async reply(feedback: Feedback, authorId: UserId, fromPlatform: boolean, body: string, status?: FeedbackStatus) {
@@ -172,10 +169,10 @@ export class FeedbackService {
     return feedback
   }
 
-  private async requireOwn(orgSlug: string, workspaceSlug: string, id: string): Promise<Feedback> {
-    const { workspace, userId } = await this.adapters.access.require(orgSlug, workspaceSlug)
+  private async requireOwn(id: string): Promise<Feedback> {
+    const user = await requireUser(this.adapters.repositories, this.adapters.currentUser)
     const feedback = await this.adapters.feedback.get(id as FeedbackId)
-    if (!feedback || feedback.workspaceId !== workspace.id || feedback.authorId !== userId) {
+    if (!feedback || feedback.authorId !== user.id) {
       throw new NotFoundError('Feedback not found')
     }
     return feedback
@@ -199,7 +196,10 @@ export class FeedbackService {
     return cache.get(id)!
   }
 
-  private async place(workspaceId: WorkspaceId, cache: Map<WorkspaceId, FeedbackPlace>): Promise<FeedbackPlace> {
+  private async place(workspaceId: WorkspaceId | null, cache: Map<WorkspaceId, FeedbackPlace>): Promise<FeedbackPlace | null> {
+    if (!workspaceId) {
+      return null
+    }
     if (!cache.has(workspaceId)) {
       const workspace = await this.adapters.repositories.workspaces.findById(workspaceId)
       const org = workspace ? await this.adapters.repositories.orgs.findById(workspace.orgId) : null

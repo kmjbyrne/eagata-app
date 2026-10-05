@@ -50,11 +50,12 @@ export interface FeedbackReply {
   createdAt: Date
 }
 
-/** Something a workspace member raised for the platform, with its replies. */
+/** Something a person raised for the platform, with its replies. It's theirs, wherever they sent it from. */
 export interface Feedback {
   id: FeedbackId
-  workspaceId: WorkspaceId
   authorId: UserId
+  /** The workspace they were in when they sent it, if any, for context. */
+  workspaceId: WorkspaceId | null
   kind: FeedbackKind
   subject: string
   /** Sanitised HTML. */

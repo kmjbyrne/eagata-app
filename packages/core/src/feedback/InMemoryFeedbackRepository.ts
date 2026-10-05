@@ -1,13 +1,13 @@
-import type { UserId, WorkspaceId } from '../values/Ids'
+import type { UserId } from '../values/Ids'
 import type { Feedback, FeedbackId, FeedbackReply, FeedbackStatus } from './Feedback'
 import type { FeedbackRepository, HtmlSanitizer } from './ports'
 
 export class InMemoryFeedbackRepository implements FeedbackRepository {
   private readonly items: Feedback[] = []
 
-  async list(filter?: { workspaceId: WorkspaceId, authorId: UserId }) {
+  async list(filter?: { authorId: UserId }) {
     return this.items
-      .filter(item => !filter || (item.workspaceId === filter.workspaceId && item.authorId === filter.authorId))
+      .filter(item => !filter || item.authorId === filter.authorId)
       .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())
       .map(({ body: _body, replies, ...summary }) => structuredClone({ ...summary, replyCount: replies.length }))
   }

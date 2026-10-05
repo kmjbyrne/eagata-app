@@ -13,7 +13,6 @@ export {
   EmptyFeedbackBodyError,
   FEEDBACK_PAGE_PATH_MAX_LENGTH,
   FEEDBACK_SUBJECT_MAX_LENGTH,
-  feedbackPermissions,
   FeedbackService,
   InvalidFeedbackSubjectError
 } from './FeedbackService'

@@ -70,3 +70,19 @@ describe('MediaService.read', () => {
     await expect(media.read(`workspaces/${general.id}/2026/06/00000000-0000-0000-0000-000000000000.png`)).rejects.toThrow(NotFoundError)
   })
 })
+
+describe('a person\'s own images', () => {
+  it('serves them to their owner and platform admins only', async () => {
+    const { t, media, ada, grace, pat } = await setup()
+    t.signInAs(ada)
+    const { key } = await media.uploadForMe(PNG_BYTES)
+
+    expect(key).toMatch(new RegExp(`^users/${ada.id}/`))
+    for (const allowed of [ada, pat]) {
+      t.signInAs(allowed)
+      expect((await media.read(key)).contentType).toBe('image/png')
+    }
+    t.signInAs(grace)
+    await expect(media.read(key)).rejects.toThrow(NotFoundError)
+  })
+})

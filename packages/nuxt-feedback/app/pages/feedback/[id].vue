@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import type { FeedbackResponse } from '../../../../../shared/contracts/feedback'
+import type { FeedbackResponse } from '../../../shared/contracts/feedback'
 
 const route = useRoute()
-const base = computed(() => `/${route.params.org}/${route.params.workspace}`)
-const api = computed(() => `/api/orgs/${route.params.org}/workspaces/${route.params.workspace}/feedback/${route.params.id}`)
+const api = computed(() => `/api/me/feedback/${route.params.id}`)
 
 const { data: feedback, error } = await useFetch<FeedbackResponse>(api)
 if (error.value) {
@@ -24,7 +23,7 @@ useHead({ title: () => feedback.value?.subject ?? 'Feedback' })
             icon="i-lucide-arrow-left"
             color="neutral"
             variant="ghost"
-            :to="`${base}/feedback`"
+            to="/feedback"
             aria-label="Back to feedback"
           />
         </template>
@@ -41,6 +40,7 @@ useHead({ title: () => feedback.value?.subject ?? 'Feedback' })
     <template #body>
       <FeedbackThread
         :feedback="feedback"
+        upload-url="/api/me/media"
         :reply-url="`${api}/replies`"
         @replied="updated => feedback = updated"
       />

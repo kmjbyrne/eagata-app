@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import type { FeedbackKindValue, FeedbackResponse } from '../../../../../shared/contracts/feedback'
+import type { FeedbackKindValue, FeedbackResponse } from '../../../shared/contracts/feedback'
 
 useHead({ title: 'Send feedback' })
 
-const route = useRoute()
 const toast = useToast()
-const base = computed(() => `/${route.params.org}/${route.params.workspace}`)
-const upload = useMediaUpload()
+const upload = useMediaUpload('/api/me/media')
+// The workspace they're in, or were last in, for context.
+const { org, workspace } = useCurrentWorkspace()
 
 // The page the member came from, so the platform can see where they were.
 const pagePath = import.meta.client && typeof history.state?.back === 'string' && !history.state.back.includes('/feedback')
@@ -30,9 +30,10 @@ async function send() {
   }
   sending.value = true
   try {
-    const sent = await $fetch<FeedbackResponse>(`/api/orgs/${route.params.org}/workspaces/${route.params.workspace}/feedback`, { method: 'POST', body: { ...state, pagePath } })
+    const from = org.value && workspace.value ? { org: org.value.org.slug, workspace: workspace.value.slug } : null
+    const sent = await $fetch<FeedbackResponse>('/api/me/feedback', { method: 'POST', body: { ...state, pagePath, from } })
     toast.add({ title: 'Thanks, your feedback is sent', description: 'Replies will show here.', color: 'success', icon: 'i-lucide-check' })
-    await navigateTo(`${base.value}/feedback/${sent.id}`, { replace: true })
+    await navigateTo(`/feedback/${sent.id}`, { replace: true })
   } catch (failure) {
     const message = (failure as { data?: { message?: string } }).data?.message ?? (failure as Error).message
     toast.add({ title: 'Couldn\'t send your feedback', description: message, color: 'error' })

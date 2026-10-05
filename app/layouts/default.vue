@@ -16,10 +16,9 @@ const items = computed<NavigationMenuItem[]>(() => {
   ]
 })
 
-// Pinned to the foot of the sidebar, above the user menu.
-const footerItems = computed<NavigationMenuItem[]>(() => org.value && workspace.value
-  ? [{ label: 'Feedback', icon: 'i-lucide-message-square', to: `/${org.value.org.slug}/${workspace.value.slug}/feedback` }]
-  : [])
+// Pinned to the foot of the sidebar, above the user menu. Feedback is the
+// person's own, so it's the same from every workspace.
+const footerItems: NavigationMenuItem[] = [{ label: 'Feedback', icon: 'i-lucide-message-square', to: '/feedback' }]
 </script>
 
 <template>

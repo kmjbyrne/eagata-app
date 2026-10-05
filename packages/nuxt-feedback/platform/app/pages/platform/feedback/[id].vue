@@ -55,7 +55,7 @@ async function setStatus(status: FeedbackStatusValue) {
       <template v-else-if="feedback">
         <div class="mx-auto flex w-full max-w-3xl flex-wrap gap-x-4 gap-y-1 text-sm text-muted">
           <span>From {{ feedback.author.displayName }}</span>
-          <span>in {{ feedback.place.orgName }} · {{ feedback.place.workspaceName }}</span>
+          <span v-if="feedback.place">in {{ feedback.place.orgName }} · {{ feedback.place.workspaceName }}</span>
           <span class="inline-flex items-center gap-1">
             <UIcon :name="feedbackKind(feedback.kind).icon" />
             {{ feedbackKind(feedback.kind).label }}

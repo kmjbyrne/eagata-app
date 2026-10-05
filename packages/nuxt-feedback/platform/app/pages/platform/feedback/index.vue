@@ -63,7 +63,10 @@ const columns: TableColumn<FeedbackSummaryResponse>[] = [
           <span class="text-xs text-muted">{{ row.original.author.displayName }}</span>
         </template>
         <template #place-cell="{ row }">
-          <span class="text-sm">{{ row.original.place.orgName }} · {{ row.original.place.workspaceName }}</span>
+          <span
+            v-if="row.original.place"
+            class="text-sm"
+          >{{ row.original.place.orgName }} · {{ row.original.place.workspaceName }}</span>
         </template>
         <template #kind-cell="{ row }">
           <span class="inline-flex items-center gap-1.5">

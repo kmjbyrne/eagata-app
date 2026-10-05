@@ -66,7 +66,7 @@ export function feedbackRepositoryContract(
       expect(await repository.get(feedback.id)).toMatchObject({ status: 'done', updatedAt: at(5) })
     })
 
-    it('lists latest activity first, as summaries, filtered to one author in one workspace', async () => {
+    it('lists latest activity first, as summaries, filtered to one author', async () => {
       const { repository, place, make } = await setup()
       const older = make({ subject: 'Older', updatedAt: at(1) })
       const newer = make({ subject: 'Newer', updatedAt: at(3) })
@@ -74,11 +74,19 @@ export function feedbackRepositoryContract(
       await repository.create(newer)
       await repository.addReply(older.id, { id: id('reply'), authorId: place.userId, fromPlatform: true, body: '<p>Hi</p>', createdAt: at(4) })
 
-      const own = await repository.list({ workspaceId: place.workspaceId, authorId: place.userId })
+      const own = await repository.list({ authorId: place.userId })
       expect(own.map(entry => [entry.subject, entry.replyCount])).toEqual([['Older', 1], ['Newer', 0]])
       expect(own[0]).not.toHaveProperty('body')
       expect((await repository.list()).map(entry => entry.id)).toEqual(expect.arrayContaining([older.id, newer.id]))
-      expect(await repository.list({ workspaceId: place.workspaceId, authorId: 'someone-else' as UserId })).toEqual([])
+      expect(await repository.list({ authorId: 'someone-else' as UserId })).toEqual([])
+    })
+
+    it('keeps feedback sent from no workspace', async () => {
+      const { repository, make } = await setup()
+      const feedback = make({ workspaceId: null })
+      await repository.create(feedback)
+
+      expect((await repository.get(feedback.id))?.workspaceId).toBeNull()
     })
   })
 }

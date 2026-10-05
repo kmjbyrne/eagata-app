@@ -1,12 +1,10 @@
 <script setup lang="ts">
 import type { TableColumn } from '@nuxt/ui'
-import type { FeedbackSummaryResponse } from '../../../../../shared/contracts/feedback'
+import type { FeedbackSummaryResponse } from '../../../shared/contracts/feedback'
 
-const route = useRoute()
-const base = computed(() => `/${route.params.org}/${route.params.workspace}`)
 useHead({ title: 'Feedback' })
 
-const { data: items, status } = await useFetch<FeedbackSummaryResponse[]>(() => `/api/orgs/${route.params.org}/workspaces/${route.params.workspace}/feedback`, { default: () => [] })
+const { data: items, status } = await useFetch<FeedbackSummaryResponse[]>('/api/me/feedback', { default: () => [] })
 
 const columns: TableColumn<FeedbackSummaryResponse>[] = [
   { accessorKey: 'subject', header: 'Subject' },
@@ -28,7 +26,7 @@ const columns: TableColumn<FeedbackSummaryResponse>[] = [
           <UButton
             label="Send feedback"
             icon="i-lucide-plus"
-            :to="`${base}/feedback/new`"
+            to="/feedback/new"
           />
         </template>
       </UDashboardNavbar>
@@ -36,14 +34,14 @@ const columns: TableColumn<FeedbackSummaryResponse>[] = [
 
     <template #body>
       <p class="text-sm text-muted">
-        Bugs, ideas and questions you sent from this workspace. Open one to see replies or add more.
+        Bugs, ideas and questions you've sent. Open one to see replies or add more.
       </p>
 
       <p
         v-if="!items.length && status !== 'pending'"
         class="py-12 text-center text-muted"
       >
-        You haven't sent any feedback from this workspace yet.
+        You haven't sent any feedback yet.
       </p>
 
       <UTable
@@ -55,7 +53,7 @@ const columns: TableColumn<FeedbackSummaryResponse>[] = [
       >
         <template #subject-cell="{ row }">
           <ULink
-            :to="`${base}/feedback/${row.original.id}`"
+            :to="`/feedback/${row.original.id}`"
             class="block max-w-96 font-medium whitespace-normal text-highlighted hover:underline"
           >
             {{ row.original.subject }}

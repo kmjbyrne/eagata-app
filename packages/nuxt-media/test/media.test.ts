@@ -50,6 +50,17 @@ describe('uploading and reading media', () => {
     expect((await upload(outsider, '/api/orgs/ada-lovelace/workspaces/general/media', PNG_BYTES)).status).toBe(404)
   })
 
+  it('stores a person\'s own image, for them and platform admins only', async () => {
+    const response = await upload(ada, '/api/me/media', PNG_BYTES)
+    const { key, src } = await response.json() as StoredMediaResponse
+
+    expect(response.status).toBe(201)
+    expect(key).toMatch(/^users\//)
+    expect((await ada.request(src)).status).toBe(200)
+    expect((await pat.request(src)).status).toBe(200)
+    expect((await outsider.request(src)).status).toBe(404)
+  })
+
   it('answers not found for a key that isn\'t one', async () => {
     expect((await ada.request('/media/workspaces/x/..%2F..%2Fetc%2Fpasswd')).status).toBe(404)
   })

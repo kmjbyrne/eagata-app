@@ -15,8 +15,8 @@ const replyRecord = z.object({
 
 export const feedbackRecord = z.object({
   id: z.string(),
-  workspaceId: z.string(),
   authorId: z.string(),
+  workspaceId: z.string().nullable(),
   kind: z.enum(['bug', 'idea', 'question', 'other']),
   subject: z.string(),
   body: z.string(),
@@ -41,7 +41,7 @@ const toReply = (reply: FeedbackRecord['replies'][number]): FeedbackReply =>
 const toFeedback = (record: FeedbackRecord): Feedback => ({
   ...record,
   id: record.id as FeedbackId,
-  workspaceId: record.workspaceId as WorkspaceId,
+  workspaceId: record.workspaceId as WorkspaceId | null,
   authorId: record.authorId as UserId,
   kind: record.kind as FeedbackKind,
   status: record.status as FeedbackStatus,
@@ -53,8 +53,8 @@ const toFeedback = (record: FeedbackRecord): Feedback => ({
 export class JsonFeedbackRepository implements FeedbackRepository {
   constructor(private readonly store: JsonStore<FeedbackDocuments>) {}
 
-  async list(filter?: { workspaceId: WorkspaceId, authorId: UserId }): Promise<FeedbackSummary[]> {
-    const records = await this.store.find('feedback', item => !filter || (item.workspaceId === filter.workspaceId && item.authorId === filter.authorId))
+  async list(filter?: { authorId: UserId }): Promise<FeedbackSummary[]> {
+    const records = await this.store.find('feedback', item => !filter || item.authorId === filter.authorId)
     return records
       .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
       .map((record) => {

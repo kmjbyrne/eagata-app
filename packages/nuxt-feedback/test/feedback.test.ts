@@ -7,13 +7,13 @@ import type { FeedbackResponse, FeedbackSummaryResponse } from '../shared/contra
 
 const here = (path: string) => fileURLToPath(new URL(path, import.meta.url))
 
-// The platform sub-layer, which extends the member side too, so one build covers both.
+// The platform sub-layer, which extends the author's side too, so one build covers both.
 await setupApp(here('../platform'), {}, { plugins: [here('./server/testFeedback.ts')] })
 
 const json = (method: string, body?: unknown) =>
   ({ method, ...(body ? { body: JSON.stringify(body), headers: { 'content-type': 'application/json' } } : {}) })
 
-const own = '/api/orgs/ada-lovelace/workspaces/general/feedback'
+const own = '/api/me/feedback'
 const ada = new Browser()
 const outsider = new Browser()
 const pat = new Browser()
@@ -32,16 +32,21 @@ beforeAll(async () => {
   await pat.signIn({ email: 'pat@example.com' })
 })
 
-describe('feedback from a workspace', () => {
-  it('lets a member raise feedback, sanitised, and see only their own', async () => {
-    const response = await ada.json<FeedbackResponse>(own, json('POST', { kind: 'bug', subject: ' Sanitised ', body: '<p>Hi</p><script>x()</script>' }))
+describe('a person\'s own feedback', () => {
+  it('lets anyone raise feedback, sanitised, with the workspace they sent it from, and see only their own', async () => {
+    const response = await ada.json<FeedbackResponse>(own, json('POST', { kind: 'bug', subject: ' Sanitised ', body: '<p>Hi</p><script>x()</script>', from: { org: 'ada-lovelace', workspace: 'general' } }))
 
     expect(response.status).toBe(201)
     expect(response.body).toMatchObject({ subject: 'Sanitised', body: '<p>Hi</p>', status: 'new', author: { displayName: 'Ada Lovelace' }, place: { orgSlug: 'ada-lovelace', workspaceSlug: 'general' } })
     expect((await ada.json<FeedbackSummaryResponse[]>(own)).body.map(item => item.subject)).toContain('Sanitised')
-    expect((await outsider.request(own)).status).toBe(404)
+    expect((await outsider.json<FeedbackSummaryResponse[]>(own)).body.map(item => item.id)).not.toContain(response.body.id)
     expect((await outsider.request(`${own}/${response.body.id}`)).status).toBe(404)
     expect((await new Browser().request(own)).status).toBe(401)
+  })
+
+  it('refuses a workspace the author can\'t see as context, and takes none', async () => {
+    expect((await outsider.request(own, json('POST', { kind: 'bug', subject: 'x', body: '<p>x</p>', from: { org: 'ada-lovelace', workspace: 'general' } }))).status).toBe(404)
+    expect((await outsider.json<FeedbackResponse>(own, json('POST', { kind: 'idea', subject: 'From settings', body: '<p>x</p>' }))).body.place).toBeNull()
   })
 
   it('refuses an empty subject or body with 400', async () => {
@@ -69,7 +74,7 @@ describe('the platform inbox', () => {
     expect((await ada.json<FeedbackResponse>(`${own}/${feedback.id}/replies`, json('POST', { body: '<p>Still broken</p>' }))).body.status).toBe('new')
   })
 
-  it('stores a platform reply\'s image in the feedback\'s workspace, where the author can open it', async () => {
+  it('stores a platform reply\'s image as the author\'s own, so the author can open it', async () => {
     const feedback = await submit('With a screenshot')
     const form = new FormData()
     form.append('file', new Blob([PNG_BYTES.slice().buffer as ArrayBuffer]), 'shot.png')

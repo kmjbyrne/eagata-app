@@ -3,8 +3,8 @@ import type { FeedbackResponse } from '../../shared/contracts/feedback'
 
 const props = defineProps<{
   feedback: FeedbackResponse
-  /** Where reply images go, when not the workspace's own media route: the platform's. */
-  uploadUrl?: string
+  /** Where reply images go: the author's own media, or the platform's reply route. */
+  uploadUrl: string
   replyUrl: string
   /** A member's reply reopens done feedback. A platform reply leaves the status alone. */
   asPlatform?: boolean

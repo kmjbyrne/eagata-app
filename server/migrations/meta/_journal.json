@@ -43,6 +43,13 @@
       "when": 1791243611706,
       "tag": "0005_lovely_gunslinger",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1791244438182,
+      "tag": "0006_hard_gorgon",
+      "breakpoints": true
     }
   ]
 }

@@ -373,19 +373,19 @@ from `@kmjbyrne/core/media/testing`.
 
 ## Feedback
 
-`@kmjbyrne/core/feedback` is optional. Members raise feedback for the platform
-from inside a workspace, and platform admins answer it.
+`@kmjbyrne/core/feedback` is optional. People raise feedback for the platform
+from anywhere in the app, and platform admins answer it. Feedback belongs to its
+author, not to a workspace.
 
-- `submit(orgSlug, workspaceSlug, input)` needs `feedback.submit`, which
-  `feedbackPermissions` gives every workspace role. The body is sanitised HTML,
-  and must keep some text or an image. A page path is kept only when it's a
-  same-site path.
-- `listOwn`, `getOwn` and `replyAsAuthor` show a member only their own feedback
-  in the workspace. Anyone else's is not found. Replying to done feedback
-  reopens it.
+- `submit(input)` needs only a signed-in user. The body is sanitised HTML, and
+  must keep some text or an image. A page path is kept only when it's a
+  same-site path. `from`, the workspace they're in, is recorded for context, and
+  must be one they can see.
+- `listOwn`, `getOwn` and `replyAsAuthor` show people only their own feedback.
+  Anyone else's is not found. Replying to done feedback reopens it.
 - `listAll`, `get`, `replyAsPlatform`, `setStatus` and `attachImage` are for
   platform admins. Replying to new feedback marks it seen. `attachImage` stores
-  an image in the feedback's workspace, where its author can see it.
+  an image as the author's own, so only they and platform admins can open it.
 
 Statuses are `new`, `seen` and `done`, and kinds are `bug`, `idea`, `question`
 and `other`. The ports are `FeedbackRepository` and `HtmlSanitizer`. Tests use

@@ -1,7 +1,7 @@
 {
   "version": "5",
   "dialect": "mysql",
-  "id": "1980643a-6f74-4ac7-b953-22c02db01dae",
+  "id": "7502ef58-a12b-477b-b14f-f7db641b4c7a",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "feedback": {
@@ -14,18 +14,18 @@
           "notNull": true,
           "autoincrement": false
         },
-        "workspace_id": {
-          "name": "workspace_id",
-          "type": "varchar(64)",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
         "author_id": {
           "name": "author_id",
           "type": "varchar(64)",
           "primaryKey": false,
           "notNull": true,
+          "autoincrement": false
+        },
+        "workspace_id": {
+          "name": "workspace_id",
+          "type": "varchar(64)",
+          "primaryKey": false,
+          "notNull": false,
           "autoincrement": false
         },
         "kind": {
@@ -82,7 +82,6 @@
         "feedback_author_idx": {
           "name": "feedback_author_idx",
           "columns": [
-            "workspace_id",
             "author_id"
           ],
           "isUnique": false
@@ -96,19 +95,6 @@
         }
       },
       "foreignKeys": {
-        "feedback_workspace_id_workspaces_id_fk": {
-          "name": "feedback_workspace_id_workspaces_id_fk",
-          "tableFrom": "feedback",
-          "tableTo": "workspaces",
-          "columnsFrom": [
-            "workspace_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
         "feedback_author_id_users_id_fk": {
           "name": "feedback_author_id_users_id_fk",
           "tableFrom": "feedback",
@@ -120,6 +106,19 @@
             "id"
           ],
           "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "feedback_workspace_id_workspaces_id_fk": {
+          "name": "feedback_workspace_id_workspaces_id_fk",
+          "tableFrom": "feedback",
+          "tableTo": "workspaces",
+          "columnsFrom": [
+            "workspace_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
           "onUpdate": "no action"
         }
       },
