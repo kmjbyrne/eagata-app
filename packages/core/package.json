@@ -1,0 +1,24 @@
+{
+  "name": "@kmjbyrne/core",
+  "version": "0.0.0",
+  "description": "The shared domain: users, organizations, workspaces, memberships and sign-in rules",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "files": [
+    "src",
+    "!src/**/*.test.ts",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "restricted"
+  },
+  "scripts": {
+    "typecheck": "tsc -p ."
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "typescript": "^6.0.3"
+  }
+}

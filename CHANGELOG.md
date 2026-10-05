@@ -26,6 +26,7 @@ sandbox, the docs and the tooling. The format follows
 - `@kmjbyrne/json-store`: collections of JSON documents with Zod schemas and
   transactions, in memory or in one JSON file, with a contract suite every store
   must pass.
+- `@kmjbyrne/core`: errors, branded ids, `Email`, `Name` and the `User` entity.
 - Packages publish to npm with restricted access, so installing them needs an
   npm login.
 
