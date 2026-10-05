@@ -28,8 +28,13 @@ export interface OidcIdentity {
   picture: string | null
 }
 
+export interface AuthorizationOptions {
+  /** The account to preselect, usually an email. Sent as `login_hint`. */
+  loginHint?: string
+}
+
 export interface OidcClientLike {
-  authorizationRequest(): Promise<AuthorizationRequest>
+  authorizationRequest(options?: AuthorizationOptions): Promise<AuthorizationRequest>
   complete(code: string, request: Pick<AuthorizationRequest, 'nonce' | 'codeVerifier'>): Promise<OidcIdentity>
 }
 
@@ -69,7 +74,7 @@ export class OidcClient implements OidcClientLike {
     private readonly fetchFn: typeof fetch = fetch
   ) {}
 
-  async authorizationRequest(): Promise<AuthorizationRequest> {
+  async authorizationRequest(options: AuthorizationOptions = {}): Promise<AuthorizationRequest> {
     const { authorization_endpoint } = await this.discover()
     const state = randomToken()
     const nonce = randomToken()
@@ -85,6 +90,9 @@ export class OidcClient implements OidcClientLike {
       code_challenge_method: 'S256',
       prompt: 'select_account'
     })
+    if (options.loginHint) {
+      params.set('login_hint', options.loginHint)
+    }
     return { url: `${authorization_endpoint}?${params}`, state, nonce, codeVerifier }
   }
 

@@ -70,6 +70,16 @@ describe('OidcClient', () => {
       })
     })
 
+    it('sends a login hint only when given one', async () => {
+      const { fetchFn } = fakeFetch({ body: {} })
+      const client = new OidcClient(CONFIG, fetchFn)
+      const hinted = new URL((await client.authorizationRequest({ loginHint: 'ada@example.com' })).url)
+      const plain = new URL((await client.authorizationRequest()).url)
+
+      expect(hinted.searchParams.get('login_hint')).toBe('ada@example.com')
+      expect(plain.searchParams.has('login_hint')).toBe(false)
+    })
+
     it('makes fresh secrets for every request and discovers once', async () => {
       const { fetchFn, calls } = fakeFetch({ body: {} })
       const client = new OidcClient(CONFIG, fetchFn)

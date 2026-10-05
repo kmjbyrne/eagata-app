@@ -22,6 +22,7 @@ sandbox, the docs and the tooling. The format follows
   several audiences or names an `azp`.
 - `@kmjbyrne/oidc` times out discovery and token requests, after 10 seconds by
   default.
+- `@kmjbyrne/oidc` accepts a `loginHint` that preselects an account.
 - Packages publish to npm with restricted access, so installing them needs an
   npm login.
 
