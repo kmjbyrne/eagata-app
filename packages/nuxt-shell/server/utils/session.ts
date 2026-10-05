@@ -1,4 +1,4 @@
-import type { UserId } from '@kmjbyrne/core'
+import type { PendingLink, UserId } from '@kmjbyrne/core'
 import type { H3Event, SessionConfig } from 'h3'
 
 const SESSION_COOKIE = 'session'
@@ -28,6 +28,12 @@ export interface FlowData {
   redirectUri?: string
   /** `connect` when a signed-in user is linking another account. */
   intent?: 'connect'
+  /**
+   * A provider account waiting for the user to prove the account it matched
+   * is theirs, set by the callback. Trust only this sealed cookie for what to
+   * link, never a request body.
+   */
+  pendingLink?: PendingLink
 }
 
 function sessionConfig(name: string, maxAge: number): SessionConfig {
@@ -98,7 +104,7 @@ export async function rememberWorkspace(event: H3Event, org: string, workspace: 
  * the request's old cookie and merge its values back in.
  */
 export async function replaceFlow(event: H3Event, data: FlowData): Promise<void> {
-  const empty: Record<keyof FlowData, undefined> = { state: undefined, nonce: undefined, codeVerifier: undefined, redirectUri: undefined, intent: undefined }
+  const empty: Record<keyof FlowData, undefined> = { state: undefined, nonce: undefined, codeVerifier: undefined, redirectUri: undefined, intent: undefined, pendingLink: undefined }
   await (await useSession<FlowData>(event, sessionConfig(FLOW_COOKIE, FLOW_MAX_AGE_S))).update({ ...empty, ...data })
 }
 

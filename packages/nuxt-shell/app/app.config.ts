@@ -17,6 +17,8 @@ export default defineAppConfig({
       logo: '',
       tagline: 'Sign in to continue'
     },
+    /** Pages signed-out visitors may open, besides /login, such as a layer's password reset. */
+    publicPaths: [] as string[],
     /** Global components rendered under the sign-in button, by name. */
     loginExtras: [] as string[],
     /** Extra user menu entries. */

@@ -1,0 +1,50 @@
+{
+  "name": "@kmjbyrne/nuxt-passwords",
+  "version": "0.1.0",
+  "description": "Nuxt layer for optional passwords: sign-in, linking the provider with the password, resets and invites",
+  "type": "module",
+  "main": "./nuxt.config.ts",
+  "exports": {
+    ".": "./nuxt.config.ts",
+    "./types": "./types.ts",
+    "./mysql": "./server/adapters/mysql/index.ts",
+    "./adapters": "./server/adapters/index.ts"
+  },
+  "files": [
+    "nuxt.config.ts",
+    "types.ts",
+    "app",
+    "server",
+    "shared",
+    "!**/*.test.ts",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "restricted"
+  },
+  "scripts": {
+    "typecheck": "nuxt typecheck",
+    "db:test-generate": "drizzle-kit generate --config drizzle.test.config.ts"
+  },
+  "dependencies": {
+    "@kmjbyrne/core": "workspace:*",
+    "@kmjbyrne/nuxt-shell": "workspace:*"
+  },
+  "peerDependencies": {
+    "@nuxt/ui": "^4.11.0",
+    "drizzle-orm": "catalog:",
+    "h3": "catalog:",
+    "mysql2": "catalog:",
+    "nuxt": "^4.5.0",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@nuxt/test-utils": "^4.3.3",
+    "@nuxt/ui": "^4.11.3",
+    "drizzle-kit": "catalog:",
+    "drizzle-orm": "catalog:",
+    "h3": "catalog:",
+    "mysql2": "catalog:",
+    "zod": "catalog:"
+  }
+}

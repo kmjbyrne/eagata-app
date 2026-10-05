@@ -58,7 +58,10 @@ export default defineServiceHandler(async (event) => {
   try {
     const result = await useServices(event).auth.signIn(identity)
     if (result.kind === 'link-required') {
-      throw createError({ statusCode: 501, message: 'Linking this account needs proof this app has no way to ask for' })
+      // Only a layer that supplies a LinkProof, such as passwords, asks for
+      // proof, and that layer provides this page.
+      await replaceFlow(event, { pendingLink: result.link })
+      return sendRedirect(event, '/link-account')
     }
     await startSession(event, result.user.id)
   } catch (error) {

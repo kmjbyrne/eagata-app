@@ -4,7 +4,7 @@ import betterTailwindcss from 'eslint-plugin-better-tailwindcss'
 import { getDefaultAttributes } from 'eslint-plugin-better-tailwindcss/api/defaults'
 
 // Dependencies point one way: core, oidc and json-store depend on nothing of
-// ours; the shell on core and oidc; the platform on the shell; the sandbox on
+// ours; the shell on core and oidc; the platform and passwords on the shell; the sandbox on
 // anything; the app never on the sandbox. Packages are used through their
 // public entry points only, and frontend code imports contracts, never core
 // or server code. ESLint replaces a rule for files that two blocks match, so
@@ -16,6 +16,12 @@ const deepImports = {
     '@kmjbyrne/*/*',
     '!@kmjbyrne/core/testing',
     '!@kmjbyrne/core/contract',
+    '!@kmjbyrne/core/passwords',
+    '!@kmjbyrne/core/passwords/testing',
+    '!@kmjbyrne/core/passwords/contract',
+    '!@kmjbyrne/nuxt-passwords/types',
+    '!@kmjbyrne/nuxt-passwords/mysql',
+    '!@kmjbyrne/nuxt-passwords/adapters',
     '!@kmjbyrne/json-store/contract',
     '!@kmjbyrne/nuxt-shell/types',
     '!@kmjbyrne/nuxt-shell/mysql',
@@ -44,6 +50,7 @@ const restrict = (...patterns) => ({ 'no-restricted-imports': ['error', { patter
 
 const shell = [noDevTools, noPlatform]
 const platform = [noDevTools, ban(['@kmjbyrne/oidc'], 'The platform layer uses the shell, not the OIDC client.')]
+const passwords = [noDevTools, noPlatform, ban(['@kmjbyrne/oidc'], 'The passwords layer uses the shell, not the OIDC client.')]
 const sandbox = [noPlatform]
 const app = [noDevTools]
 
@@ -76,10 +83,12 @@ export default withNuxt(
   { name: 'dependencies/json-store', files: ['packages/json-store/**'], rules: restrict(noOurPackages, noFramework) },
   { name: 'dependencies/nuxt-shell', files: ['packages/nuxt-shell/**'], rules: restrict(...shell) },
   { name: 'dependencies/nuxt-platform', files: ['packages/nuxt-platform/**'], rules: restrict(...platform) },
+  { name: 'dependencies/nuxt-passwords', files: ['packages/nuxt-passwords/**'], rules: restrict(...passwords) },
   { name: 'dependencies/sandbox', files: ['packages/sandbox/**', 'sandbox/**'], rules: restrict(...sandbox) },
   { name: 'dependencies/app', files: ['app/**', 'server/**', 'shared/**', 'core/**', 'scripts/**'], rules: restrict(...app) },
   { name: 'dependencies/nuxt-shell-frontend', files: ['packages/nuxt-shell/app/**'], rules: restrict(...shell, ...frontend) },
   { name: 'dependencies/nuxt-platform-frontend', files: ['packages/nuxt-platform/app/**'], rules: restrict(...platform, ...frontend) },
+  { name: 'dependencies/nuxt-passwords-frontend', files: ['packages/nuxt-passwords/app/**'], rules: restrict(...passwords, ...frontend) },
   { name: 'dependencies/sandbox-frontend', files: ['packages/sandbox/app/**', 'sandbox/app/**'], rules: restrict(...sandbox, ...frontend) },
   { name: 'dependencies/app-frontend', files: ['app/**'], rules: restrict(...app, ...frontend) }
 )

@@ -7,6 +7,7 @@ const route = useRoute()
 const api = useApi()
 const act = usePlatformAction()
 const { me } = useMe()
+const { platform } = useAppConfig()
 const { refresh: refreshUsers } = usePlatformUsers()
 const id = computed(() => String(route.params.id))
 const { data: detail, refresh, error } = await useAsyncData(() => `platform:user:${id.value}`, () => api<PlatformUserDetailResponse>(`/api/protected/users/${id.value}`))
@@ -97,6 +98,13 @@ const setDeactivated = (value: boolean) =>
             @update:model-value="setDeactivated"
           />
         </UPageCard>
+
+        <component
+          :is="name"
+          v-for="name in platform.userExtras"
+          :key="name"
+          :user-id="detail.user.id"
+        />
 
         <UPageCard
           title="Organizations"

@@ -19,6 +19,17 @@ sandbox, the docs and the tooling. The format follows
 
 ### Added
 
+- `@kmjbyrne/nuxt-passwords`: the optional passwords layer. An email and
+  password form on the sign-in page, `/link-account` to confirm the password
+  before linking Google, forgot and reset pages, a Password section on Settings,
+  Security, and "Email a set-password link" for platform admins. Werkzeug's
+  pbkdf2 hash format, and MariaDB tables `user_credentials` and
+  `password_reset_tokens`.
+- `@kmjbyrne/nuxt-shell`: `publicPaths` for pages signed-out visitors may open,
+  and a provider sign-in that needs proof now waits at `/link-account` instead
+  of failing. `setupApp` takes a layer's own test plugins and endpoints.
+- `@kmjbyrne/nuxt-platform`: `userExtras`, components on a user's platform page.
+- Tooling: MariaDB tests run one file at a time, in their own vitest project.
 - `@kmjbyrne/core/passwords`: optional passwords. `PasswordService` signs in,
   links a provider account once the password confirms it, sets and changes
   passwords, and sends reset and invite links. Rate limited per account and per
