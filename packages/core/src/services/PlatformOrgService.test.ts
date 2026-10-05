@@ -6,9 +6,9 @@ import { ReservedSlugError } from '../values/Slug'
 
 async function setup() {
   const t = createTestServices()
-  const admin = await t.signUp('Pat Platform', { platformAdmin: true })
-  const ada = await t.signUp('Ada Lovelace')
-  const grace = await t.signUp('Grace Hopper')
+  const admin = await t.addUser('Pat Platform', { platformAdmin: true })
+  const ada = await t.addUser('Ada Lovelace')
+  const grace = await t.addUser('Grace Hopper')
   t.signInAs(admin)
   const acme = await t.services.platformOrgs.create('Acme Ltd', ada.id)
   return { t, admin, ada, grace, acme }

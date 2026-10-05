@@ -29,7 +29,7 @@ export interface CoreServices {
 export function createCoreServices({ repositories, currentUser, ids }: CoreAdapters): CoreServices {
   const workspaceAccess = new WorkspaceAccess(repositories, currentUser)
   return {
-    auth: new AuthService(repositories, ids),
+    auth: new AuthService(repositories),
     users: new UserService(repositories, currentUser),
     orgs: new OrgService(repositories, currentUser),
     workspaces: new WorkspaceService(repositories, currentUser, ids, workspaceAccess),

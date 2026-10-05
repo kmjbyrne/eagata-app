@@ -1,26 +1,23 @@
 import type { ProviderIdentity, User } from '../entities/User'
-import { AccountDeactivatedError, EmailNotVerifiedError, IdentityMismatchError } from '../errors'
-import type { IdGenerator } from '../ports/IdGenerator'
+import { AccountDeactivatedError, EmailNotVerifiedError, IdentityMismatchError, NotInvitedError } from '../errors'
 import type { Repositories } from '../ports/Repositories'
-import { provisionUser } from './provisionUser'
 
 export class AuthService {
-  constructor(
-    private readonly repositories: Repositories,
-    private readonly ids: IdGenerator
-  ) {}
+  constructor(private readonly repositories: Repositories) {}
 
   /**
-   * Finds or creates the user for an identity a provider asserted:
+   * Finds the user for an identity a provider asserted. Registration is
+   * closed: only people a platform admin created can sign in.
    *
    * 1. A user with this identity signs in, whatever the email now says.
-   * 2. Otherwise a verified email that matches a user links the identity to them.
-   * 3. Otherwise a verified email signs up: a new user with a personal org.
+   * 2. Otherwise a verified email that matches a user links the identity to
+   *    them, on their first sign-in.
+   * 3. Anyone else is refused, and nothing is created.
    *
-   * An unverified email never links or signs up. A deactivated user is
-   * refused either way.
-   * @throws AccountDeactivatedError
+   * An unverified email never links. A deactivated user is refused either way.
+   * @throws NotInvitedError
    * @throws EmailNotVerifiedError
+   * @throws AccountDeactivatedError
    * @throws IdentityMismatchError
    */
   signIn(identity: ProviderIdentity): Promise<User> {
@@ -32,21 +29,20 @@ export class AuthService {
       if (known) {
         return this.refreshAvatar(tx, known, identity)
       }
+
+      const user = await tx.users.findByEmail(identity.email)
+      if (!user) {
+        throw new NotInvitedError(identity.email)
+      }
       if (!identity.emailVerified) {
         throw new EmailNotVerifiedError(identity.email)
       }
-
-      const byEmail = await tx.users.findByEmail(identity.email)
-      if (byEmail?.deactivatedAt) {
+      if (user.deactivatedAt) {
         throw new AccountDeactivatedError()
       }
-      if (byEmail?.identities.some(own => own.provider === identity.provider)) {
+      if (user.identities.some(own => own.provider === identity.provider)) {
         throw new IdentityMismatchError(identity.provider)
       }
-      const user = byEmail ?? await provisionUser(tx, this.ids, {
-        displayName: identity.name ?? identity.email.split('@')[0]!,
-        email: identity.email
-      })
       const link = { provider: identity.provider, subject: identity.subject }
       await tx.users.linkIdentity(user.id, link)
       return this.refreshAvatar(tx, { ...user, identities: [...user.identities, link] }, identity)

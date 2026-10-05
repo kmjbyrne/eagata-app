@@ -1,4 +1,4 @@
-import { AccountDeactivatedError, EmailNotVerifiedError, IdentityMismatchError, type ProviderIdentity } from '@kmjbyrne/core'
+import { AccountDeactivatedError, EmailNotVerifiedError, IdentityMismatchError, NotInvitedError, type ProviderIdentity } from '@kmjbyrne/core'
 import { callbackQuery, type SignInError } from '../../../shared/contracts/auth'
 
 const backToLogin = (error: SignInError) => `/login?error=${error}`
@@ -33,6 +33,9 @@ export default defineServiceHandler(async (event) => {
   } catch (error) {
     if (error instanceof EmailNotVerifiedError) {
       return sendRedirect(event, backToLogin('email-not-verified'))
+    }
+    if (error instanceof NotInvitedError) {
+      return sendRedirect(event, backToLogin('not-invited'))
     }
     if (error instanceof AccountDeactivatedError) {
       return sendRedirect(event, backToLogin('deactivated'))

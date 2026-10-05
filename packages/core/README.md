@@ -111,27 +111,29 @@ The conflicts are `SlugTakenError`, `EmailTakenError`, `AlreadyMemberError`,
 `IdentityInUseError`, `IdentityMismatchError`, `LastOwnerError` and
 `LastPlatformAdminError`.
 
-## Signing In and Signing Up
+## Signing In
 
+Registration is closed: only people a platform admin set up can sign in.
 `AuthService.signIn(identity)` takes what a provider asserted, and returns the
 user to sign in. It runs in one transaction:
 
 1. A user who already has this identity (provider and subject) is signed in,
    whatever email the provider now reports.
 2. Otherwise, a verified email that matches a user links the identity to that
-   user. If that user already has a different account at the same provider, it
-   throws `IdentityMismatchError`, because the provider may have given the email
-   to someone new.
-3. Otherwise, a verified email signs up: a new user, named from the provider's
-   `name` or the email, with a personal org named after them, a "General"
-   workspace, and owner memberships of both.
+   user, on their first sign-in. If that user already has a different account at
+   the same provider, it throws `IdentityMismatchError`, because the provider
+   may have given the email to someone new.
+3. Anyone else gets `NotInvitedError`, and nothing is created.
 
-An unverified email never links or signs up. It throws `EmailNotVerifiedError`.
-Each sign-in refreshes the user's avatar from the provider. The display name is
-left as it is.
+An unverified email never links, and throws `EmailNotVerifiedError`. A
+deactivated user is refused with `AccountDeactivatedError`, whether matched by
+identity or by email. Each sign-in refreshes the user's avatar from the
+provider. The display name stays as the platform admin entered it.
 
-A personal org's slug comes from the user's name, with `-2`, `-3` and so on
-added until it is free. Reserved slugs are skipped.
+Platform admins create users with `platformUsers.create`. That also creates the
+user's personal org, its "General" workspace, and owner memberships of both. A
+personal org's slug comes from the user's name, with `-2`, `-3` and so on added
+until it is free. Reserved slugs are skipped.
 
 ## Services
 
@@ -228,6 +230,8 @@ server can use them too.
   the contract.
 - `FakeCurrentUser` is a `CurrentUser` you can sign in and out.
 - `SequentialIdGenerator` makes the ids `id-1`, `id-2` and so on.
+- `provisionUser(tx, ids, input)` creates a user with their personal org, as a
+  platform admin would, without the permission check. For test setup only.
 - `companyOrg(repositories, setup)` writes a company org, its memberships and
   workspaces straight to the repositories, as a platform admin would have made
   them.
@@ -239,8 +243,8 @@ server can use them too.
 import { createTestServices } from '@kmjbyrne/core/testing'
 
 const t = createTestServices()
-const ada = await t.signUp('Ada Lovelace')
-const admin = await t.signUp('Pat Platform', { platformAdmin: true })
+const ada = await t.addUser('Ada Lovelace')
+const admin = await t.addUser('Pat Platform', { platformAdmin: true })
 t.signInAs(ada)
 ```
 

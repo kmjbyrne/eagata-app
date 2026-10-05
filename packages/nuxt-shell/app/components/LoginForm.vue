@@ -7,6 +7,7 @@ const route = useRoute()
 const messages: Record<SignInError, string> = {
   'cancelled': 'Sign-in was cancelled.',
   'provider': 'The sign-in provider could not confirm who you are. Try again.',
+  'not-invited': 'This account hasn\'t been set up yet. Ask an administrator for access.',
   'email-not-verified': 'Your email isn\'t verified with the sign-in provider, so it can\'t be used here.',
   'identity-mismatch': 'This email is linked to a different account at the sign-in provider.',
   'deactivated': 'This account has been deactivated.'

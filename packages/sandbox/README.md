@@ -105,7 +105,8 @@ The default fixtures, all with `@example.com` emails:
 
 Acme (`acme`, once `acme-old`) has General and Finance. Globex (`globex`) has
 General and Research. Everyone has a personal org with a General workspace.
-Nobody has signed in yet, so the first sign-in links each account.
+Nobody has signed in yet, so the first sign-in links each account. Registration
+is closed: only these people, and users a platform admin adds, can sign in.
 
 Every user now has a personal org, so the brief's "user with no orgs" can't
 exist. Mary reaches two orgs, so she lands on `/choose`.
@@ -123,6 +124,8 @@ page's "Sign in as". Choosing sends the person back to the app's real callback,
 with a code that `complete()` turns into an identity. Dev sign-in therefore runs
 through the app's real sign-in flow.
 
+- Registration is closed, so an email nobody set up is refused as not invited.
+  Use it to see that refusal, or an unverified email's.
 - The same email always gets the same subject, so a second sign-in finds the
   account the first one linked.
 - A login hint that names a dev user signs them straight in. That is how "Sign

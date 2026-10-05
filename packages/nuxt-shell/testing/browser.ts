@@ -1,4 +1,4 @@
-import { fetch } from '@nuxt/test-utils/e2e'
+import { $fetch, fetch } from '@nuxt/test-utils/e2e'
 import type { FakeCode } from './server/FakeSignInProvider'
 
 /** A test client that keeps cookies between requests, as a browser does. */
@@ -44,6 +44,11 @@ export class Browser {
   callback(state: string, code: string): Promise<Response> {
     return this.request(`/api/auth/callback?${new URLSearchParams({ state, code })}`)
   }
+}
+
+/** Sets up a user as a platform admin would, so they can sign in. */
+export function createUser(email: string, name?: string): Promise<{ id: string }> {
+  return $fetch('/__test/user', { method: 'POST', body: { email, name } })
 }
 
 export function fakeCode(claims: Partial<FakeCode> & { nonce: string, email: string }): string {

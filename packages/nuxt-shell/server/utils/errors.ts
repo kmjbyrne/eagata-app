@@ -6,6 +6,7 @@ import {
   ForbiddenError,
   InvalidInputError,
   NotFoundError,
+  NotInvitedError,
   NotSignedInError
 } from '@kmjbyrne/core'
 import type { EventHandlerRequest, H3Event } from 'h3'
@@ -18,7 +19,7 @@ export function domainErrorStatus(error: unknown): number | undefined {
   if (error instanceof NotSignedInError) {
     return 401
   }
-  if (error instanceof ForbiddenError || error instanceof EmailNotVerifiedError || error instanceof AccountDeactivatedError) {
+  if (error instanceof ForbiddenError || error instanceof EmailNotVerifiedError || error instanceof AccountDeactivatedError || error instanceof NotInvitedError) {
     return 403
   }
   if (error instanceof NotFoundError) {

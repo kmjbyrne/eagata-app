@@ -11,6 +11,7 @@ import {
   LastOwnerError,
   LastPlatformAdminError,
   NotFoundError,
+  NotInvitedError,
   NotSignedInError,
   SlugTakenError
 } from '@kmjbyrne/core'
@@ -24,6 +25,7 @@ describe('domainErrorStatus', () => {
     [new ForbiddenError('no'), 403],
     [new EmailNotVerifiedError('a@example.com'), 403],
     [new AccountDeactivatedError(), 403],
+    [new NotInvitedError('a@example.com'), 403],
     [new NotFoundError('gone'), 404],
     [new SlugTakenError('acme'), 409],
     [new EmailTakenError('a@example.com'), 409],

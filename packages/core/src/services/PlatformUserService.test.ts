@@ -5,8 +5,8 @@ import type { UserId } from '../values/Ids'
 
 async function setup() {
   const t = createTestServices()
-  const admin = await t.signUp('Pat Platform', { platformAdmin: true })
-  const ada = await t.signUp('Ada Lovelace')
+  const admin = await t.addUser('Pat Platform', { platformAdmin: true })
+  const ada = await t.addUser('Ada Lovelace')
   t.signInAs(admin)
   return { t, admin, ada }
 }
@@ -35,7 +35,9 @@ describe('PlatformUserService', () => {
     it('links the identity on first sign-in, without a second personal org', async () => {
       const { t } = await setup()
       const grace = await t.services.platformUsers.create('Grace Hopper', 'grace@example.com')
-      const signedIn = await t.signUp('Grace H', { email: 'grace@example.com' })
+      const signedIn = await t.services.auth.signIn({
+        provider: 'google', subject: 'g-grace', email: grace.email, emailVerified: true, name: 'Grace H', picture: null
+      })
 
       expect(signedIn.id).toBe(grace.id)
       expect(await t.repositories.memberships.listByUser(grace.id)).toHaveLength(1)

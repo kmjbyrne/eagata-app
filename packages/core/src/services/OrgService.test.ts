@@ -5,9 +5,9 @@ import { createTestServices } from '../testing/createTestServices'
 
 async function setup() {
   const t = createTestServices()
-  const ada = await t.signUp('Ada Lovelace')
-  const grace = await t.signUp('Grace Hopper')
-  const mary = await t.signUp('Mary Somerville')
+  const ada = await t.addUser('Ada Lovelace')
+  const grace = await t.addUser('Grace Hopper')
+  const mary = await t.addUser('Mary Somerville')
   const { workspaces: [general, finance] } = await companyOrg(t.repositories, {
     name: 'Acme',
     slug: 'acme',

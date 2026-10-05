@@ -3,7 +3,7 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import type { HomeResponse, MeResponse } from '../shared/contracts/me'
 import type { AccessibleOrgResponse, AccessibleWorkspaceResponse, ResolveSlugResponse } from '../shared/contracts/orgs'
 import type { WorkspaceMemberResponse, WorkspaceResponse } from '../shared/contracts/workspaces'
-import { Browser } from '../testing'
+import { Browser, createUser } from '../testing'
 import { setupLayer } from './setup'
 
 await setupLayer()
@@ -21,6 +21,9 @@ const grace = new Browser()
 const mary = new Browser()
 
 beforeAll(async () => {
+  for (const name of ['ada', 'grace', 'mary']) {
+    await createUser(email(name), `${name[0]!.toUpperCase()}${name.slice(1)} ${run}`)
+  }
   await ada.signIn({ email: email('ada'), name: `Ada ${run}` })
   await grace.signIn({ email: email('grace'), name: `Grace ${run}` })
   await mary.signIn({ email: email('mary'), name: `Mary ${run}` })
@@ -139,6 +142,7 @@ describe('where home is', () => {
   })
 
   it('sends a new user to their personal workspace', async () => {
+    await createUser(email('newcomer'), `Newcomer ${run}`)
     const newcomer = new Browser()
     await newcomer.signIn({ email: email('newcomer'), name: `Newcomer ${run}` })
 

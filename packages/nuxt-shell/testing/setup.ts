@@ -8,6 +8,7 @@ const here = (path: string) => fileURLToPath(new URL(path, import.meta.url))
  * repositories, a fake sign-in provider, and test-only endpoints that set up
  * data as a platform admin would:
  *
+ * - `POST /__test/user` `{ email, name? }`: registration is closed, so sign-in needs one
  * - `POST /__test/company-org` `{ name, slug, previousSlugs?, members?: [email, role][], workspaces? }`
  * - `POST /__test/deactivate` `{ email }`
  * - `POST /__test/platform-admin` `{ email }`
@@ -24,6 +25,7 @@ export function setupApp(rootDir: string, nuxtConfig: Record<string, unknown> = 
       nitro: {
         plugins: [here('./server/testAdapters.ts')],
         handlers: [
+          { route: '/__test/user', method: 'post', handler: here('./server/user.post.ts') },
           { route: '/__test/company-org', method: 'post', handler: here('./server/companyOrg.post.ts') },
           { route: '/__test/deactivate', method: 'post', handler: here('./server/deactivate.post.ts') },
           { route: '/__test/platform-admin', method: 'post', handler: here('./server/platformAdmin.post.ts') }

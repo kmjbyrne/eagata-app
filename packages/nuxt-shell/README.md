@@ -229,7 +229,7 @@ the same handler for their own routes.
 | Route                    | What it does                                                                                                                                                                    |
 | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `GET /api/auth/login`    | Keeps a new `state`, `nonce` and PKCE verifier in the `sign-in` cookie, and redirects to the provider. `?hint=` preselects an account.                                          |
-| `GET /api/auth/callback` | Checks `state` against the cookie and ends the round trip, so it can't be replayed. Completes the sign-in, signs the person in or up, starts the session, and redirects to `/`. |
+| `GET /api/auth/callback` | Checks `state` against the cookie and ends the round trip, so it can't be replayed. Completes the sign-in, signs the person in, starts the session, and redirects to `/`. |
 | `POST /api/auth/logout`  | Ends the session. Answers 204.                                                                                                                                                  |
 | `GET /api/me`            | The signed-in user, or 401.                                                                                                                                                     |
 

@@ -1,7 +1,7 @@
 import { $fetch } from '@nuxt/test-utils/e2e'
 import { describe, expect, it } from 'vitest'
 import type { MeResponse } from '../shared/contracts/me'
-import { Browser, fakeCode } from '../testing'
+import { Browser, createUser, fakeCode } from '../testing'
 import { setupLayer } from './setup'
 
 await setupLayer()
@@ -20,9 +20,10 @@ describe('GET /api/auth/login', () => {
 })
 
 describe('GET /api/auth/callback', () => {
-  it('signs a new person up, starts a session and goes home', async () => {
+  it('signs in someone a platform admin set up, starts a session and goes home', async () => {
+    await createUser('ada@example.com', 'Ada Lovelace')
     const browser = new Browser()
-    const response = await browser.signIn({ email: 'ada@example.com', name: 'Ada Lovelace' })
+    const response = await browser.signIn({ email: 'ada@example.com', name: 'A. King' })
     const me = await browser.json<MeResponse>('/api/me')
 
     expect(response.status).toBe(302)
@@ -46,6 +47,7 @@ describe('GET /api/auth/callback', () => {
   })
 
   it('can\'t be replayed, because the round trip ends on first use', async () => {
+    await createUser('once@example.com')
     const browser = new Browser()
     const authorize = await browser.startSignIn()
     const state = authorize.searchParams.get('state')!
@@ -56,9 +58,12 @@ describe('GET /api/auth/callback', () => {
   })
 
   it.each([
+    ['an email nobody set up', { email: 'stranger@example.com' }, 'not-invited'],
     ['an unverified email', { email: 'unverified@example.com', emailVerified: false }, 'email-not-verified'],
     ['a code the provider rejects', { email: 'bad@example.com', nonce: 'wrong' }, 'provider']
   ])('sends %s back to login with a reason', async (_, claims, reason) => {
+    await createUser('unverified@example.com').catch(() => undefined)
+    await createUser('bad@example.com').catch(() => undefined)
     const browser = new Browser()
     const authorize = await browser.startSignIn()
     const response = await browser.callback(authorize.searchParams.get('state')!, fakeCode({ nonce: authorize.searchParams.get('nonce')!, ...claims }))
@@ -77,6 +82,7 @@ describe('GET /api/auth/callback', () => {
 
 describe('a deactivated user', () => {
   it('is sent back to login, and their open session stops working', async () => {
+    await createUser('dana@example.com')
     const before = new Browser()
     await before.signIn({ email: 'dana@example.com' })
     expect((await before.json('/api/me')).status).toBe(200)
@@ -90,6 +96,7 @@ describe('a deactivated user', () => {
 
 describe('POST /api/auth/logout', () => {
   it('ends the session', async () => {
+    await createUser('grace@example.com')
     const browser = new Browser()
     await browser.signIn({ email: 'grace@example.com' })
     const response = await browser.request('/api/auth/logout', { method: 'POST' })

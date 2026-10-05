@@ -59,6 +59,13 @@ export class LastPlatformAdminError extends ConflictError {
   }
 }
 
+/** Signed in at the provider, but no platform admin has set up an account for this email. */
+export class NotInvitedError extends DomainError {
+  constructor(readonly email: string) {
+    super(`No account has been set up for ${email}`)
+  }
+}
+
 /** A platform admin deactivated this account. */
 export class AccountDeactivatedError extends DomainError {
   constructor() {

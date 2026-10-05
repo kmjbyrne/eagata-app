@@ -29,6 +29,7 @@ export {
   LastOwnerError,
   LastPlatformAdminError,
   NotFoundError,
+  NotInvitedError,
   NotSignedInError,
   SlugTakenError
 } from './errors'
