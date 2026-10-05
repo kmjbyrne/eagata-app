@@ -1,0 +1,27 @@
+<!-- Keep a Changelog repeats section names under each version. -->
+<!-- markdownlint-disable MD024 -->
+
+# Changelog
+
+Every notable change to this repository: the packages, the reference app, the
+sandbox, the docs and the tooling. The format follows
+[Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
+[Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## Unreleased
+
+### Added
+
+- pnpm workspace for `packages/*` and `sandbox`.
+- Shared TypeScript config for the plain TypeScript packages, Vitest, and CI
+  that runs lint, typecheck, tests and the build.
+
+### Removed
+
+- The Nuxt UI starter's demo content.
+
+## 0.0.0 - 2026-10-05
+
+### Added
+
+- The Nuxt UI starter, on Node 24.
