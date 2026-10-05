@@ -94,6 +94,38 @@ describe('a deactivated user', () => {
   })
 })
 
+describe('connecting another account while signed in', () => {
+  async function connect(browser: Browser, claims: { email: string, subject?: string }) {
+    const authorize = new URL((await browser.request('/api/auth/login?intent=connect')).headers.get('location')!)
+    const response = await browser.callback(authorize.searchParams.get('state')!, fakeCode({ nonce: authorize.searchParams.get('nonce')!, ...claims }))
+    return response.headers.get('location')
+  }
+
+  it('needs a signed-in user', async () => {
+    expect((await new Browser().request('/api/auth/login?intent=connect')).status).toBe(401)
+  })
+
+  it('links the account, or keeps it linked, and returns to security settings', async () => {
+    await createUser('connector@example.com')
+    const browser = new Browser()
+    await browser.signIn({ email: 'connector@example.com' })
+
+    expect(await connect(browser, { email: 'connector@example.com' })).toBe('/settings/security?connect=connected')
+    expect((await browser.json<MeResponse>('/api/me')).status).toBe(200)
+  })
+
+  it('refuses an account another user has, and a second account at the same provider', async () => {
+    await createUser('owner@example.com')
+    await createUser('other@example.com')
+    await new Browser().signIn({ email: 'owner@example.com' })
+    const browser = new Browser()
+    await browser.signIn({ email: 'other@example.com' })
+
+    expect(await connect(browser, { email: 'owner@example.com' })).toBe('/settings/security?connect=in-use')
+    expect(await connect(browser, { email: 'other@example.com', subject: 'sub|another-account' })).toBe('/settings/security?connect=mismatch')
+  })
+})
+
 describe('POST /api/auth/logout', () => {
   it('ends the session', async () => {
     await createUser('grace@example.com')

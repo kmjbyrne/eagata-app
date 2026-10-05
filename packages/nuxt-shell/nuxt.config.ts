@@ -34,5 +34,10 @@ export default defineNuxtConfig({
       // The sign-in button's label.
       signInLabel: 'Continue with Google'
     }
+  },
+
+  routeRules: {
+    // The profile moved into settings.
+    '/profile': { redirect: '/settings' }
   }
 })

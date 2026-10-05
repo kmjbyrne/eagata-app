@@ -183,10 +183,22 @@ export default defineAppConfig({
         platformAdminOnly: true
       }
     ],
-    userMenuExtras: ['SandboxSwitchUser']
+    userMenuExtras: ['SandboxSwitchUser'],
+    settingsTabs: [
+      {
+        label: 'Billing',
+        icon: 'i-lucide-credit-card',
+        to: '/settings/billing'
+      }
+    ],
+    securityExtras: ['PasswordSettings']
   }
 })
 ```
+
+`settingsTabs` adds tabs after Profile and Security. `securityExtras` names
+global components rendered on the Security tab. `/profile` redirects to
+`/settings`.
 
 `loginExtras` and `userMenuExtras` name global components, rendered by name.
 

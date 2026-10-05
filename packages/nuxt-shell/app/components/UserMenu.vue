@@ -17,7 +17,7 @@ const appearances = [
 const items = computed<DropdownMenuItem[][]>(() => [
   [{ type: 'label', label: me.value?.displayName, description: me.value?.email, avatar: { src: me.value?.avatarUrl ?? undefined, alt: me.value?.displayName } }],
   [
-    { label: 'Profile', icon: 'i-lucide-user', to: '/profile' },
+    { label: 'Settings', icon: 'i-lucide-settings', to: '/settings' },
     {
       label: 'Appearance',
       icon: 'i-lucide-sun-moon',

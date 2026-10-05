@@ -26,6 +26,8 @@ export interface FlowData {
   nonce?: string
   codeVerifier?: string
   redirectUri?: string
+  /** `connect` when a signed-in user is linking another account. */
+  intent?: 'connect'
 }
 
 function sessionConfig(name: string, maxAge: number): SessionConfig {
@@ -92,7 +94,7 @@ export async function rememberWorkspace(event: H3Event, org: string, workspace: 
  * the request's old cookie and merge its values back in.
  */
 export async function replaceFlow(event: H3Event, data: FlowData): Promise<void> {
-  const empty: Record<keyof FlowData, undefined> = { state: undefined, nonce: undefined, codeVerifier: undefined, redirectUri: undefined }
+  const empty: Record<keyof FlowData, undefined> = { state: undefined, nonce: undefined, codeVerifier: undefined, redirectUri: undefined, intent: undefined }
   await (await useSession<FlowData>(event, sessionConfig(FLOW_COOKIE, FLOW_MAX_AGE_S))).update({ ...empty, ...data })
 }
 
