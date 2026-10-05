@@ -85,6 +85,31 @@ It must be a plugin, not a file in `server/utils/`. Nitro runs every plugin at
 startup, but runs a util only when something imports it. Once registered,
 `useServices(event).notes` is typed in every route.
 
+## Sessions and Errors
+
+`server/utils/session.ts` keeps two sealed cookies, using H3's session helpers.
+`session` holds the signed-in user's id, plus the last-used org and workspace
+slugs. Those decide only where `/` takes the user next time. The URL always
+decides which org and workspace a request acts on. `sign-in` lives for 10
+minutes and carries one sign-in round trip's `state`, `nonce` and PKCE verifier.
+
+`server/middleware/actor.ts` sets `event.context.actor` from the session on
+every request. `SessionCurrentUser` reads it, so services know who is asking.
+
+Every route is defined with `defineServiceHandler`, which turns the domain's
+errors into responses:
+
+| Error                                     | Status |
+| ----------------------------------------- | ------ |
+| `InvalidInputError` and its subclasses    | 400    |
+| `NotSignedInError`                        | 401    |
+| `ForbiddenError`, `EmailNotVerifiedError` | 403    |
+| `NotFoundError`                           | 404    |
+| `ConflictError` and its subclasses        | 409    |
+
+The response carries the message, and the error's name in `data.error`. Apps use
+the same handler for their own routes.
+
 ## Adapters
 
 | Adapter              | Implements       | What it does                                                     |
