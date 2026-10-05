@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# Creates .env from .env.mock on first run, so a fresh checkout or worktree
+# starts with no database or other services.
+set -euo pipefail
+
+if [[ ! -f .env ]]; then
+  cp .env.mock .env
+  echo "Created .env from .env.mock"
+fi
