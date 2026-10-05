@@ -29,13 +29,13 @@ function validClaims(overrides: Record<string, unknown> = {}) {
   }
 }
 
-function fakeFetch(tokenResponse: { status?: number, body: unknown }) {
+function fakeFetch(tokenResponse: { status?: number, body: unknown }, discoveryIssuer = ISSUER) {
   const calls: { url: string, body?: URLSearchParams }[] = []
   const fetchFn = (async (input: string, init?: RequestInit) => {
     calls.push({ url: input, body: init?.body as URLSearchParams | undefined })
     if (input.endsWith('/.well-known/openid-configuration')) {
       return Response.json({
-        issuer: ISSUER,
+        issuer: discoveryIssuer,
         authorization_endpoint: `${ISSUER}/authorize`,
         token_endpoint: `${ISSUER}/token`
       })
@@ -75,6 +75,18 @@ describe('OidcClient', () => {
       expect(second.nonce).not.toBe(first.nonce)
       expect(second.codeVerifier).not.toBe(first.codeVerifier)
       expect(calls).toHaveLength(1)
+    })
+
+    it('rejects a discovery document for another issuer', async () => {
+      const { fetchFn } = fakeFetch({ body: {} }, 'https://evil.example.com')
+
+      await expect(new OidcClient(CONFIG, fetchFn).authorizationRequest()).rejects.toThrow(OidcError)
+    })
+
+    it('rejects a discovery document that names only an issuer alias', async () => {
+      const { fetchFn } = fakeFetch({ body: {} }, 'accounts.example.com')
+
+      await expect(new OidcClient(CONFIG, fetchFn).authorizationRequest()).rejects.toThrow(OidcError)
     })
   })
 

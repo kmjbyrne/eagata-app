@@ -68,7 +68,10 @@ Key accounts on `issuer` and `subject`, never on the email, which can change.
 - `OidcError` is thrown for every failed check, failed request and malformed
   response.
 
-Discovery is cached for an hour, and `exp` allows 60 seconds of clock skew.
+Discovery is cached for an hour, and `exp` allows 60 seconds of clock skew. The
+discovery document's `issuer` must equal the configured issuer exactly, as
+OpenID Connect Discovery 1.0, section 4.3, requires. Aliases apply only to the
+`iss` claim in ID tokens.
 
 ## Why the ID Token Signature Is Not Checked
 

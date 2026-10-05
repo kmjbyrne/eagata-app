@@ -16,6 +16,8 @@ sandbox, the docs and the tooling. The format follows
 - Shared TypeScript config for the plain TypeScript packages, Vitest, and CI
   that runs lint, typecheck, tests and the build.
 - `@kmjbyrne/oidc`: OpenID Connect sign-in with PKCE, for any provider.
+- `@kmjbyrne/oidc` rejects a discovery document whose `issuer` differs from the
+  configured issuer.
 - Packages publish to npm with restricted access, so installing them needs an
   npm login.
 

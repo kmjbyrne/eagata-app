@@ -146,6 +146,10 @@ export class OidcClient implements OidcClientLike {
       throw new OidcError(`Discovery failed: ${response.status}`)
     }
     const value = await response.json() as Discovery
+    // OIDC Discovery 1.0, section 4.3: a mismatch can mean a spoofed document.
+    if (value.issuer !== this.config.issuer) {
+      throw new OidcError(`Discovery issuer ${value.issuer} does not match ${this.config.issuer}`)
+    }
     this.discovery = { value, expiresAt: Date.now() + DISCOVERY_TTL_MS }
     return value
   }
