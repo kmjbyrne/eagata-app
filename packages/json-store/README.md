@@ -63,14 +63,48 @@ await store.transaction(async (tx) => {
 
 If the callback throws, none of its writes are kept.
 
+## Seeding and Drift
+
+A collection can have a seed: the documents it starts with.
+
+```ts
+const collections = defineCollections({
+  notes: {
+    schema: noteSchema,
+    seed: () => [{ id: 'n1', title: 'Welcome', body: '' }]
+  }
+})
+```
+
+On first use, a store checks every collection. A missing or empty collection is
+seeded. A seed that fails its schema throws, because that is a bug.
+
+A collection whose stored documents fail its schema has drifted, usually because
+the schema changed. The store doesn't throw at startup. It sets that collection
+aside, and reading or writing it throws a `DriftedCollectionError`. The other
+collections keep working. `status()` reports the drift so a dev tool can offer a
+reset:
+
+```ts
+const { seededAt, drifted } = await store.status()
+// drifted: [{ collection: 'notes', issues: ['[0] title: Invalid input: expected string, received number'] }]
+
+await store.reset()
+```
+
+`reset()` replaces every collection with its seed, or empties it, and clears the
+drift.
+
 ## API
 
 - `defineCollections(definitions)` checks the names and returns the definitions.
 - `combineCollections(...sets)` joins sets defined in different places, and
   throws `CollectionNameError` if two define the same name.
-- `JsonStore` is the interface: `get`, `find`, `put`, `delete` and
-  `transaction`.
-- `MemoryJsonStore` keeps everything in memory, for tests.
+- `JsonStore` is the interface repositories use: `get`, `find`, `put`, `delete`
+  and `transaction`.
+- `SeededJsonStore` adds `status()` and `reset()`. Both stores implement it.
+- `MemoryJsonStore` keeps everything in memory, for tests. Its optional second
+  argument stands in for data found at startup.
 - `FileJsonStore` keeps everything in one JSON file, for a development server.
 
 Documents go in and come out as JSON copies. Mutating an object never changes
@@ -89,11 +123,12 @@ with its directories. If a write to the file fails, the change is dropped from
 memory too, so the two never disagree.
 
 The file holds each collection as an array under its name, with bookkeeping
-under `_meta`:
+under `_meta`. `version` is the file's layout, and `seededAt` is when the file
+was last seeded from scratch:
 
 ```json
 {
-  "_meta": { "version": 1 },
+  "_meta": { "version": 1, "seededAt": "2026-10-05T18:00:00.000Z" },
   "notes": [{ "id": "n1", "title": "Hello", "body": "" }]
 }
 ```

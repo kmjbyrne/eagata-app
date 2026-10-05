@@ -3,12 +3,17 @@ import { dirname } from 'node:path'
 import { Low } from 'lowdb'
 import { DataFile } from 'lowdb/node'
 import { META_KEY, type CollectionDefinitions } from './collections'
-import { SnapshotStore, type CollectionData } from './SnapshotStore'
+import { SnapshotStore, type StateToPersist, type StoredContents } from './SnapshotStore'
 
 /** Bumped only if the file's layout changes, not when collections do. */
 const FORMAT_VERSION = 1
 
 type FileContents = Record<string, unknown>
+
+interface FileMeta {
+  version: number
+  seededAt: string | null
+}
 
 export interface FileJsonStoreOptions<C extends CollectionDefinitions> {
   /** Created on first write, with any missing directories. */
@@ -24,9 +29,8 @@ export interface FileJsonStoreOptions<C extends CollectionDefinitions> {
 export class FileJsonStore<C extends CollectionDefinitions> extends SnapshotStore<C> {
   private readonly file: string
   private readonly db: Low<FileContents>
-  private loading?: Promise<void>
   /** Keys in the file that no collection defines, written back untouched. */
-  private other: FileContents = {}
+  private readonly other: FileContents = {}
 
   constructor({ file, collections }: FileJsonStoreOptions<C>) {
     super(collections)
@@ -37,26 +41,27 @@ export class FileJsonStore<C extends CollectionDefinitions> extends SnapshotStor
     }), {})
   }
 
-  protected ready(): Promise<void> {
-    this.loading ??= this.load()
-    return this.loading
-  }
-
-  protected async persist(data: CollectionData): Promise<void> {
-    await mkdir(dirname(this.file), { recursive: true })
-    this.db.data = { [META_KEY]: { version: FORMAT_VERSION }, ...data, ...this.other }
-    await this.db.write()
-  }
-
-  private async load(): Promise<void> {
+  protected async read(): Promise<StoredContents> {
     await this.db.read()
-    const { [META_KEY]: _meta, ...contents } = this.db.data
+    const { [META_KEY]: meta, ...contents } = this.db.data
     for (const [key, value] of Object.entries(contents)) {
-      if (Object.hasOwn(this.collections, key) && Array.isArray(value)) {
-        this.data[key] = value
-      } else {
+      if (!Object.hasOwn(this.collections, key)) {
         this.other[key] = value
       }
     }
+    return { contents, seededAt: (meta as Partial<FileMeta> | undefined)?.seededAt ?? null }
+  }
+
+  protected async persist({ data, seededAt, drifted }: StateToPersist): Promise<void> {
+    await mkdir(dirname(this.file), { recursive: true })
+    const meta: FileMeta = { version: FORMAT_VERSION, seededAt }
+    const collections = Object.keys(this.collections).filter(name => name in data)
+    this.db.data = {
+      [META_KEY]: meta,
+      ...Object.fromEntries(collections.map(name => [name, data[name]])),
+      ...drifted,
+      ...this.other
+    }
+    await this.db.write()
   }
 }

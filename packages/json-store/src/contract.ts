@@ -1,23 +1,39 @@
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
-import { defineCollections, type DocumentsOf } from './collections'
-import { InvalidDocumentError, NestedWriteError, UnknownCollectionError, type JsonStore } from './JsonStore'
+import { defineCollections, type CollectionDefinitions, type DocumentsOf } from './collections'
+import {
+  DriftedCollectionError,
+  InvalidDocumentError,
+  NestedWriteError,
+  UnknownCollectionError,
+  type SeededJsonStore
+} from './JsonStore'
 
 export const contractCollections = defineCollections({
   notes: { schema: z.object({ id: z.string(), title: z.string(), tags: z.array(z.string()).default([]) }) },
   people: { schema: z.object({ id: z.string(), name: z.string() }) }
 })
 
-export type ContractCollections = typeof contractCollections
-export type ContractStore = JsonStore<DocumentsOf<ContractCollections>>
+const seededCollections = defineCollections({
+  ...contractCollections,
+  people: { ...contractCollections.people, seed: () => [{ id: 'p1', name: 'Ada' }, { id: 'p2', name: 'Grace' }] }
+})
+
+/**
+ * Makes a new store over `collections`. `contents` stands in for data the
+ * store finds at startup, unchecked, keyed by collection name.
+ */
+export type CreateStore = <C extends CollectionDefinitions>(
+  collections: C,
+  contents?: Record<string, unknown>
+) => SeededJsonStore<DocumentsOf<C>> | Promise<SeededJsonStore<DocumentsOf<C>>>
 
 const note = (id: string, title = `Note ${id}`) => ({ id, title, tags: [] as string[] })
 
-/**
- * The behaviour every JsonStore must have. Call it from a test file with a
- * function that makes a new, empty store over `contractCollections`.
- */
-export function jsonStoreContract(createStore: () => ContractStore | Promise<ContractStore>): void {
+/** The behaviour every store must have. Call it from a test file. */
+export function jsonStoreContract(create: CreateStore): void {
+  const createStore = () => create(contractCollections)
+
   describe('reading and writing', () => {
     it('returns null for a missing document', async () => {
       const store = await createStore()
@@ -151,6 +167,57 @@ export function jsonStoreContract(createStore: () => ContractStore | Promise<Con
       const store = await createStore()
 
       await expect(store.transaction(() => store.put('notes', note('n1')))).rejects.toThrow(NestedWriteError)
+    })
+  })
+
+  describe('seeding and drift', () => {
+    it('seeds a missing or empty collection, and reports when', async () => {
+      const store = await create(seededCollections, { people: [] })
+
+      expect((await store.find('people')).map(person => person.name)).toEqual(['Ada', 'Grace'])
+      expect((await store.status()).seededAt).toEqual(expect.any(String))
+    })
+
+    it('leaves a collection that has documents alone', async () => {
+      const store = await create(seededCollections, { people: [{ id: 'p9', name: 'Mary' }] })
+
+      expect((await store.find('people')).map(person => person.name)).toEqual(['Mary'])
+    })
+
+    it('reports a collection that fails its schema instead of throwing', async () => {
+      const store = await create(seededCollections, { notes: [{ id: 'n1', title: 42 }] })
+
+      expect((await store.status()).drifted).toEqual([
+        { collection: 'notes', issues: [expect.stringContaining('[0] title')] }
+      ])
+      await expect(store.find('notes')).rejects.toThrow(DriftedCollectionError)
+      await expect(store.put('notes', note('n2'))).rejects.toThrow(DriftedCollectionError)
+      expect(await store.find('people')).toHaveLength(2)
+    })
+
+    it('reports a collection that is not a list', async () => {
+      const store = await create(seededCollections, { notes: { id: 'n1' } })
+
+      expect((await store.status()).drifted.map(report => report.collection)).toEqual(['notes'])
+    })
+
+    it('resets every collection to its seed and clears drift', async () => {
+      const store = await create(seededCollections, { notes: [{ id: 'n1', title: 42 }] })
+      await store.put('people', { id: 'p3', name: 'Katherine' })
+      await store.reset()
+
+      expect((await store.status()).drifted).toEqual([])
+      expect(await store.find('notes')).toEqual([])
+      expect((await store.find('people')).map(person => person.id)).toEqual(['p1', 'p2'])
+    })
+
+    it('rejects a seed that fails its schema', async () => {
+      const broken = defineCollections({
+        people: { schema: contractCollections.people.schema, seed: () => [{ id: 'p1' } as never] }
+      })
+      const store = await create(broken)
+
+      await expect(store.find('people')).rejects.toThrow(InvalidDocumentError)
     })
   })
 }

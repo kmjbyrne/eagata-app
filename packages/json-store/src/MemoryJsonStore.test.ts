@@ -1,7 +1,7 @@
 import { describe } from 'vitest'
-import { contractCollections, jsonStoreContract } from './contract'
+import { jsonStoreContract } from './contract'
 import { MemoryJsonStore } from './MemoryJsonStore'
 
 describe('MemoryJsonStore', () => {
-  jsonStoreContract(() => new MemoryJsonStore(contractCollections))
+  jsonStoreContract((collections, contents) => new MemoryJsonStore(collections, contents))
 })

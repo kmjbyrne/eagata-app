@@ -21,6 +21,25 @@ export interface JsonStore<D extends { [K in keyof D]: JsonDocument }> {
   transaction<R>(fn: (store: JsonStore<D>) => Promise<R>): Promise<R>
 }
 
+export interface DriftReport {
+  collection: string
+  issues: string[]
+}
+
+export interface JsonStoreStatus {
+  /** When the store was last seeded from scratch, or null if it never was. */
+  seededAt: string | null
+  /** Collections whose stored documents no longer match their schema. */
+  drifted: DriftReport[]
+}
+
+/** A store that seeds its collections, and can report drift and start over. */
+export interface SeededJsonStore<D extends { [K in keyof D]: JsonDocument }> extends JsonStore<D> {
+  status(): Promise<JsonStoreStatus>
+  /** Replaces every collection with its seed, or empties it. */
+  reset(): Promise<void>
+}
+
 export class UnknownCollectionError extends Error {
   constructor(readonly collection: string) {
     super(`No collection named "${collection}"`)
@@ -32,6 +51,13 @@ export class InvalidDocumentError extends Error {
   constructor(readonly collection: string, readonly issues: string[]) {
     super(`Invalid document for "${collection}": ${issues.join('; ')}`)
     this.name = 'InvalidDocumentError'
+  }
+}
+
+export class DriftedCollectionError extends Error {
+  constructor(readonly collection: string) {
+    super(`Collection "${collection}" no longer matches its schema. Reset the store to reseed it.`)
+    this.name = 'DriftedCollectionError'
   }
 }
 

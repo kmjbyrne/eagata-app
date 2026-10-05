@@ -8,6 +8,8 @@ export interface JsonDocument {
 export interface CollectionDefinition<T extends JsonDocument = JsonDocument> {
   /** Checks every document written, and every document read from a file. */
   schema: z.ZodType<T>
+  /** The documents a missing or empty collection starts with. */
+  seed?: () => T[]
 }
 
 export type CollectionDefinitions = Record<string, CollectionDefinition<JsonDocument>>
