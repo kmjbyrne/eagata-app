@@ -179,7 +179,32 @@ Other failures go back to `/login?error=` with a reason:
 | `email-not-verified` | The provider hasn't verified the email                       |
 | `identity-mismatch`  | The email is linked to a different account at this provider  |
 
-Request and response shapes are Zod schemas in `shared/contracts/`.
+## Orgs and Workspaces
+
+Every route acts as the signed-in user, answers 401 to anyone signed out, and
+404 for anything the user can't see. API routes accept current org slugs only.
+
+| Route                                                         | What it does                                                                      |
+| ------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| `GET /api/orgs`                                               | The orgs the user reaches, with roles and visible workspaces                      |
+| `GET /api/orgs/:org`                                          | One of them                                                                       |
+| `GET /api/orgs/:oldSlug/resolve`                              | `{ slug }`: the current slug, so old links can redirect                           |
+| `GET /api/orgs/:org/workspaces`                               | The org's workspaces the user sees                                                |
+| `POST /api/orgs/:org/workspaces`                              | `{ name, slug? }`. Org owners and admins only.                                    |
+| `GET /api/orgs/:org/workspaces/:workspace/members`            | The workspace's members                                                           |
+| `POST /api/orgs/:org/workspaces/:workspace/members`           | `{ email, role }`: shares the workspace. Owners only.                             |
+| `PATCH /api/orgs/:org/workspaces/:workspace/members/:userId`  | `{ role }`. Owners only.                                                          |
+| `DELETE /api/orgs/:org/workspaces/:workspace/members/:userId` | Owners remove anyone. A member removes themselves to leave.                       |
+| `PUT /api/me/last-workspace`                                  | `{ org, workspace }`: remembers it, for where `/` goes                            |
+| `GET /api/me/home`                                            | `{ path }`: the last-used workspace, the only org's first workspace, or `/choose` |
+
+The old-slug route sits under the org (`/api/orgs/:oldSlug/resolve`) rather than
+at `/api/orgs/resolve/:slug`. An org slugged `resolve` would otherwise clash
+with `/api/orgs/:org/workspaces`.
+
+Request and response shapes are Zod schemas in `shared/contracts/`. Entities
+never leave the server as they are: routes map them with the helpers in
+`server/utils/responses.ts`.
 
 ## Adapters
 

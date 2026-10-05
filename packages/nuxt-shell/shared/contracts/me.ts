@@ -11,3 +11,15 @@ export const meResponse = z.object({
 })
 
 export type MeResponse = z.infer<typeof meResponse>
+
+/** Remembers the workspace being viewed, for where `/` goes next time. */
+export const lastWorkspaceBody = z.object({
+  org: z.string(),
+  workspace: z.string()
+})
+
+/** Where `/` should send the user: a workspace path, or `/choose`. */
+export const homeResponse = z.object({ path: z.string() })
+
+export type LastWorkspaceBody = z.infer<typeof lastWorkspaceBody>
+export type HomeResponse = z.infer<typeof homeResponse>

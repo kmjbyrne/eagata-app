@@ -11,7 +11,10 @@ export function setupLayer() {
     rootDir: fileURLToPath(new URL('..', import.meta.url)),
     nuxtConfig: {
       runtimeConfig: { sessionSecret: 'route-tests-only-session-secret-0123456789' },
-      nitro: { plugins: [fileURLToPath(new URL('./server/testAdapters.ts', import.meta.url))] }
+      nitro: {
+        plugins: [fileURLToPath(new URL('./server/testAdapters.ts', import.meta.url))],
+        handlers: [{ route: '/__test/company-org', method: 'post', handler: fileURLToPath(new URL('./server/companyOrg.post.ts', import.meta.url)) }]
+      }
     }
   })
 }

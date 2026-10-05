@@ -1,4 +1,4 @@
-import type { MeResponse } from '../../shared/contracts/me'
+import type { MeResponse } from '../../../shared/contracts/me'
 
 export default defineServiceHandler(async (event): Promise<MeResponse> => {
   const user = await useServices(event).users.getMe()

@@ -1,0 +1,20 @@
+import type { AccessibleOrg, AccessibleWorkspace, Org, Workspace, WorkspaceMember } from '@kmjbyrne/core'
+import type { AccessibleOrgResponse, AccessibleWorkspaceResponse, OrgSummary } from '../../shared/contracts/orgs'
+import type { WorkspaceMemberResponse, WorkspaceResponse } from '../../shared/contracts/workspaces'
+
+// Entities never leave the server as they are: routes map them to contracts.
+
+export const toOrgSummary = (org: Org): OrgSummary =>
+  ({ id: org.id, name: org.name, slug: org.slug, isPersonal: org.isPersonal })
+
+export const toWorkspaceResponse = (workspace: Workspace): WorkspaceResponse =>
+  ({ id: workspace.id, name: workspace.name, slug: workspace.slug })
+
+export const toAccessibleWorkspace = ({ workspace, role }: AccessibleWorkspace): AccessibleWorkspaceResponse =>
+  ({ ...toWorkspaceResponse(workspace), role })
+
+export const toAccessibleOrg = (entry: AccessibleOrg): AccessibleOrgResponse =>
+  ({ org: toOrgSummary(entry.org), role: entry.role, workspaces: entry.workspaces.map(toAccessibleWorkspace) })
+
+export const toWorkspaceMember = ({ user, role }: WorkspaceMember): WorkspaceMemberResponse =>
+  ({ user: { id: user.id, displayName: user.displayName, email: user.email, avatarUrl: user.avatarUrl }, role })
