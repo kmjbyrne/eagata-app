@@ -23,7 +23,7 @@
   },
   "peerDependencies": {
     "vitest": "^5.0.0",
-    "zod": "^4.0.0"
+    "zod": "catalog:"
   },
   "peerDependenciesMeta": {
     "vitest": {
@@ -34,6 +34,6 @@
     "@types/node": "^24.0.0",
     "typescript": "^6.0.3",
     "vitest": "^5.0.3",
-    "zod": "^4.4.3"
+    "zod": "catalog:"
   }
 }

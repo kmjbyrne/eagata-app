@@ -14,9 +14,9 @@ npm login
 pnpm add @kmjbyrne/nuxt-shell drizzle-orm mysql2
 ```
 
-`drizzle-orm` and `mysql2` are peer dependencies. The app installs them, so it
-and the shell share one copy. Two copies of `drizzle-orm` don't recognise each
-other's tables.
+`drizzle-orm`, `mysql2`, `zod` and `h3` are peer dependencies. The app installs
+them, so it and the shell share one copy. Two copies of `drizzle-orm` don't
+recognise each other's tables.
 
 Inside this repository, depend on it from the workspace instead. Then extend it
 in the app's `nuxt.config.ts`:
@@ -127,6 +127,14 @@ migrations in `test/mysql-migrations`. Regenerate them with
 `pnpm db:test-generate` after changing the schema. The tests skip when
 `NUXT_TEST_DATABASE_URL` is unset.
 
+## Testing
+
+The route tests in `test/` build and boot the layer itself as an app, with
+in-memory repositories and a fake provider supplied by a test-only Nitro plugin.
+A test app inside the layer's folder can't extend it, because Nuxt skips a layer
+that contains the app. `test/browser.ts` keeps cookies between requests, and can
+play the provider's part in a sign-in.
+
 ## Sessions and Errors
 
 `server/utils/session.ts` keeps two sealed cookies, using H3's session helpers.
@@ -151,6 +159,27 @@ errors into responses:
 
 The response carries the message, and the error's name in `data.error`. Apps use
 the same handler for their own routes.
+
+## Sign-In
+
+| Route                    | What it does                                                                                                                                                                    |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GET /api/auth/login`    | Keeps a new `state`, `nonce` and PKCE verifier in the `sign-in` cookie, and redirects to the provider. `?hint=` preselects an account.                                          |
+| `GET /api/auth/callback` | Checks `state` against the cookie and ends the round trip, so it can't be replayed. Completes the sign-in, signs the person in or up, starts the session, and redirects to `/`. |
+| `POST /api/auth/logout`  | Ends the session. Answers 204.                                                                                                                                                  |
+| `GET /api/me`            | The signed-in user, or 401.                                                                                                                                                     |
+
+A state that doesn't match, or a callback this browser never started, is a 400.
+Other failures go back to `/login?error=` with a reason:
+
+| Reason               | When                                                         |
+| -------------------- | ------------------------------------------------------------ |
+| `cancelled`          | The person cancelled at the provider                         |
+| `provider`           | The provider's response failed a check. The server logs why. |
+| `email-not-verified` | The provider hasn't verified the email                       |
+| `identity-mismatch`  | The email is linked to a different account at this provider  |
+
+Request and response shapes are Zod schemas in `shared/contracts/`.
 
 ## Adapters
 

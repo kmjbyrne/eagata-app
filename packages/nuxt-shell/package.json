@@ -13,6 +13,7 @@
     "nuxt.config.ts",
     "types.ts",
     "server",
+    "shared",
     "!**/*.test.ts",
     "README.md"
   ],
@@ -28,12 +29,17 @@
   },
   "peerDependencies": {
     "drizzle-orm": "catalog:",
+    "h3": "catalog:",
     "mysql2": "catalog:",
-    "nuxt": "^4.5.0"
+    "nuxt": "^4.5.0",
+    "zod": "catalog:"
   },
   "devDependencies": {
+    "@nuxt/test-utils": "^4.3.3",
     "drizzle-kit": "catalog:",
     "drizzle-orm": "catalog:",
-    "mysql2": "catalog:"
+    "h3": "catalog:",
+    "mysql2": "catalog:",
+    "zod": "catalog:"
   }
 }

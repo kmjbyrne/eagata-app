@@ -8,7 +8,10 @@ packages:
 catalog:
   drizzle-kit: ^0.31.11
   drizzle-orm: ^0.45.3
+  # The h3 Nuxt 4 ships. @nuxt/test-utils also accepts h3 2, which must not leak in.
+  h3: ^1.15.11
   mysql2: ^3.24.4
+  zod: ^4.4.3
 
 allowBuilds:
   '@parcel/watcher': false

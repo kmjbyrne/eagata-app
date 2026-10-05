@@ -8,7 +8,9 @@ if (existsSync('.env')) {
 
 export default defineConfig({
   test: {
-    include: ['packages/*/src/**/*.test.ts', 'packages/*/server/**/*.test.ts'],
+    include: ['packages/*/src/**/*.test.ts', 'packages/*/server/**/*.test.ts', 'packages/*/test/**/*.test.ts'],
+    // Route tests build and boot a Nuxt server first.
+    hookTimeout: 180_000,
     passWithNoTests: true
   }
 })

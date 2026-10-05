@@ -1,0 +1,43 @@
+import { EmailNotVerifiedError, IdentityMismatchError, type ProviderIdentity } from '@kmjbyrne/core'
+import { callbackQuery, type SignInError } from '../../../shared/contracts/auth'
+
+const backToLogin = (error: SignInError) => `/login?error=${error}`
+
+/**
+ * Finishes a sign-in. The state must match the one this browser started
+ * with, or the request was forged or replayed.
+ */
+export default defineServiceHandler(async (event) => {
+  const query = await getValidatedQuery(event, callbackQuery.parse)
+  const flow = await readFlow(event)
+  await endFlow(event)
+
+  if (query.error) {
+    return sendRedirect(event, backToLogin('cancelled'))
+  }
+  if (!query.code || !query.state || !flow.state || !flow.nonce || !flow.codeVerifier || query.state !== flow.state) {
+    throw createError({ statusCode: 400, message: 'This sign-in has expired or did not start here. Start again.' })
+  }
+
+  let identity: ProviderIdentity
+  try {
+    identity = await useAdapters().signIn.complete(query.code, { nonce: flow.nonce, codeVerifier: flow.codeVerifier })
+  } catch (error) {
+    console.error('[auth] The provider sign-in failed', error)
+    return sendRedirect(event, backToLogin('provider'))
+  }
+
+  try {
+    const user = await useServices(event).auth.signIn(identity)
+    await startSession(event, user.id)
+  } catch (error) {
+    if (error instanceof EmailNotVerifiedError) {
+      return sendRedirect(event, backToLogin('email-not-verified'))
+    }
+    if (error instanceof IdentityMismatchError) {
+      return sendRedirect(event, backToLogin('identity-mismatch'))
+    }
+    throw error
+  }
+  return sendRedirect(event, '/')
+})
