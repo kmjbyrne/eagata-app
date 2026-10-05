@@ -17,8 +17,8 @@ export class FakeSignInProvider implements SignInProvider {
 
   async authorizationRequest(options?: AuthorizationOptions): Promise<AuthorizationRequest> {
     const n = ++this.count
-    const request = { state: `state-${n}`, nonce: `nonce-${n}`, codeVerifier: `verifier-${n}` }
-    const params = new URLSearchParams({ state: request.state, nonce: request.nonce, ...(options?.loginHint ? { login_hint: options.loginHint } : {}) })
+    const request = { state: `state-${n}`, nonce: `nonce-${n}`, codeVerifier: `verifier-${n}`, redirectUri: options?.redirectUri ?? '/api/auth/callback' }
+    const params = new URLSearchParams({ state: request.state, nonce: request.nonce, redirect_uri: request.redirectUri, ...(options?.loginHint ? { login_hint: options.loginHint } : {}) })
     return { url: `https://idp.test/authorize?${params}`, ...request }
   }
 

@@ -31,15 +31,20 @@ export default defineNuxtConfig({
 
 Every setting is a `runtimeConfig` key, set from env vars:
 
-| Env var                    | Meaning                                                    | Default                       |
-| -------------------------- | ---------------------------------------------------------- | ----------------------------- |
-| `NUXT_SESSION_SECRET`      | Seals the session cookie. At least 32 characters.          | A fixed secret, in dev only   |
-| `NUXT_OIDC_PROVIDER`       | The name stored with each linked account                   | `google`                      |
-| `NUXT_OIDC_ISSUER`         | The OIDC issuer                                            | `https://accounts.google.com` |
-| `NUXT_OIDC_ISSUER_ALIASES` | Comma-separated other spellings of the issuer in ID tokens | `accounts.google.com`         |
-| `NUXT_OIDC_CLIENT_ID`      | The OAuth client id                                        |                               |
-| `NUXT_OIDC_CLIENT_SECRET`  | The OAuth client secret                                    |                               |
-| `NUXT_OIDC_REDIRECT_URI`   | The app's callback URL                                     |                               |
+| Env var                    | Meaning                                                    | Default                                      |
+| -------------------------- | ---------------------------------------------------------- | -------------------------------------------- |
+| `NUXT_DATABASE_URL`        | `mysql://user:password@host:3306/database`                 | None                                         |
+| `NUXT_SESSION_SECRET`      | Seals the session cookie. At least 32 characters.          | A fixed secret, in dev only                  |
+| `NUXT_OIDC_CLIENT_ID`      | The OAuth client id                                        |                                              |
+| `NUXT_OIDC_CLIENT_SECRET`  | The OAuth client secret                                    |                                              |
+| `NUXT_OIDC_REDIRECT_URI`   | The callback URL registered with the provider              | `/api/auth/callback` on the request's origin |
+| `NUXT_OIDC_PROVIDER`       | The name stored with each linked account. Picks a preset.  | `google`                                     |
+| `NUXT_OIDC_ISSUER`         | For a provider without a preset                            | The preset's                                 |
+| `NUXT_OIDC_ISSUER_ALIASES` | Comma-separated other spellings of the issuer in ID tokens | The preset's                                 |
+
+For Google, set only the client id and secret. The provider name picks its
+issuer settings from the presets in `@kmjbyrne/oidc`. Set the redirect URI
+behind a proxy that changes the host.
 
 Nothing in the code assumes Google. A different OIDC provider needs only
 different values.

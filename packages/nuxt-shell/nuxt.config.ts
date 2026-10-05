@@ -7,13 +7,16 @@ export default defineNuxtConfig({
     // At least 32 characters. Dev falls back to a fixed secret when empty.
     sessionSecret: '',
     oidc: {
-      // The name stored with each linked account, such as "google".
+      // Stored with each linked account. A provider with a preset in
+      // @kmjbyrne/oidc, such as "google", needs no issuer settings.
       provider: 'google',
-      issuer: 'https://accounts.google.com',
+      // For a provider without a preset. Overrides the preset's.
+      issuer: '',
       // Comma-separated other spellings of the issuer in ID tokens.
-      issuerAliases: 'accounts.google.com',
+      issuerAliases: '',
       clientId: '',
       clientSecret: '',
+      // Defaults to /api/auth/callback on the request's own origin.
       redirectUri: ''
     }
   }

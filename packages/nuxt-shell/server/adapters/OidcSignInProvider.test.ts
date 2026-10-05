@@ -13,7 +13,7 @@ describe('OidcSignInProvider', () => {
   })
 
   it('names the provider and parses the email', async () => {
-    expect(await new OidcSignInProvider('google', client).complete('code', { nonce: 'n', codeVerifier: 'v' })).toEqual({
+    expect(await new OidcSignInProvider('google', client).complete('code', { nonce: 'n', codeVerifier: 'v', redirectUri: 'https://app.example.com/api/auth/callback' })).toEqual({
       provider: 'google',
       subject: 'sub-1',
       email: 'ada@example.com',

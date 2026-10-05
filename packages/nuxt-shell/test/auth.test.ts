@@ -13,6 +13,7 @@ describe('GET /api/auth/login', () => {
 
     expect(first.origin + first.pathname).toBe('https://idp.test/authorize')
     expect(first.searchParams.get('login_hint')).toBe('ada@example.com')
+    expect(first.searchParams.get('redirect_uri')).toMatch(/^http:\/\/[^/]+\/api\/auth\/callback$/)
     expect(second.searchParams.get('state')).not.toBe(first.searchParams.get('state'))
   })
 })

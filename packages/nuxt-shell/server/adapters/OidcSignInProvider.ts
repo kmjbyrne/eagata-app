@@ -16,7 +16,7 @@ export class OidcSignInProvider implements SignInProvider {
     return this.client.authorizationRequest(options)
   }
 
-  async complete(code: string, request: Pick<AuthorizationRequest, 'nonce' | 'codeVerifier'>): Promise<ProviderIdentity> {
+  async complete(code: string, request: Pick<AuthorizationRequest, 'nonce' | 'codeVerifier' | 'redirectUri'>): Promise<ProviderIdentity> {
     const identity = await this.client.complete(code, request)
     return {
       provider: this.provider,

@@ -1,5 +1,5 @@
-import type { Repositories } from '@kmjbyrne/core'
-import { OidcClient } from '@kmjbyrne/oidc'
+import type { Repositories, SignInProvider } from '@kmjbyrne/core'
+import { OIDC_PRESETS, OidcClient } from '@kmjbyrne/oidc'
 import type { H3Event } from 'h3'
 import type { Adapters, CoreAdapters, Services } from '../../types'
 import { MysqlRepositories } from '../adapters/mysql/MysqlRepositories'
@@ -17,14 +17,25 @@ function createDefaultAdapters(): Partial<CoreAdapters> {
     repositories: databaseUrl
       ? new MysqlRepositories(useDatabase())
       : missingAdapter<Repositories>('No data store is configured. Run `pnpm dev` for the sandbox, or set NUXT_DATABASE_URL'),
-    signIn: new OidcSignInProvider(oidc.provider, new OidcClient({
-      issuer: oidc.issuer,
-      issuerAliases: oidc.issuerAliases.split(',').map(alias => alias.trim()).filter(Boolean),
-      clientId: oidc.clientId,
-      clientSecret: oidc.clientSecret,
-      redirectUri: oidc.redirectUri
-    }))
+    signIn: createSignInProvider(oidc)
   }
+}
+
+/** A provider with a preset needs only its client id and secret. Explicit settings win. */
+function createSignInProvider(oidc: ReturnType<typeof useRuntimeConfig>['oidc']): SignInProvider {
+  const preset = OIDC_PRESETS[oidc.provider]
+  const issuer = oidc.issuer || preset?.issuer
+  if (!issuer) {
+    return missingAdapter(`No issuer for the OIDC provider "${oidc.provider}". Set NUXT_OIDC_ISSUER, or use a provider with a preset: ${Object.keys(OIDC_PRESETS).join(', ')}`)
+  }
+  const aliases = oidc.issuerAliases ? oidc.issuerAliases.split(',').map(alias => alias.trim()).filter(Boolean) : preset?.issuerAliases
+  return new OidcSignInProvider(oidc.provider, new OidcClient({
+    issuer,
+    issuerAliases: aliases,
+    clientId: oidc.clientId,
+    clientSecret: oidc.clientSecret,
+    redirectUri: oidc.redirectUri || undefined
+  }))
 }
 
 /**

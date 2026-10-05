@@ -15,13 +15,13 @@ export default defineServiceHandler(async (event) => {
   if (query.error) {
     return sendRedirect(event, backToLogin('cancelled'))
   }
-  if (!query.code || !query.state || !flow.state || !flow.nonce || !flow.codeVerifier || query.state !== flow.state) {
+  if (!query.code || !query.state || !flow.state || !flow.nonce || !flow.codeVerifier || !flow.redirectUri || query.state !== flow.state) {
     throw createError({ statusCode: 400, message: 'This sign-in has expired or did not start here. Start again.' })
   }
 
   let identity: ProviderIdentity
   try {
-    identity = await useAdapters().signIn.complete(query.code, { nonce: flow.nonce, codeVerifier: flow.codeVerifier })
+    identity = await useAdapters().signIn.complete(query.code, { nonce: flow.nonce, codeVerifier: flow.codeVerifier, redirectUri: flow.redirectUri })
   } catch (error) {
     console.error('[auth] The provider sign-in failed', error)
     return sendRedirect(event, backToLogin('provider'))
