@@ -152,6 +152,9 @@ The rules they enforce:
 - A user sees an org if they're an org member, or a member of one of its
   workspaces. `listMine` returns their personal org first, then the rest by
   name, each with the workspaces the user can see.
+- `home(lastUsed)` says where `/` goes: the last-used workspace if the user can
+  still reach it, else the first workspace of their only org, else null, meaning
+  they should choose between orgs.
 - Anything the user can't see is a `NotFoundError`, so its existence isn't
   revealed. Old org slugs aren't accepted, except by `resolveSlug`, which
   returns the current slug so an old link can redirect.

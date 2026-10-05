@@ -58,6 +58,30 @@ describe('OrgService', () => {
     })
   })
 
+  describe('home', () => {
+    it('goes to the last-used workspace while the user can still reach it', async () => {
+      const { t, grace } = await setup()
+      t.signInAs(grace)
+
+      expect(await t.services.orgs.home({ org: 'acme', workspace: 'general' })).toEqual({ org: 'acme', workspace: 'general' })
+      expect(await t.services.orgs.home({ org: 'acme', workspace: 'finance' })).toBeNull()
+    })
+
+    it('goes to the first workspace of the only org a new user has', async () => {
+      const { t, mary } = await setup()
+      t.signInAs(mary)
+
+      expect(await t.services.orgs.home()).toEqual({ org: 'mary-somerville', workspace: 'general' })
+    })
+
+    it('asks a user who reaches several orgs to choose', async () => {
+      const { t, ada } = await setup()
+      t.signInAs(ada)
+
+      expect(await t.services.orgs.home()).toBeNull()
+    })
+  })
+
   describe('getBySlug', () => {
     it('returns an org the user can reach', async () => {
       const { t, grace } = await setup()

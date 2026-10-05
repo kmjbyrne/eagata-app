@@ -35,6 +35,22 @@ export class OrgService {
     return orgs.sort((a, b) => Number(isOwnPersonal(b)) - Number(isOwnPersonal(a)) || a.org.name.localeCompare(b.org.name))
   }
 
+  /**
+   * Where `/` takes the user: the last-used workspace if they can still reach
+   * it, else the first workspace of their only org. Null means they reach
+   * several orgs, and should choose.
+   */
+  async home(last?: { org?: string, workspace?: string }): Promise<{ org: Slug, workspace: Slug } | null> {
+    const orgs = await this.listMine()
+    const lastUsed = orgs.find(entry => entry.org.slug === last?.org)?.workspaces.find(entry => entry.workspace.slug === last?.workspace)
+    if (lastUsed) {
+      return { org: orgs.find(entry => entry.workspaces.includes(lastUsed))!.org.slug, workspace: lastUsed.workspace.slug }
+    }
+    const [only] = orgs
+    const first = orgs.length === 1 ? only!.workspaces[0] : undefined
+    return first ? { org: only!.org.slug, workspace: first.workspace.slug } : null
+  }
+
   /** @throws NotFoundError for an org the user can't reach, or an old slug */
   getBySlug(slug: string): Promise<AccessibleOrg> {
     return requireAccessibleOrg(this.repositories, slug, requireUserId(this.currentUser))
