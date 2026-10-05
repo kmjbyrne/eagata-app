@@ -1,4 +1,5 @@
 import type { User } from '../entities/User'
+import type { LinkProof } from '../ports/LinkProof'
 import { createCoreServices } from '../services/CoreServices'
 import { provisionUser } from '../services/provisionUser'
 import { parseEmail } from '../values/Email'
@@ -14,11 +15,11 @@ import { SequentialIdGenerator } from './SequentialIdGenerator'
  *   const ada = await t.addUser('Ada Lovelace')
  *   t.signInAs(ada)
  */
-export function createTestServices() {
+export function createTestServices(options: { linkProof?: LinkProof } = {}) {
   const repositories = new InMemoryRepositories()
   const currentUser = new FakeCurrentUser()
   const ids = new SequentialIdGenerator()
-  const services = createCoreServices({ repositories, currentUser, ids })
+  const services = createCoreServices({ repositories, currentUser, ids, linkProof: options.linkProof })
 
   /**
    * Adds a user, with their personal org, as a platform admin would. The email

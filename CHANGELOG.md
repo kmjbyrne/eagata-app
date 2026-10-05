@@ -10,6 +10,13 @@ sandbox, the docs and the tooling. The format follows
 
 ## Unreleased
 
+### Added
+
+- `@kmjbyrne/core`: `AuthService.connectIdentity` links a provider account to
+  the signed-in user. A `LinkProof` port lets sign-in ask for proof, such as a
+  password, before linking a provider account to an existing user: `signIn` then
+  returns `link-required` instead of linking.
+
 ## 0.1.0 - 2026-10-05
 
 The first release of the foundation: shared packages for users, organizations,

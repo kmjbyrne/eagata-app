@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { EmailTakenError, ForbiddenError, LastPlatformAdminError, NotFoundError, NotSignedInError } from '../errors'
+import type { ProviderIdentity } from '../entities/User'
 import { createTestServices } from '../testing/createTestServices'
 import type { UserId } from '../values/Ids'
 
@@ -9,6 +10,15 @@ async function setup() {
   const ada = await t.addUser('Ada Lovelace')
   t.signInAs(admin)
   return { t, admin, ada }
+}
+
+/** Signs in and returns the user, failing the test if linking needed proof. */
+async function signIn(t: ReturnType<typeof createTestServices>, identity: ProviderIdentity) {
+  const result = await t.services.auth.signIn(identity)
+  if (result.kind !== 'signed-in') {
+    throw new Error('Expected a sign-in, got a link that needs proof')
+  }
+  return result.user
 }
 
 describe('PlatformUserService', () => {
@@ -35,7 +45,7 @@ describe('PlatformUserService', () => {
     it('links the identity on first sign-in, without a second personal org', async () => {
       const { t } = await setup()
       const grace = await t.services.platformUsers.create('Grace Hopper', 'grace@example.com')
-      const signedIn = await t.services.auth.signIn({
+      const signedIn = await signIn(t, {
         provider: 'google', subject: 'g-grace', email: grace.email, emailVerified: true, name: 'Grace H', picture: null
       })
 

@@ -1,5 +1,6 @@
 import type { CurrentUser } from '../ports/CurrentUser'
 import type { IdGenerator } from '../ports/IdGenerator'
+import type { LinkProof } from '../ports/LinkProof'
 import type { Repositories } from '../ports/Repositories'
 import { AuthService } from './AuthService'
 import { OrgService } from './OrgService'
@@ -13,6 +14,8 @@ export interface CoreAdapters {
   repositories: Repositories
   currentUser: CurrentUser
   ids: IdGenerator
+  /** Whether linking a provider account needs proof, such as a password. Defaults to never. */
+  linkProof?: LinkProof
 }
 
 export interface CoreServices {
@@ -26,10 +29,10 @@ export interface CoreServices {
 }
 
 /** Every core service on the given adapters. Cheap enough to call per request. */
-export function createCoreServices({ repositories, currentUser, ids }: CoreAdapters): CoreServices {
+export function createCoreServices({ repositories, currentUser, ids, linkProof }: CoreAdapters): CoreServices {
   const workspaceAccess = new WorkspaceAccess(repositories, currentUser)
   return {
-    auth: new AuthService(repositories),
+    auth: new AuthService(repositories, currentUser, linkProof),
     users: new UserService(repositories, currentUser),
     orgs: new OrgService(repositories, currentUser),
     workspaces: new WorkspaceService(repositories, currentUser, ids, workspaceAccess),

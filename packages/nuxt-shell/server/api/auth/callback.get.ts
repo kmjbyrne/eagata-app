@@ -28,8 +28,11 @@ export default defineServiceHandler(async (event) => {
   }
 
   try {
-    const user = await useServices(event).auth.signIn(identity)
-    await startSession(event, user.id)
+    const result = await useServices(event).auth.signIn(identity)
+    if (result.kind === 'link-required') {
+      throw createError({ statusCode: 501, message: 'Linking this account needs proof this app has no way to ask for' })
+    }
+    await startSession(event, result.user.id)
   } catch (error) {
     if (error instanceof EmailNotVerifiedError) {
       return sendRedirect(event, backToLogin('email-not-verified'))

@@ -125,6 +125,15 @@ user to sign in. It runs in one transaction:
    may have given the email to someone new.
 3. Anyone else gets `NotInvitedError`, and nothing is created.
 
+`signIn` returns `{ kind: 'signed-in', user }`, or
+`{ kind: 'link-required', link }` when an optional `LinkProof` port says linking
+needs proof first, such as the user's password. The caller collects the proof,
+and the code that checks it links the account. Without a `LinkProof`, a verified
+email is enough.
+
+`connectIdentity(identity)` links a provider account to the signed-in user, from
+their settings.
+
 An unverified email never links, and throws `EmailNotVerifiedError`. A
 deactivated user is refused with `AccountDeactivatedError`, whether matched by
 identity or by email. Each sign-in refreshes the user's avatar from the
