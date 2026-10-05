@@ -13,6 +13,7 @@
   "files": [
     "nuxt.config.ts",
     "types.ts",
+    "app",
     "server",
     "shared",
     "!**/*.test.ts",
@@ -29,6 +30,7 @@
     "@kmjbyrne/oidc": "workspace:*"
   },
   "peerDependencies": {
+    "@nuxt/ui": "^4.11.0",
     "drizzle-orm": "catalog:",
     "h3": "catalog:",
     "mysql2": "catalog:",
@@ -37,6 +39,7 @@
   },
   "devDependencies": {
     "@nuxt/test-utils": "^4.3.3",
+    "@nuxt/ui": "^4.11.3",
     "drizzle-kit": "catalog:",
     "drizzle-orm": "catalog:",
     "h3": "catalog:",

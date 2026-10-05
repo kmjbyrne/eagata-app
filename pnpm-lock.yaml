@@ -131,6 +131,9 @@ importers:
       '@nuxt/test-utils':
         specifier: ^4.3.3
         version: 4.3.3(f278e8c93359130f14c63c22441aa78e)
+      '@nuxt/ui':
+        specifier: ^4.11.3
+        version: 4.11.3(f01ee3674e01ec0b72a8dd041aa89ff3)
       drizzle-kit:
         specifier: 'catalog:'
         version: 0.31.11

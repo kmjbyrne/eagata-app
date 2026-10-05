@@ -1,6 +1,9 @@
 // Everything every app needs on the Nuxt side. Settings come from env vars
 // through runtimeConfig, e.g. NUXT_OIDC_ISSUER or NUXT_SESSION_SECRET.
 export default defineNuxtConfig({
+  // Its pages and components are Nuxt UI.
+  modules: ['@nuxt/ui'],
+
   runtimeConfig: {
     // mysql://user:password@host:3306/database. Empty means no default store.
     databaseUrl: '',
@@ -18,6 +21,10 @@ export default defineNuxtConfig({
       clientSecret: '',
       // Defaults to /api/auth/callback on the request's own origin.
       redirectUri: ''
+    },
+    public: {
+      // The sign-in button's label.
+      signInLabel: 'Continue with Google'
     }
   }
 })

@@ -13,6 +13,10 @@ export default defineNuxtConfig({
     dataStore: 'json'
   },
 
+  // Lets a second dev server, such as an agent's or a test's, run beside
+  // yours. Two servers writing one build dir break each other's files.
+  buildDir: process.env.NUXT_BUILD_DIR || undefined,
+
   // Nuxt resolves these against the app being run, so the root app's own
   // imports would point into the sandbox without them.
   alias: {
