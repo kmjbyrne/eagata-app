@@ -1,2 +1,5 @@
-/** When the store was seeded, and any collections that no longer match their schema. */
-export default defineSandboxHandler(() => useSandbox().store.status())
+/** When the store was seeded, and any drifted collections. Null while the app's data is elsewhere. */
+export default defineSandboxHandler(async () => {
+  const sandbox = useSandbox()
+  return sandbox.data ? sandbox.store.status() : null
+})

@@ -10,12 +10,18 @@ export default defineNitroPlugin(() => {
     throw new Error(`NUXT_DATA_STORE must be json or mysql, got "${dataStore}"`)
   }
 
-  const sandbox = defineSandbox({ collections: tenancyCollections(), devUsers: tenancyDevUsers })
+  // With a real client configured, sign-in goes to the real provider.
+  const standInSignIn = !oidc.clientId
+  const sandbox = defineSandbox({
+    collections: tenancyCollections(),
+    devUsers: tenancyDevUsers,
+    signIn: standInSignIn,
+    data: dataStore === 'json'
+  })
   if (dataStore === 'json') {
     provideAdapters({ repositories: new JsonStoreRepositories(sandbox.store) })
   }
-  // With a real client configured, sign-in goes to the real provider.
-  if (!oidc.clientId) {
+  if (standInSignIn) {
     provideAdapters({ signIn: new OidcSignInProvider(oidc.provider, new FakeOidcClient()) })
   }
 })

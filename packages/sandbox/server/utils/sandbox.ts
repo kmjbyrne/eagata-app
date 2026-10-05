@@ -16,11 +16,17 @@ export interface SandboxOptions<C extends CollectionDefinitions> {
   devUsers: (store: SeededJsonStore<DocumentsOf<C>>) => Promise<DevUser[]>
   /** Defaults to .data/store.json, relative to where the dev server runs. */
   file?: string
+  /** Whether the sign-in stand-in is in use. "Sign in as" shows only while it is. Defaults to true. */
+  signIn?: boolean
+  /** Whether the JSON store holds the app's data. The store status shows only while it does. Defaults to true. */
+  data?: boolean
 }
 
 export interface Sandbox<C extends CollectionDefinitions> {
   store: SeededJsonStore<DocumentsOf<C>>
   devUsers: () => Promise<DevUser[]>
+  signIn: boolean
+  data: boolean
 }
 
 let current: Sandbox<CollectionDefinitions> | undefined
@@ -32,7 +38,7 @@ let current: Sandbox<CollectionDefinitions> | undefined
  */
 export function defineSandbox<C extends CollectionDefinitions>(options: SandboxOptions<C>): Sandbox<C> {
   const store = new FileJsonStore({ file: options.file ?? '.data/store.json', collections: options.collections })
-  const sandbox: Sandbox<C> = { store, devUsers: () => options.devUsers(store) }
+  const sandbox: Sandbox<C> = { store, devUsers: () => options.devUsers(store), signIn: options.signIn ?? true, data: options.data ?? true }
   current = sandbox as unknown as Sandbox<CollectionDefinitions>
   return sandbox
 }

@@ -2,7 +2,7 @@
 import type { JsonStoreStatus } from '@kmjbyrne/json-store'
 
 const toast = useToast()
-const { data: status, refresh } = useFetch<JsonStoreStatus>('/api/_sandbox/status', { key: 'sandbox-status' })
+const { data: status, refresh } = useFetch<JsonStoreStatus | null>('/api/_sandbox/status', { key: 'sandbox-status' })
 const resetting = ref(false)
 
 async function reset() {
