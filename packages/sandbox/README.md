@@ -83,3 +83,21 @@ Nobody has signed in yet, so the first sign-in links each account.
 
 Every user now has a personal org, so the brief's "user with no orgs" can't
 exist. Mary reaches two orgs, so she lands on `/choose`.
+
+## The Sign-In Stand-In
+
+`FakeOidcClient` (from `@kmjbyrne/sandbox/oidc`) has the same shape as the real
+`OidcClient`, so the app's sign-in routes work unchanged. Wrap it in the shell's
+`OidcSignInProvider` and supply it with `provideAdapters`.
+
+Its authorization URL is the consent screen at `/_sandbox/oidc/authorize`. It
+lists the dev users, plus a form for any email, with a "verified" checkbox to
+try unverified emails. Choosing sends the person back to the app's real
+callback, with a code that `complete()` turns into an identity. Dev sign-in
+therefore runs through the app's real sign-in flow.
+
+- The same email always gets the same subject, so a second sign-in finds the
+  account the first one linked.
+- A login hint that names a dev user signs them straight in. That is how "Sign
+  in as" works in one click.
+- It only sends people back to the app's own origin.
