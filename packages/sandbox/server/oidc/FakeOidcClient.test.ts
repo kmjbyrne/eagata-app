@@ -52,7 +52,7 @@ describe('the sandbox sign-in round trip', () => {
     const decision = consent(request.url, {})
 
     expect(decision.kind).toBe('ask')
-    expect(renderConsent(decision as Extract<typeof decision, { kind: 'ask' }>)).toContain('Ada Lovelace')
+    expect(renderConsent(decision as Extract<typeof decision, { kind: 'ask' }>)).toContain('name="email"')
   })
 
   it('rejects a code made for another round trip', async () => {
@@ -80,9 +80,9 @@ describe('decideConsent', () => {
   })
 
   it('escapes what it renders', () => {
-    const html = renderConsent({ kind: 'ask', state: '"><script>', nonce: 'n', redirectUri: '/cb', devUsers: [{ ...ada, name: '<b>Ada</b>' }] })
+    const html = renderConsent({ kind: 'ask', state: '"><script>', nonce: 'n', redirectUri: '/cb"><b>', devUsers: [] })
 
     expect(html).not.toContain('<script>')
-    expect(html).not.toContain('<b>Ada</b>')
+    expect(html).not.toContain('<b>')
   })
 })

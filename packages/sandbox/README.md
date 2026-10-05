@@ -116,11 +116,12 @@ exist. Mary reaches two orgs, so she lands on `/choose`.
 `OidcClient`, so the app's sign-in routes work unchanged. Wrap it in the shell's
 `OidcSignInProvider` and supply it with `provideAdapters`.
 
-Its authorization URL is the consent screen at `/_sandbox/oidc/authorize`. It
-lists the dev users, plus a form for any email, with a "verified" checkbox to
-try unverified emails. Choosing sends the person back to the app's real
-callback, with a code that `complete()` turns into an identity. Dev sign-in
-therefore runs through the app's real sign-in flow.
+Its authorization URL is the consent screen at `/_sandbox/oidc/authorize`: a
+plain form asking for the email the account would report, an optional name, and
+a "verified" checkbox to try unverified emails. The dev users are on the login
+page's "Sign in as". Choosing sends the person back to the app's real callback,
+with a code that `complete()` turns into an identity. Dev sign-in therefore runs
+through the app's real sign-in flow.
 
 - The same email always gets the same subject, so a second sign-in finds the
   account the first one linked.
