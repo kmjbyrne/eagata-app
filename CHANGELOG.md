@@ -15,6 +15,7 @@ sandbox, the docs and the tooling. The format follows
 - pnpm workspace for `packages/*` and `sandbox`.
 - Shared TypeScript config for the plain TypeScript packages, Vitest, and CI
   that runs lint, typecheck, tests and the build.
+- `@kmjbyrne/oidc`: OpenID Connect sign-in with PKCE, for any provider.
 
 ### Removed
 

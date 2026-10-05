@@ -1,0 +1,17 @@
+{
+  "name": "@kmjbyrne/oidc",
+  "version": "0.0.0",
+  "private": true,
+  "description": "OpenID Connect authorization code flow with PKCE, for Node",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p ."
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "typescript": "^6.0.3"
+  }
+}
