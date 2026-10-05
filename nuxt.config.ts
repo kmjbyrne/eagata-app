@@ -34,5 +34,10 @@ export default defineNuxtConfig({
         braceStyle: '1tbs'
       }
     }
+  },
+
+  // The shell logs every /api request. This names the app in each event.
+  evlog: {
+    env: { service: 'eagata' }
   }
 })

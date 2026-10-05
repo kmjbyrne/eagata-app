@@ -52,6 +52,9 @@ export function defineServiceHandler<T>(handler: (event: H3Event<EventHandlerReq
       if (statusCode === undefined) {
         throw error
       }
+      // An expected refusal, such as not found or not signed in: a warning
+      // in the request log, not an error. Unmapped errors stay errors.
+      event.context.log?.setLevel('warn')
       throw createError({ statusCode, message: (error as Error).message, data: { error: (error as Error).name } })
     }
   })

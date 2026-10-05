@@ -58,6 +58,10 @@ export async function resolveActor(event: H3Event): Promise<void> {
   const { userId } = await readSession(event)
   event.context.actor = userId ? { id: userId } : undefined
   event.context.actorResolved = true
+  // Present only on logged routes, /api/** by default.
+  if (userId && event.context.log) {
+    useLogger(event).set({ user: { id: userId } })
+  }
 }
 
 export async function readSession(event: H3Event): Promise<SessionData> {

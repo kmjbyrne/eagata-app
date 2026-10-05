@@ -2,7 +2,7 @@
 // through runtimeConfig, e.g. NUXT_OIDC_ISSUER or NUXT_SESSION_SECRET.
 export default defineNuxtConfig({
   // Its pages and components are Nuxt UI.
-  modules: ['@nuxt/ui'],
+  modules: ['@nuxt/ui', 'evlog/nuxt'],
 
   runtimeConfig: {
     // mysql://user:password@host:3306/database. Empty means no default store.
@@ -36,9 +36,19 @@ export default defineNuxtConfig({
       signInLabel: 'Continue with Google'
     }
   },
-
   routeRules: {
     // The profile moved into settings.
     '/profile': { redirect: '/settings' }
+  },
+
+  // One wide event per API request: method, path, status, duration, the
+  // signed-in user's id, and any error. Pretty in dev, JSON in production.
+  evlog: {
+    env: { service: 'app' },
+    include: ['/api/**'],
+    exclude: ['/api/_nuxt_icon/**'],
+    redact: {
+      paths: ['**.password', '**.currentPassword', '**.newPassword', '**.token', '**.code', '**.state', '**.secret']
+    }
   }
 })

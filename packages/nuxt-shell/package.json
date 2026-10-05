@@ -31,7 +31,8 @@
   "dependencies": {
     "@aws-sdk/client-sesv2": "^3.1146.0",
     "@kmjbyrne/core": "workspace:*",
-    "@kmjbyrne/oidc": "workspace:*"
+    "@kmjbyrne/oidc": "workspace:*",
+    "evlog": "^2.30.0"
   },
   "peerDependencies": {
     "@nuxt/test-utils": "^4.3.3",

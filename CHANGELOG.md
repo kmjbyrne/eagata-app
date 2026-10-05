@@ -12,6 +12,13 @@ sandbox, the docs and the tooling. The format follows
 
 ### Added
 
+- `@kmjbyrne/nuxt-shell`: request logging with evlog. Every `/api` request
+  writes one wide event: method, path, status, duration, request id, the
+  signed-in user's id, and any error. Expected refusals, such as 401 and 404,
+  log as warnings. Passwords, tokens and OAuth codes are redacted. Apps name
+  themselves with `evlog.env.service`, and add fields with
+  `useLogger(event).set(...)`.
+
 - `@kmjbyrne/core`: `AuthService.connectIdentity` links a provider account to
   the signed-in user. A `LinkProof` port lets sign-in ask for proof, such as a
   password, before linking a provider account to an existing user: `signIn` then

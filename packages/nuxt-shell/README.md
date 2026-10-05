@@ -27,6 +27,31 @@ export default defineNuxtConfig({
 })
 ```
 
+## Request Logging
+
+The shell includes [evlog](https://github.com/evloghq/evlog). Every `/api`
+request writes one wide event: method, path, status, duration, request id, the
+signed-in user's id, and any error. Output is readable in dev and JSON in
+production. Domain errors that map to 4xx log as warnings, and anything else
+thrown logs as an error. Passwords, tokens and OAuth codes are redacted, along
+with evlog's built-in patterns, such as emails.
+
+Name the app in its `nuxt.config.ts`:
+
+```ts
+evlog: {
+  env: {
+    service: 'my-app'
+  }
+}
+```
+
+Add fields to the current request's event from a route:
+
+```ts
+useLogger(event).set({ invoice: { id: invoice.id } })
+```
+
 ## Configuration
 
 Every setting is a `runtimeConfig` key, set from env vars:
