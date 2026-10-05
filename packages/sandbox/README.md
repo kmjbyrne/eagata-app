@@ -51,6 +51,17 @@ The store is a `FileJsonStore`. It reads and seeds the file on first use, so
 plugin order doesn't matter. `useSandbox()` returns what `defineSandbox` set up,
 for the sandbox's own routes.
 
+## Endpoints
+
+| Route                      | What it does                                                                                              |
+| -------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `GET /api/_sandbox/users`  | The people "Sign in as" offers                                                                            |
+| `GET /api/_sandbox/status` | `{ seededAt, drifted }`: when the store was seeded, and any collections that no longer match their schema |
+| `POST /api/_sandbox/reset` | Puts every collection back to its fixtures                                                                |
+
+Every sandbox route answers 404 outside a dev server, as a second guard behind
+the startup check.
+
 ## Tenancy on the JSON Store
 
 `@kmjbyrne/sandbox/json-store` stores core's tenancy data in the sandbox's JSON
