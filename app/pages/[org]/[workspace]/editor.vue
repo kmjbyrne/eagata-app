@@ -16,6 +16,7 @@ const html = ref(`<h2>The editor</h2>
 const upload: EditorUpload = async file => ({ src: URL.createObjectURL(file) })
 const showHtml = ref(false)
 const compact = ref(false)
+const toolbar = ref(false)
 </script>
 
 <template>
@@ -26,6 +27,10 @@ const compact = ref(false)
           <UDashboardSidebarCollapse />
         </template>
         <template #right>
+          <USwitch
+            v-model="toolbar"
+            label="Toolbar"
+          />
           <USwitch
             v-model="compact"
             label="Compact"
@@ -51,6 +56,7 @@ const compact = ref(false)
           v-model="html"
           :upload="upload"
           :compact="compact"
+          :toolbar="toolbar"
         />
         <pre
           v-if="showHtml"

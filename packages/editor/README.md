@@ -1,7 +1,7 @@
 # @varcharley/editor
 
-A Nuxt layer with a rich-text HTML editor built on Nuxt UI's `UEditor`
-(Tiptap v3). It imports Word documents and keeps legacy TinyMCE markup.
+A Nuxt layer with a rich-text HTML editor built on Nuxt UI's `UEditor` (Tiptap
+v3). It imports Word documents and keeps legacy TinyMCE markup.
 
 ## Usage
 
@@ -37,20 +37,23 @@ const upload: EditorUpload = async (file) => {
 
 The model is an HTML string, in and out.
 
+`:toolbar="false"` hides the fixed toolbar strip. Formatting stays available
+through the bubble toolbar over selected text, and the commands after `/`.
+
 ## The `upload` contract
 
 ```ts
 type EditorUpload = (file: File) => Promise<{ src: string }>
 ```
 
-The editor never stores files itself. It calls `upload` for every image it
-gets: the image upload node, a pasted or dropped image, each image embedded
-in an imported Word document, and each image saved from the image editor.
-Resolve with the public URL of the stored file. Reject to show an error; the
-editor keeps the rest of the content.
+The editor never stores files itself. It calls `upload` for every image it gets:
+the image upload node, a pasted or dropped image, each image embedded in an
+imported Word document, and each image saved from the image editor. Resolve with
+the public URL of the stored file. Reject to show an error; the editor keeps the
+rest of the content.
 
-Pasted images are copied into storage too. Google Docs, and many other apps,
-put images on the clipboard embedded as base64; storing those would bloat every
+Pasted images are copied into storage too. Google Docs, and many other apps, put
+images on the clipboard embedded as base64; storing those would bloat every
 body, so the editor turns each one into a file and sends it through `upload`.
 Images still hosted by Google Docs (`*.googleusercontent.com`) are downloaded
 first. If the browser can't download one, the editor calls the optional

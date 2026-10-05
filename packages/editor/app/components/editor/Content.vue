@@ -19,11 +19,17 @@ const props = withDefaults(defineProps<{
   toolbarTo?: string
   /** A shorter body with less padding, for a reply box rather than a document. */
   compact?: boolean
+  /**
+   * The fixed toolbar strip. Without it, formatting is still there: a bubble
+   * toolbar over selected text, and commands after `/`.
+   */
+  toolbar?: boolean
 }>(), {
   fetchRemote: undefined,
   placeholder: 'Write, or type \'/\' for commands...',
   toolbarTo: undefined,
-  compact: false
+  compact: false,
+  toolbar: true
 })
 
 const html = defineModel<string>({ required: true })
@@ -246,6 +252,7 @@ function showTableBubble({ editor, view, state }: ShouldShow) {
     }"
   >
     <Teleport
+      v-if="toolbar"
       :to="toolbarTo"
       :disabled="!toolbarTo"
       defer
