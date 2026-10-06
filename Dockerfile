@@ -51,7 +51,11 @@ RUN pnpm --filter './packages/nuxt-*' exec nuxt prepare \
 #   docker run --rm -e NUXT_DATABASE_URL=... <image> tsx scripts/platform-grant.ts you@example.com "Your Name"
 # Binaries run directly, because `pnpm run` re-verifies node_modules and tries
 # to reinstall as root.
-FROM build AS tools
+# Built from the installed packages and the source, not the app build: these
+# commands never use the built app, so a code change costs seconds, not a full
+# Nuxt build.
+FROM deps AS tools
+COPY . .
 ENV PATH=/app/node_modules/.bin:$PATH
 USER node
 CMD ["echo", "Give a command: drizzle-kit migrate, or tsx scripts/platform-grant.ts <email> [name]"]

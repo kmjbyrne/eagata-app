@@ -1,5 +1,7 @@
 # Nuxt dev/build outputs
 .output
+# Filled-in SQL, with passwords: make app-user
+.out
 .data
 .nuxt
 .nuxt-*

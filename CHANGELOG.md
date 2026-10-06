@@ -23,6 +23,8 @@ sandbox, the docs and the tooling. The format follows
 
 ### Fixed
 
+- The tools image no longer runs the full app build, so `make migrate` and
+  `make admin` rebuild it in seconds after a code change.
 - Sign-in never ends on a JSON error. A failure in `/api/auth/login` or the
   callback, such as the database refusing the app's user, now lands on the
   sign-in page with "Sign-in isn't available right now", and is still logged in
@@ -60,8 +62,26 @@ sandbox, the docs and the tooling. The format follows
   pages. Core gains `FeatureAccess`, `Repositories.orgFeatures` and
   `PlatformOrgService.enableFeature`/`disableFeature`. A new `org_features`
   table comes with migration `0008`.
+- Production runs with Docker Compose and `make`, the environment chosen by
+  `ENV`, such as `make up ENV=production`, which reads `.env.production`.
+  `docker-compose.yml` runs MariaDB, a tools container for migrations and the
+  app in two slots, blue and green, sharing one database.
+  `docker-compose.build.yml` builds the images from the checkout. `make check`
+  lists required settings the env file leaves empty. `make root-password` prints
+  MariaDB's generated root password. `docs/deployment/README.md` covers it, and
+  `.env.example` now explains every setting.
+- Production's database has two users: the migrator, which MariaDB creates from
+  `MARIADB_USER`, and the app's own, which may only read and write data.
+  `make app-user` creates the second, filling in `etc/sql/create-appuser.sql`
+  from `NUXT_DATABASE_URL` into the git-ignored `.out/<ENV>` and running it as
+  root inside the container. Migrations use `MIGRATION_DATABASE_URL` when it's
+  set, and `NUXT_DATABASE_URL` otherwise.
 - `pnpm platform:grant` reads the env file `DOTENV` names, as `db:migrate` does,
   such as `DOTENV=.env.production pnpm platform:grant you@example.com`.
+- `make admin-password EMAIL=...` makes a platform admin with a password it asks
+  for, hidden, and passes to the tools container in an environment variable.
+- `make admin` prints a 72-hour set-password link for a new platform admin, so
+  no password is ever kept in a file.
 - `pnpm db:migrate` reads another env file when `DOTENV` names it, as in
   `DOTENV=.env.production pnpm db:migrate`, and connects as
   `MIGRATION_DATABASE_URL` when that is set.

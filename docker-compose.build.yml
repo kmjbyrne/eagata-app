@@ -1,0 +1,30 @@
+# Builds the images from this checkout instead of pulling them. The Makefile
+# always includes it: `make build`, or `make up`, which builds first.
+#
+# The built image takes the slot's *_IMAGE name, so give the idle slot a new
+# tag first, such as eagata-app:<commit>. The other slot keeps its image, and
+# rollback is still pointing the proxy back.
+
+x-build: &build
+  # This checkout.
+  context: .
+  args:
+    NUXT_PLATFORM: ${NUXT_PLATFORM:-true}
+    GIT_COMMIT: ${GIT_COMMIT:-unknown}
+    GIT_COMMIT_DATE: ${GIT_COMMIT_DATE:-}
+
+services:
+  tools:
+    build:
+      <<: *build
+      target: tools
+
+  app-blue:
+    build:
+      <<: *build
+      target: app
+
+  app-green:
+    build:
+      <<: *build
+      target: app

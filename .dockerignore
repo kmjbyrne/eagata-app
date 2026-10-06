@@ -3,6 +3,7 @@
 **/.env.*
 !.env.example
 **/secrets/
+.out
 
 # Rebuilt inside the image
 **/node_modules

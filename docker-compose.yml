@@ -1,0 +1,112 @@
+# The app, its database and its tools, the same in every environment. Only
+# the env file changes, and it uses the same keys as .env.example. Run it
+# through the Makefile, which picks the env file from ENV:
+#
+#   make up ENV=production          MariaDB and both slots
+#   make migrate ENV=production     the tables
+#   make help                       everything else
+#
+# The app runs in two slots, blue on BLUE_BIND and green on GREEN_BIND. A
+# slot is a place, not a version: each runs whatever image its *_IMAGE names.
+# Deploy to the idle slot, check it, then point the proxy at it. The old slot
+# stays up, so rollback is pointing the proxy back. Both slots share one
+# database, so every migration must also work with the image in the other
+# slot: add first, drop a release later.
+
+name: eagata
+
+# What the app reads, passed as written. Everything else in the env file is
+# for compose itself, and never reaches the app.
+#
+# "# required" marks what the app can't run without: the image has no
+# sandbox, so it needs the Google client to sign anyone in, and NUXT_APP_URL
+# for links in emails. They aren't enforced here, because compose checks every
+# value for every command and a build needs none of them. `make check` lists
+# any that are missing, and `make up` runs it first.
+x-app-environment: &app-environment
+  NUXT_DATABASE_URL: ${NUXT_DATABASE_URL:-} # required
+  NUXT_SESSION_SECRET: ${NUXT_SESSION_SECRET:-} # required
+  NUXT_OIDC_CLIENT_ID: ${NUXT_OIDC_CLIENT_ID:-} # required
+  NUXT_OIDC_CLIENT_SECRET: ${NUXT_OIDC_CLIENT_SECRET:-} # required
+  NUXT_OIDC_REDIRECT_URI: ${NUXT_OIDC_REDIRECT_URI:-}
+  NUXT_APP_URL: ${NUXT_APP_URL:-} # required
+  NUXT_TRUST_PROXY: ${NUXT_TRUST_PROXY:-true}
+  NUXT_EMAIL_SES_SENDER: ${NUXT_EMAIL_SES_SENDER:-}
+  NUXT_EMAIL_SES_REGION: ${NUXT_EMAIL_SES_REGION:-eu-west-1}
+  NUXT_EMAIL_ACCESS_KEY_ID: ${NUXT_EMAIL_ACCESS_KEY_ID:-}
+  NUXT_EMAIL_SECRET_ACCESS_KEY: ${NUXT_EMAIL_SECRET_ACCESS_KEY:-}
+  # Uploaded images, on the volume below.
+  NUXT_MEDIA_DIR: /data/media
+
+x-depends-on-mariadb: &depends-on-mariadb
+  mariadb:
+    condition: service_healthy
+    required: false
+
+services:
+  # The bundled MariaDB. On its first start, with an empty data folder, it
+  # creates the database and MARIADB_USER, the migrator, with every privilege
+  # on it, and generates a root password. The app's own user comes later, from
+  # `make app-user`. After the first start, changing these changes nothing in
+  # the database.
+  mariadb:
+    image: mariadb:12.3
+    restart: unless-stopped
+    environment:
+      # Printed once to this service's log on first start. Nothing uses it.
+      MARIADB_RANDOM_ROOT_PASSWORD: "1"
+      MARIADB_DATABASE: ${MARIADB_DATABASE:-eagata}
+      MARIADB_USER: ${MARIADB_USER:-eagata_migrator}
+      MARIADB_PASSWORD: ${MARIADB_PASSWORD:-} # required
+      # Upgrades system tables when the data dir is older than the image,
+      # after backing them up to the data dir.
+      MARIADB_AUTO_UPGRADE: "1"
+    volumes:
+      - ${MARIADB_DATA_DIR:-./instance/mariadb}:/var/lib/mysql
+    ports:
+      - ${MARIADB_BIND:-127.0.0.1:3306}:3306
+    profiles: [db, all]
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+
+  # Deliberate, one-off operations: migrations and the first platform admin.
+  # Its own profile, so `up` never starts it.
+  tools:
+    image: ${EAGATA_TOOLS_IMAGE:-eagata-tools:latest}
+    profiles: [tools]
+    restart: "no"
+    environment:
+      <<: *app-environment
+      # The migrator, which may change tables, when MIGRATION_DATABASE_URL is
+      # set, and the app's own URL otherwise.
+      NUXT_DATABASE_URL: ${MIGRATION_DATABASE_URL:-${NUXT_DATABASE_URL}}
+    depends_on: *depends-on-mariadb
+
+  app-blue: &app
+    image: ${BLUE_IMAGE:-eagata-app:latest}
+    profiles: [app, all]
+    restart: unless-stopped
+    environment:
+      <<: *app-environment
+      # Shown in Settings, Application, to tell which slot answered.
+      NUXT_DEPLOYMENT_SLOT: blue
+    # The host dir must be writable by uid 1000, the image's node user:
+    #   sudo install -d -o 1000 -g 1000 <dir>
+    volumes:
+      - ${MEDIA_DIR:-./instance/media}:/data/media
+    depends_on: *depends-on-mariadb
+    ports:
+      - ${BLUE_BIND:-127.0.0.1:3000}:3000
+
+  app-green:
+    <<: *app
+    image: ${GREEN_IMAGE:-eagata-app:latest}
+    environment:
+      <<: *app-environment
+      NUXT_DEPLOYMENT_SLOT: green
+    ports: !override
+      - ${GREEN_BIND:-127.0.0.1:3001}:3000
