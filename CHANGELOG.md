@@ -60,6 +60,8 @@ sandbox, the docs and the tooling. The format follows
   pages. Core gains `FeatureAccess`, `Repositories.orgFeatures` and
   `PlatformOrgService.enableFeature`/`disableFeature`. A new `org_features`
   table comes with migration `0008`.
+- `pnpm platform:grant` reads the env file `DOTENV` names, as `db:migrate` does,
+  such as `DOTENV=.env.production pnpm platform:grant you@example.com`.
 - `pnpm db:migrate` reads another env file when `DOTENV` names it, as in
   `DOTENV=.env.production pnpm db:migrate`, and connects as
   `MIGRATION_DATABASE_URL` when that is set.

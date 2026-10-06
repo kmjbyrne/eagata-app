@@ -14,7 +14,7 @@
     "test:watch": "vitest",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "platform:grant": "tsx --env-file-if-exists=.env scripts/platform-grant.ts",
+    "platform:grant": "tsx --env-file-if-exists=${DOTENV:-.env} scripts/platform-grant.ts",
     "check:bundle": "tsx scripts/check-bundle.ts"
   },
   "dependencies": {
