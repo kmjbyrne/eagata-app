@@ -1,11 +1,18 @@
 /* Browsers paint autofilled inputs with their own colours, which clash with
    the theme. Chrome and Safari paint a background: an inset shadow covers it,
-   and the long transition keeps it from showing through. */
+   and the long transition keeps it from showing through. Nuxt UI draws the
+   border and focus ring as Tailwind ring shadows, so they go on top of it. */
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus {
   -webkit-text-fill-color: var(--ui-text-highlighted);
-  -webkit-box-shadow: 0 0 0 1000px var(--ui-bg) inset;
+  box-shadow:
+    var(--tw-inset-shadow, 0 0 #0000),
+    var(--tw-inset-ring-shadow, 0 0 #0000),
+    var(--tw-ring-offset-shadow, 0 0 #0000),
+    var(--tw-ring-shadow, 0 0 #0000),
+    var(--tw-shadow, 0 0 #0000),
+    inset 0 0 0 1000px var(--ui-bg);
   caret-color: var(--ui-text-highlighted);
   transition: background-color 9999s ease-out 0s;
 }
