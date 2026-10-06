@@ -191,8 +191,9 @@ widens the rail to show labels.
 Every section opens a panel, in a second rail beside the first, while it is
 active. A section can name its own, a global component. Otherwise the shell's
 `ShellSectionPanel` lists the section's `items`, or says there's nothing there
-yet. The panel can be collapsed, and dragged wider. On a phone the rail and
-panel open as a slideover from the header.
+yet. The panel can be collapsed, and dragged wider. From 768px wide (`md`) the
+rail and panel are a column that stays open across navigation. Below that, on a
+phone, they open as a slideover from the header, which closes on navigation.
 
 Whether the navigation shows, whether the rail is pinned, and whether the panel
 is open are kept in the `shell-nav` cookie, so the server renders each person's

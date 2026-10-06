@@ -7,12 +7,12 @@ const { prefs, toggle } = useNavPrefs()
   <header class="flex h-(--ui-header-height) shrink-0 items-center gap-1.5 border-b border-default px-3">
     <!-- On a phone the navigation is a slideover the toggle opens. On a wide
          screen it is a column this hides, giving the page the full width. -->
-    <UDashboardSidebarToggle />
+    <UDashboardSidebarToggle class="md:hidden" />
     <UButton
       icon="i-lucide-menu"
       color="neutral"
       variant="ghost"
-      class="hidden lg:inline-flex"
+      class="hidden md:inline-flex"
       :aria-label="prefs.visible ? 'Hide navigation' : 'Show navigation'"
       :aria-expanded="prefs.visible"
       @click="toggle('visible')"

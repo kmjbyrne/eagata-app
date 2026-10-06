@@ -19,7 +19,9 @@ sandbox, the docs and the tooling. The format follows
   labels, has the user menu at its foot too. Every section opens a panel in a
   resizable second rail: its own component, or a list of its sub-sections.
   Whether the navigation shows, the rail is pinned and the panel is open lives
-  in the `shell-nav` cookie, so the server renders them on first paint.
+  in the `shell-nav` cookie, so the server renders them on first paint. From
+  768px wide the rail and panel are a column that stays open as people navigate.
+  Only phones open them as a slideover, which closes on navigation.
   `OrgSwitcher` and `WorkspaceSwitcher` lose `collapsed`, and fit the header.
   `UserMenu` takes `side` and `align`. Pages no longer show
   `UDashboardSidebarCollapse`, as the header's toggle replaces it.

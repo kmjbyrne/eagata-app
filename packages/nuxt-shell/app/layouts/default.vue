@@ -25,7 +25,9 @@ const shape = computed(() => `shell-${panel.value ? 'panel' : 'rail'}${prefs.val
 
     <div class="flex min-h-0 flex-1">
       <!-- Hidden, not removed, when the person hides it: the same sidebar is
-           the slideover on a phone. -->
+           the slideover on a phone. Nuxt UI makes it a slideover below lg, and
+           closes that on every navigation, so it switches at md instead and
+           stays a column on tablets. -->
       <UDashboardSidebar
         :id="shape"
         :key="shape"
@@ -34,8 +36,11 @@ const shape = computed(() => `shell-${panel.value ? 'panel' : 'rail'}${prefs.val
         :min-size="panel ? panelRem : railRem"
         :max-size="panel ? 30 : railRem"
         :ui="{
-          root: ['min-h-0 min-w-0', prefs.visible ? '' : 'lg:hidden'],
-          body: 'flex-row gap-0 overflow-hidden p-0 sm:p-0'
+          root: ['min-h-0 min-w-0 md:flex', prefs.visible ? '' : 'md:hidden lg:hidden'],
+          body: 'flex-row gap-0 overflow-hidden p-0 sm:p-0',
+          handle: 'md:block',
+          content: 'md:hidden',
+          overlay: 'md:hidden'
         }"
       >
         <ShellRail />
