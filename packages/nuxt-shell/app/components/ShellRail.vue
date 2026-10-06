@@ -68,10 +68,12 @@ const controls = computed(() => [
       />
     </UTooltip>
 
+    <!-- Pinned, the menu opens over its full-width button. Narrow, there is no
+         room above a lone avatar, so it opens beside the rail. -->
     <UserMenu
       :collapsed="!prefs.pinned"
-      side="right"
-      align="end"
+      :side="prefs.pinned ? 'top' : 'right'"
+      :align="prefs.pinned ? 'center' : 'end'"
     />
   </nav>
 </template>
