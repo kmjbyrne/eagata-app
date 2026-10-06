@@ -50,9 +50,6 @@ async function send() {
   >
     <template #header>
       <UDashboardNavbar title="Send feedback">
-        <template #leading>
-          <UDashboardSidebarCollapse />
-        </template>
         <template #right>
           <UButton
             label="Send"

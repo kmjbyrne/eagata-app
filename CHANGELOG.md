@@ -24,6 +24,8 @@ sandbox, the docs and the tooling. The format follows
   `UDashboardSidebarCollapse`, as the header's toggle replaces it.
 - The reference app has no layout of its own. It adds Home and Editor to the
   rail through `navSections`.
+- `@kmjbyrne/nuxt-feedback`: Feedback is in the user menu, instead of at the
+  foot of the reference app's sidebar.
 
 ### Security
 

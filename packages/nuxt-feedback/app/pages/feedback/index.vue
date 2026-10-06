@@ -19,9 +19,6 @@ const columns: TableColumn<FeedbackSummaryResponse>[] = [
   <UDashboardPanel id="feedback">
     <template #header>
       <UDashboardNavbar title="Feedback">
-        <template #leading>
-          <UDashboardSidebarCollapse />
-        </template>
         <template #right>
           <UButton
             label="Send feedback"

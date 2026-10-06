@@ -30,8 +30,8 @@ for context. People see and answer only their own feedback. Replying to feedback
 marked done reopens it. Their images are stored as their own, through
 `/api/me/media`.
 
-Link `/feedback` from the app's layout, as the reference app does at the foot of
-its sidebar.
+The layer adds Feedback to the shell's user menu, so it's reachable from any
+page.
 
 ## The Platform Inbox
 
