@@ -188,9 +188,11 @@ the left, a rail has a button for each of the current workspace's navigation
 sections, with the panel and pin controls and the user menu at its foot. Pinning
 widens the rail to show labels.
 
-A section can name a panel, a global component drawn in a second rail beside the
-first while the section is active. The panel can be collapsed, and dragged
-wider. On a phone the rail and panel open as a slideover from the header.
+Every section opens a panel, in a second rail beside the first, while it is
+active. A section can name its own, a global component. Otherwise the shell's
+`ShellSectionPanel` lists the section's `items`, or says there's nothing there
+yet. The panel can be collapsed, and dragged wider. On a phone the rail and
+panel open as a slideover from the header.
 
 Whether the navigation shows, whether the rail is pinned, and whether the panel
 is open are kept in the `shell-nav` cookie, so the server renders each person's
@@ -203,6 +205,7 @@ carries the sidebar toggles, so the layout turns off the navbar's own.
 | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `ShellHeader`          | The layout's header                                                                                                                                     |
 | `ShellRail`            | The layout's rail of sections, its controls and the user menu                                                                                           |
+| `ShellSectionPanel`    | The panel for a section with no `panel` of its own: its label, and its `items`                                                                          |
 | `OrgSwitcher`          | The orgs the user reaches, and "All organizations"                                                                                                      |
 | `WorkspaceSwitcher`    | The current org's workspaces, and "Create workspace" for org owners and admins                                                                          |
 | `CreateWorkspaceModal` | A name, and a `SlugInput`                                                                                                                               |
@@ -271,10 +274,14 @@ export default defineAppConfig({
 `navSections` adds sections to the rail. Each links to its `path` inside the
 current workspace, `/:org/:workspace/:path`, and is active while the route is at
 or under it. An empty `path` is the workspace home, active only there. `panel`
-names a global component for the second rail. Sections sort by `order`, lowest
-first, where none counts as 0, and otherwise keep the order the layers gave. The
-shell adds Members, with `order: 100`. Off a workspace page, such as Settings,
-the rail shows the last workspace's sections, and none before there is one.
+names a global component for the second rail. `items` are sub-sections, each a
+`label`, an optional `icon` and a `path` inside the workspace, listed in the
+second rail when there's no `panel`. An item links only once a page is at its
+path, and shows as a plain row until then. It is active only at its own path.
+Sections sort by `order`, lowest first, where none counts as 0, and otherwise
+keep the order the layers gave. The shell adds Members, with `order: 100`. Off a
+workspace page, such as Settings, the rail shows the last workspace's sections,
+and none before there is one.
 
 `brand` sets the name and logo URL in the header and on the sign-in page, and
 the sign-in page's tagline. `settingsTabs` adds tabs after Profile and Security.

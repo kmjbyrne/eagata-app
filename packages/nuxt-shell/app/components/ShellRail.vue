@@ -7,7 +7,7 @@ const controls = computed(() => [
     key: 'panel',
     label: prefs.value.panelOpen ? 'Collapse panel' : 'Expand panel',
     icon: prefs.value.panelOpen ? 'i-lucide-panel-left-close' : 'i-lucide-panel-left-open',
-    disabled: !active.value?.panel,
+    disabled: !active.value,
     onClick: () => toggle('panelOpen')
   },
   {

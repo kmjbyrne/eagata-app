@@ -15,6 +15,13 @@ export interface ShellFeature {
   description?: string
 }
 
+/** A sub-section, listed in a section's second rail. A row, not a link, until a page is at its path. */
+export interface ShellNavItem {
+  label: string
+  icon?: string
+  path: string
+}
+
 /** A section of the app's navigation, inside the current workspace. */
 export interface ShellNavSection {
   key: string
@@ -24,6 +31,8 @@ export interface ShellNavSection {
   path: string
   /** A global component, by name, drawn in the second rail while this section is active. */
   panel?: string
+  /** Sub-sections, listed in the second rail when there's no `panel`. Paths as `path`. */
+  items?: ShellNavItem[]
   /** Lower first. Sections without one keep the order the layers gave. */
   order?: number
 }
@@ -43,7 +52,17 @@ export default defineAppConfig({
     /** Global components rendered under the sign-in button, by name. */
     loginExtras: [] as string[],
     /** The rail's sections. Members is the shell's own, and comes last. */
-    navSections: [{ key: 'members', label: 'Members', icon: 'i-lucide-users', path: 'members', order: 100 }] as ShellNavSection[],
+    navSections: [{
+      key: 'members',
+      label: 'Members',
+      icon: 'i-lucide-users',
+      path: 'members',
+      order: 100,
+      items: [
+        { label: 'All members', icon: 'i-lucide-users', path: 'members' },
+        { label: 'Invitations', icon: 'i-lucide-mail', path: 'members/invitations' }
+      ]
+    }] as ShellNavSection[],
     /** Extra user menu entries. */
     userMenuItems: [] as ShellMenuItem[],
     /** Global components rendered at the foot of the user menu, by name. */

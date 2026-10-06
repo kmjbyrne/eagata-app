@@ -2,7 +2,8 @@
 const { active } = useNavSections()
 const { prefs } = useNavPrefs()
 
-const panel = computed(() => prefs.value.panelOpen ? active.value?.panel : undefined)
+// Every section opens a panel: its own component, or the list of its items.
+const panel = computed(() => prefs.value.panelOpen ? active.value : undefined)
 
 // The rail is w-14, or w-44 pinned. The panel starts 11rem wide beside it.
 const railRem = computed(() => prefs.value.pinned ? 11 : 3.5)
@@ -42,7 +43,14 @@ const shape = computed(() => `shell-${panel.value ? 'panel' : 'rail'}${prefs.val
           v-if="panel"
           class="min-w-0 flex-1 overflow-y-auto"
         >
-          <component :is="panel" />
+          <component
+            :is="panel.panel"
+            v-if="panel.panel"
+          />
+          <ShellSectionPanel
+            v-else
+            :section="panel"
+          />
         </div>
       </UDashboardSidebar>
 

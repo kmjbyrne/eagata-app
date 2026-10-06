@@ -16,11 +16,12 @@ sandbox, the docs and the tooling. The format follows
   in place of the single sidebar. A full-width header holds the navigation
   toggle, the brand, the org and workspace switchers, a light and dark switch,
   and the user menu. A rail of section icons, which pinning widens to show
-  labels, has the user menu at its foot too. A section can name a panel, drawn
-  in a resizable second rail. Whether the navigation shows, the rail is pinned
-  and the panel is open lives in the `shell-nav` cookie, so the server renders
-  them on first paint. `OrgSwitcher` and `WorkspaceSwitcher` lose `collapsed`,
-  and fit the header. `UserMenu` takes `side` and `align`. Pages no longer show
+  labels, has the user menu at its foot too. Every section opens a panel in a
+  resizable second rail: its own component, or a list of its sub-sections.
+  Whether the navigation shows, the rail is pinned and the panel is open lives
+  in the `shell-nav` cookie, so the server renders them on first paint.
+  `OrgSwitcher` and `WorkspaceSwitcher` lose `collapsed`, and fit the header.
+  `UserMenu` takes `side` and `align`. Pages no longer show
   `UDashboardSidebarCollapse`, as the header's toggle replaces it.
 - The reference app has no layout of its own. It adds Home and Editor to the
   rail through `navSections`.
@@ -101,8 +102,10 @@ sandbox, the docs and the tooling. The format follows
   no password is ever kept in a file.
 - `@kmjbyrne/nuxt-shell`: `navSections`, the rail's sections, which other layers
   add to. Each has a `key`, `label`, `icon`, a `path` inside the current
-  workspace, an optional `panel` component and an optional `order`. The shell
-  adds Members.
+  workspace, an optional `panel` component, optional `items` and an optional
+  `order`. A section with no `panel` gets `ShellSectionPanel`, which lists its
+  `items` and links those with a page. The shell adds Members, and the reference
+  app Home and Editor, each with sub-sections, some still placeholders.
 - `pnpm db:migrate` reads another env file when `DOTENV` names it, as in
   `DOTENV=.env.production pnpm db:migrate`, and connects as
   `MIGRATION_DATABASE_URL` when that is set.
