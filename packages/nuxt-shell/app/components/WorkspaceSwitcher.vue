@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import type { DropdownMenuItem } from '@nuxt/ui'
 
-defineProps<{ collapsed?: boolean }>()
-
 const { org, workspace: current } = useCurrentWorkspace()
 const { workspaces, canCreate } = useWorkspaces(() => org.value?.org.slug)
 const creating = ref(false)
@@ -23,18 +21,17 @@ const items = computed<DropdownMenuItem[][]>(() => [
   <template v-if="org">
     <UDropdownMenu
       :items="items"
-      :content="{ align: 'start', collisionPadding: 12 }"
-      :ui="{ content: collapsed ? 'w-48' : 'w-(--reka-dropdown-menu-trigger-width)' }"
+      :content="{ align: 'end', collisionPadding: 12 }"
+      :ui="{ content: 'min-w-48' }"
     >
       <UButton
-        :label="collapsed ? undefined : (current?.name ?? 'Workspaces')"
+        :label="current?.name ?? 'Workspaces'"
         icon="i-lucide-layers"
-        :trailing-icon="collapsed ? undefined : 'i-lucide-chevrons-up-down'"
+        trailing-icon="i-lucide-chevrons-up-down"
         color="neutral"
         variant="ghost"
-        block
-        :square="collapsed"
         class="data-[state=open]:bg-elevated"
+        :ui="{ label: 'hidden max-w-40 truncate sm:block', trailingIcon: 'hidden sm:block' }"
       />
     </UDropdownMenu>
     <CreateWorkspaceModal

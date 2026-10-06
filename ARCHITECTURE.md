@@ -164,7 +164,8 @@ hypothetical invoices feature:
 8. **Registration:** a Nitro plugin in `server/plugins/` calls
    `registerServices`, typed by extending `AppServices` and `AppAdapters`. The
    sandbox's plugin supplies the JSON repository with `provideAdapters`.
-9. **Page:** under `app/pages/[org]/[workspace]/`, linked from the layout.
+9. **Page:** under `app/pages/[org]/[workspace]/`, added to the rail through
+   `navSections` in the app's `app.config.ts`.
 
 ## Databases
 

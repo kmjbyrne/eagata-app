@@ -1,7 +1,13 @@
 <script setup lang="ts">
 import type { DropdownMenuItem } from '@nuxt/ui'
+import type { ShellMenuItem } from '../app.config'
 
-defineProps<{ collapsed?: boolean }>()
+const { align = 'center', side = 'bottom' } = defineProps<{
+  /** Only the avatar, as in the header or a narrow rail. */
+  collapsed?: boolean
+  align?: 'start' | 'center' | 'end'
+  side?: 'top' | 'right' | 'bottom' | 'left'
+}>()
 
 const { me } = useMe()
 const { signOut } = useSignOut()
@@ -35,7 +41,7 @@ const items = computed<DropdownMenuItem[][]>(() => [
         }
       }))
     },
-    ...shell.userMenuItems
+    ...(shell.userMenuItems as ShellMenuItem[])
       .filter(item => !item.platformAdminOnly || me.value?.isPlatformAdmin)
       .map(item => item.whileInside && inside(item.to) ? item.whileInside : item)
       .map(item => ({ label: item.label, icon: item.icon, to: item.to }))
@@ -48,8 +54,8 @@ const items = computed<DropdownMenuItem[][]>(() => [
   <UDropdownMenu
     v-if="me"
     :items="items"
-    :content="{ align: 'center', collisionPadding: 12 }"
-    :ui="{ content: collapsed ? 'w-56' : 'w-(--reka-dropdown-menu-trigger-width)' }"
+    :content="{ align, side, collisionPadding: 12 }"
+    :ui="{ content: collapsed ? 'w-56' : 'min-w-56 w-(--reka-dropdown-menu-trigger-width)' }"
   >
     <UButton
       :label="collapsed ? undefined : me.displayName"
@@ -57,7 +63,7 @@ const items = computed<DropdownMenuItem[][]>(() => [
       :trailing-icon="collapsed ? undefined : 'i-lucide-chevrons-up-down'"
       color="neutral"
       variant="ghost"
-      block
+      :block="!collapsed"
       :square="collapsed"
       class="data-[state=open]:bg-elevated"
     />

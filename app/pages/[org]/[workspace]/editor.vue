@@ -21,9 +21,6 @@ const toolbar = ref(false)
   <UDashboardPanel id="editor-demo">
     <template #header>
       <UDashboardNavbar title="Editor">
-        <template #leading>
-          <UDashboardSidebarCollapse />
-        </template>
         <template #right>
           <USwitch
             v-model="toolbar"

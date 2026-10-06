@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import type { DropdownMenuItem } from '@nuxt/ui'
 
-defineProps<{ collapsed?: boolean }>()
-
 const { orgs } = useOrgs()
 const { org: current } = useCurrentWorkspace()
 const { shell: { brand } } = useAppConfig()
@@ -45,19 +43,17 @@ const items = computed<DropdownMenuItem[][]>(() => [
   <UDropdownMenu
     v-else
     :items="items"
-    :content="{ align: 'start', collisionPadding: 12 }"
-    :ui="{ content: collapsed ? 'w-48' : 'w-(--reka-dropdown-menu-trigger-width)' }"
+    :content="{ align: 'end', collisionPadding: 12 }"
+    :ui="{ content: 'min-w-48' }"
   >
     <UButton
-      :label="collapsed ? undefined : (current?.org.name ?? 'Organizations')"
+      :label="current?.org.name ?? 'Organizations'"
       :icon="current?.org.isPersonal ? 'i-lucide-user' : 'i-lucide-building-2'"
-      :trailing-icon="collapsed ? undefined : 'i-lucide-chevrons-up-down'"
+      trailing-icon="i-lucide-chevrons-up-down"
       color="neutral"
       variant="ghost"
-      block
-      :square="collapsed"
       class="data-[state=open]:bg-elevated"
-      :class="[!collapsed && 'py-2']"
+      :ui="{ label: 'hidden max-w-40 truncate sm:block', trailingIcon: 'hidden sm:block' }"
     />
   </UDropdownMenu>
 </template>

@@ -71,11 +71,7 @@ async function leave() {
 <template>
   <UDashboardPanel id="workspace-members">
     <template #header>
-      <UDashboardNavbar title="Members">
-        <template #leading>
-          <UDashboardSidebarCollapse />
-        </template>
-      </UDashboardNavbar>
+      <UDashboardNavbar title="Members" />
     </template>
 
     <template #body>

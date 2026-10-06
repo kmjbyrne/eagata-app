@@ -179,22 +179,45 @@ migrations in `test/mysql-migrations`. Regenerate them with
 | `/profile`                 | The user, their sign-in providers and their orgs                                       |
 | `/:org/:workspace/members` | Who the workspace is shared with, and who's invited. Owners invite, change and remove. |
 
-The app supplies its own layout and workspace pages, and places these components
-in it:
+### The Layout
+
+The shell's `default` layout is the app's frame, so an app needs no layout of
+its own. A full-width header holds the navigation toggle, the brand, the org and
+workspace switchers, a light and dark switch, and the user menu. Under it, on
+the left, a rail has a button for each of the current workspace's navigation
+sections, with the panel and pin controls and the user menu at its foot. Pinning
+widens the rail to show labels.
+
+A section can name a panel, a global component drawn in a second rail beside the
+first while the section is active. The panel can be collapsed, and dragged
+wider. On a phone the rail and panel open as a slideover from the header.
+
+Whether the navigation shows, whether the rail is pinned, and whether the panel
+is open are kept in the `shell-nav` cookie, so the server renders each person's
+layout on first paint.
+
+Pages bring their own `UDashboardPanel` and `UDashboardNavbar`. The header
+carries the sidebar toggles, so the layout turns off the navbar's own.
 
 | Component              | What it is                                                                                                                                              |
 | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ShellHeader`          | The layout's header                                                                                                                                     |
+| `ShellRail`            | The layout's rail of sections, its controls and the user menu                                                                                           |
 | `OrgSwitcher`          | The orgs the user reaches, and "All organizations"                                                                                                      |
 | `WorkspaceSwitcher`    | The current org's workspaces, and "Create workspace" for org owners and admins                                                                          |
 | `CreateWorkspaceModal` | A name, and a `SlugInput`                                                                                                                               |
 | `SlugInput`            | Suggests a slug from the name until edited, and shows the rules and errors inline                                                                       |
 | `UserMenu`             | The user, Settings, Appearance, any `userMenuItems`, Sign out, and any `userMenuExtras`. An item with `whileInside` swaps for it while inside its `to`. |
 
+`UserMenu` takes `collapsed` for the avatar alone, and `side` and `align` to
+place its menu.
+
 Switching navigates. It never changes hidden state, so two tabs on different
 orgs each act on their own.
 
 Composables: `useMe`, `useOrgs`, `useWorkspaces(orgSlug)`, `useCurrentWorkspace`
-(from the route) and `useSignOut`.
+(from the route), `useSignOut`, `useNavSections` (the sections, linked into the
+current workspace, and the active one) and `useNavPrefs`.
 
 Middleware sends signed-out visitors to `/login`, redirects old org slugs to the
 current one (on the server for the first page, with a 301), and remembers the
@@ -208,6 +231,16 @@ the shell never imports those layers:
 ```ts
 export default defineAppConfig({
   shell: {
+    navSections: [
+      {
+        key: 'boards',
+        label: 'Boards',
+        icon: 'i-lucide-layout-dashboard',
+        path: 'boards',
+        panel: 'BoardsPanel',
+        order: 10
+      }
+    ],
     loginExtras: ['SandboxSignInAs'],
     userMenuItems: [
       {
@@ -235,9 +268,18 @@ export default defineAppConfig({
 })
 ```
 
-`brand` sets the sign-in page's name, logo URL and tagline. `settingsTabs` adds
-tabs after Profile and Security. `securityExtras` names global components
-rendered on the Security tab. `/profile` redirects to `/settings`.
+`navSections` adds sections to the rail. Each links to its `path` inside the
+current workspace, `/:org/:workspace/:path`, and is active while the route is at
+or under it. An empty `path` is the workspace home, active only there. `panel`
+names a global component for the second rail. Sections sort by `order`, lowest
+first, where none counts as 0, and otherwise keep the order the layers gave. The
+shell adds Members, with `order: 100`. Off a workspace page, such as Settings,
+the rail shows the last workspace's sections, and none before there is one.
+
+`brand` sets the name and logo URL in the header and on the sign-in page, and
+the sign-in page's tagline. `settingsTabs` adds tabs after Profile and Security.
+`securityExtras` names global components rendered on the Security tab.
+`/profile` redirects to `/settings`.
 
 `loginExtras` and `userMenuExtras` name global components, rendered by name.
 

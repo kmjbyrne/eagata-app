@@ -18,11 +18,7 @@ const tabs = computed<NavigationMenuItem[]>(() => [
 <template>
   <UDashboardPanel id="settings">
     <template #header>
-      <UDashboardNavbar title="Settings">
-        <template #leading>
-          <UDashboardSidebarCollapse />
-        </template>
-      </UDashboardNavbar>
+      <UDashboardNavbar title="Settings" />
       <UDashboardToolbar>
         <UNavigationMenu
           :items="tabs"

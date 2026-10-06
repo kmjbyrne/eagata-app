@@ -10,6 +10,21 @@ sandbox, the docs and the tooling. The format follows
 
 ## Unreleased
 
+### Changed
+
+- `@kmjbyrne/nuxt-shell`: the shell supplies the `default` layout, a double rail
+  in place of the single sidebar. A full-width header holds the navigation
+  toggle, the brand, the org and workspace switchers, a light and dark switch,
+  and the user menu. A rail of section icons, which pinning widens to show
+  labels, has the user menu at its foot too. A section can name a panel, drawn
+  in a resizable second rail. Whether the navigation shows, the rail is pinned
+  and the panel is open lives in the `shell-nav` cookie, so the server renders
+  them on first paint. `OrgSwitcher` and `WorkspaceSwitcher` lose `collapsed`,
+  and fit the header. `UserMenu` takes `side` and `align`. Pages no longer show
+  `UDashboardSidebarCollapse`, as the header's toggle replaces it.
+- The reference app has no layout of its own. It adds Home and Editor to the
+  rail through `navSections`.
+
 ### Security
 
 - Sharing a workspace no longer reveals whether an email has an account.
@@ -82,6 +97,10 @@ sandbox, the docs and the tooling. The format follows
   for, hidden, and passes to the tools container in an environment variable.
 - `make admin` prints a 72-hour set-password link for a new platform admin, so
   no password is ever kept in a file.
+- `@kmjbyrne/nuxt-shell`: `navSections`, the rail's sections, which other layers
+  add to. Each has a `key`, `label`, `icon`, a `path` inside the current
+  workspace, an optional `panel` component and an optional `order`. The shell
+  adds Members.
 - `pnpm db:migrate` reads another env file when `DOTENV` names it, as in
   `DOTENV=.env.production pnpm db:migrate`, and connects as
   `MIGRATION_DATABASE_URL` when that is set.

@@ -15,6 +15,19 @@ export interface ShellFeature {
   description?: string
 }
 
+/** A section of the app's navigation, inside the current workspace. */
+export interface ShellNavSection {
+  key: string
+  label: string
+  icon: string
+  /** Path inside the current workspace, such as 'boards'. Empty for the workspace home. */
+  path: string
+  /** A global component, by name, drawn in the second rail while this section is active. */
+  panel?: string
+  /** Lower first. Sections without one keep the order the layers gave. */
+  order?: number
+}
+
 // Extension points. Other layers add to these lists, and Nuxt merges them,
 // so the shell never imports the layers that fill them.
 export default defineAppConfig({
@@ -29,6 +42,8 @@ export default defineAppConfig({
     publicPaths: [] as string[],
     /** Global components rendered under the sign-in button, by name. */
     loginExtras: [] as string[],
+    /** The rail's sections. Members is the shell's own, and comes last. */
+    navSections: [{ key: 'members', label: 'Members', icon: 'i-lucide-users', path: 'members', order: 100 }] as ShellNavSection[],
     /** Extra user menu entries. */
     userMenuItems: [] as ShellMenuItem[],
     /** Global components rendered at the foot of the user menu, by name. */

@@ -10,9 +10,6 @@ useHead({ title: () => workspace.value?.name ?? 'Workspace' })
   <UDashboardPanel id="workspace-home">
     <template #header>
       <UDashboardNavbar :title="workspace?.name">
-        <template #leading>
-          <UDashboardSidebarCollapse />
-        </template>
         <template #right>
           <UBadge
             :label="workspace?.role"
