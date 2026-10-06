@@ -30,8 +30,8 @@ for context. People see and answer only their own feedback. Replying to feedback
 marked done reopens it. Their images are stored as their own, through
 `/api/me/media`.
 
-The layer adds Feedback to the shell's user menu, so it's reachable from any
-page.
+The layer adds Feedback to the foot of the shell's rail, so it's reachable from
+any page.
 
 ## The Platform Inbox
 

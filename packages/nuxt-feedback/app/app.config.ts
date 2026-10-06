@@ -1,7 +1,7 @@
 // Each person's feedback is their own, the same from every workspace, so it
-// lives in the user menu.
+// sits at the foot of the rail rather than among a workspace's sections.
 export default defineAppConfig({
   shell: {
-    userMenuItems: [{ label: 'Feedback', icon: 'i-lucide-message-square', to: '/feedback' }]
+    railLinks: [{ label: 'Feedback', icon: 'i-lucide-message-square', to: '/feedback' }]
   }
 })

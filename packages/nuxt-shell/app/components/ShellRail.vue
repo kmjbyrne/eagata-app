@@ -1,6 +1,13 @@
 <script setup lang="ts">
 const { sections, active } = useNavSections()
 const { prefs, toggle } = useNavPrefs()
+const { shell } = useAppConfig()
+const route = useRoute()
+
+const links = computed(() => shell.railLinks.map(link => ({
+  ...link,
+  active: route.path === link.to || route.path.startsWith(`${link.to}/`)
+})))
 
 const controls = computed(() => [
   {
@@ -65,6 +72,26 @@ const controls = computed(() => [
         :block="prefs.pinned"
         :ui="{ base: prefs.pinned ? 'justify-start' : '' }"
         @click="control.onClick"
+      />
+    </UTooltip>
+
+    <UTooltip
+      v-for="link in links"
+      :key="link.to"
+      :text="link.label"
+      :content="{ side: 'right' }"
+      :disabled="prefs.pinned"
+    >
+      <UButton
+        :to="link.to"
+        :icon="link.icon"
+        :label="prefs.pinned ? link.label : undefined"
+        :aria-label="link.label"
+        :color="link.active ? 'primary' : 'neutral'"
+        :variant="link.active ? 'soft' : 'ghost'"
+        :square="!prefs.pinned"
+        :block="prefs.pinned"
+        :ui="{ base: prefs.pinned ? 'justify-start' : '' }"
       />
     </UTooltip>
 

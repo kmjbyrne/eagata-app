@@ -245,6 +245,9 @@ export default defineAppConfig({
         order: 10
       }
     ],
+    railLinks: [
+      { label: 'Feedback', icon: 'i-lucide-message-square', to: '/feedback' }
+    ],
     loginExtras: ['SandboxSignInAs'],
     userMenuItems: [
       {
@@ -283,6 +286,10 @@ Sections sort by `order`, lowest first, where none counts as 0, and otherwise
 keep the order the layers gave. The shell adds Members, with `order: 100`. Off a
 workspace page, such as Settings, the rail shows the last workspace's sections,
 and none before there is one.
+
+`railLinks` adds links at the foot of the rail, just above the user menu, for
+pages that are the same from every workspace. Each is active while the route is
+at or under its `to`.
 
 `brand` sets the name and logo URL in the header and on the sign-in page, and
 the sign-in page's tagline. `settingsTabs` adds tabs after Profile and Security.

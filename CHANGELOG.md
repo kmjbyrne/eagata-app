@@ -10,26 +10,6 @@ sandbox, the docs and the tooling. The format follows
 
 ## Unreleased
 
-### Changed
-
-- `@kmjbyrne/nuxt-shell`: the shell supplies the `default` layout, a double rail
-  in place of the single sidebar. A full-width header holds the navigation
-  toggle, the brand, the org and workspace switchers, a light and dark switch,
-  and the user menu. A rail of section icons, which pinning widens to show
-  labels, has the user menu at its foot too. Every section opens a panel in a
-  resizable second rail: its own component, or a list of its sub-sections.
-  Whether the navigation shows, the rail is pinned and the panel is open lives
-  in the `shell-nav` cookie, so the server renders them on first paint. From
-  768px wide the rail and panel are a column that stays open as people navigate.
-  Only phones open them as a slideover, which closes on navigation.
-  `OrgSwitcher` and `WorkspaceSwitcher` lose `collapsed`, and fit the header.
-  `UserMenu` takes `side` and `align`. Pages no longer show
-  `UDashboardSidebarCollapse`, as the header's toggle replaces it.
-- The reference app has no layout of its own. It adds Home and Editor to the
-  rail through `navSections`.
-- `@kmjbyrne/nuxt-feedback`: Feedback is in the user menu, instead of at the
-  foot of the reference app's sidebar.
-
 ### Security
 
 - Sharing a workspace no longer reveals whether an email has an account.
@@ -186,10 +166,10 @@ sandbox, the docs and the tooling. The format follows
 
 ### Changed
 
-- `@kmjbyrne/nuxt-shell`: someone who reaches one org sees the app's brand at
-  the top of the sidebar instead of an org selector with no choice in it. The
-  selector appears once they reach a second org. Settings lists their orgs as
-  links, marking the current one.
+- `@kmjbyrne/nuxt-shell`: someone who reaches one org gets no org selector, as
+  it would offer no choice, and the header's brand stands alone. The selector
+  appears once they reach a second org. Settings lists their orgs as links,
+  marking the current one.
 - `@kmjbyrne/sandbox`: "Sign in as" starts a session for the dev user at once,
   through `POST /api/_sandbox/sign-in-as`, instead of running the stand-in
   provider's flow. Picking a persona with a password no longer asks to link an
@@ -218,6 +198,23 @@ sandbox, the docs and the tooling. The format follows
 - `@kmjbyrne/nuxt-shell`: the provider name moved to public config, as
   `NUXT_PUBLIC_SIGN_IN_PROVIDER` in place of `NUXT_OIDC_PROVIDER`, so pages can
   show its logo.
+- `@kmjbyrne/nuxt-shell`: the shell supplies the `default` layout, a double rail
+  in place of the single sidebar. A full-width header holds the navigation
+  toggle, the brand, the org and workspace switchers, a light and dark switch,
+  and the user menu. A rail of section icons, which pinning widens to show
+  labels, has the user menu at its foot too. Every section opens a panel in a
+  resizable second rail: its own component, or a list of its sub-sections.
+  Whether the navigation shows, the rail is pinned and the panel is open lives
+  in the `shell-nav` cookie, so the server renders them on first paint. From
+  768px wide the rail and panel are a column that stays open as people navigate.
+  Only phones open them as a slideover, which closes on navigation.
+  `OrgSwitcher` and `WorkspaceSwitcher` lose `collapsed`, and fit the header.
+  `UserMenu` takes `side` and `align`. Pages no longer show
+  `UDashboardSidebarCollapse`, as the header's toggle replaces it.
+- The reference app has no layout of its own. It adds Home and Editor to the
+  rail through `navSections`.
+- `@kmjbyrne/nuxt-feedback`: Feedback sits at the foot of the rail, through the
+  shell's new `railLinks`, as it sat at the foot of the reference app's sidebar.
 
 ## 0.1.0 - 2026-10-05
 

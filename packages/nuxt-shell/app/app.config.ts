@@ -9,6 +9,13 @@ export interface ShellMenuItem {
   whileInside?: { label: string, icon?: string, to: string }
 }
 
+/** A link at the foot of the rail, the same from every workspace, such as Feedback. */
+export interface ShellRailLink {
+  label: string
+  icon: string
+  to: string
+}
+
 /** A feature flag a layer declares, as platform admins see it. */
 export interface ShellFeature {
   label: string
@@ -63,6 +70,8 @@ export default defineAppConfig({
         { label: 'Invitations', icon: 'i-lucide-mail', path: 'members/invitations' }
       ]
     }] as ShellNavSection[],
+    /** Links at the foot of the rail, just above the user menu. */
+    railLinks: [] as ShellRailLink[],
     /** Extra user menu entries. */
     userMenuItems: [] as ShellMenuItem[],
     /** Global components rendered at the foot of the user menu, by name. */
