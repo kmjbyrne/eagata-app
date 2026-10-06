@@ -15,6 +15,10 @@ COPY packages/oidc/package.json packages/oidc/
 COPY packages/json-store/package.json packages/json-store/
 COPY packages/nuxt-shell/package.json packages/nuxt-shell/
 COPY packages/nuxt-platform/package.json packages/nuxt-platform/
+COPY packages/nuxt-passwords/package.json packages/nuxt-passwords/
+COPY packages/nuxt-media/package.json packages/nuxt-media/
+COPY packages/nuxt-feedback/package.json packages/nuxt-feedback/
+COPY packages/editor/package.json packages/editor/
 COPY packages/sandbox/package.json packages/sandbox/
 COPY sandbox/package.json sandbox/
 # postinstall runs `nuxt prepare`, which needs the sources copied below.
@@ -26,8 +30,17 @@ FROM deps AS build
 # it ships none of its code.
 ARG NUXT_PLATFORM=false
 ENV NUXT_PLATFORM=${NUXT_PLATFORM}
+# What this build is, for Settings, Application. .git isn't in the context, so
+# the build script passes them in.
+ARG GIT_COMMIT=unknown
+ARG GIT_COMMIT_DATE=
+ENV GIT_COMMIT=${GIT_COMMIT} GIT_COMMIT_DATE=${GIT_COMMIT_DATE}
 COPY . .
-RUN pnpm build
+# Each layer's tsconfig points into its generated .nuxt folder, which the
+# build reads, and the install above skipped generating.
+RUN pnpm --filter './packages/nuxt-*' exec nuxt prepare \
+ && pnpm --filter @kmjbyrne/nuxt-feedback exec nuxt prepare platform \
+ && pnpm build
 
 # Tools for deliberate, one-off operations against the database: migrations
 # and the first platform admin. It does nothing unless given a command, so

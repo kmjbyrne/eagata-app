@@ -2,7 +2,7 @@ import { fileURLToPath } from 'node:url'
 import { $fetch } from '@nuxt/test-utils/e2e'
 import { Browser, createUser, setupApp } from '@kmjbyrne/nuxt-shell/testing'
 import { beforeAll, describe, expect, it } from 'vitest'
-import type { PlatformOrg, PlatformOrgDetailResponse, PlatformOrgSummaryResponse, PlatformUserDetailResponse, PlatformUserSummary } from '../shared/contracts/platform'
+import type { ApplicationResponse, PlatformOrg, PlatformOrgDetailResponse, PlatformOrgSummaryResponse, PlatformUserDetailResponse, PlatformUserSummary } from '../shared/contracts/platform'
 
 await setupApp(fileURLToPath(new URL('..', import.meta.url)))
 
@@ -36,7 +36,8 @@ describe('access', () => {
     ['GET', '/api/protected/users'],
     ['POST', '/api/protected/users'],
     ['GET', '/api/protected/users/someone'],
-    ['PATCH', '/api/protected/users/someone']
+    ['PATCH', '/api/protected/users/someone'],
+    ['GET', '/api/protected/application']
   ])('%s %s answers 401 signed out and 403 to anyone but a platform admin', async (method, path) => {
     const body = method === 'GET' || method === 'DELETE' ? undefined : {}
     expect((await new Browser().request(path, send(method, body))).status).toBe(401)
@@ -121,5 +122,16 @@ describe('users', () => {
 
     expect((await pat.request(`/api/protected/users/${me.id}`, send('PATCH', { deactivated: true }))).status).toBe(403)
     expect((await pat.request(`/api/protected/users/${me.id}`, send('PATCH', { isPlatformAdmin: false }))).status).toBe(409)
+  })
+})
+
+describe('GET /api/protected/application', () => {
+  it('describes the build that\'s answering, for platform admins', async () => {
+    const { status, body } = await pat.json<ApplicationResponse>('/api/protected/application')
+
+    expect(status).toBe(200)
+    expect(body).toMatchObject({ commit: expect.any(String), builtAt: expect.any(String), slot: null, node: process.version })
+    // Depends on whether the environment names a database.
+    expect(['current', 'behind', 'ahead', 'none', 'unknown']).toContain(body.database.status)
   })
 })

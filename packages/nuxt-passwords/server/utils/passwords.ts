@@ -13,7 +13,9 @@ export function usePasswordRepository(): PasswordRepository {
   if (provided) {
     return provided
   }
-  defaultRepository ??= new MysqlPasswordRepository(useDatabase())
+  defaultRepository ??= useRuntimeConfig().databaseUrl
+    ? new MysqlPasswordRepository(useDatabase())
+    : missingAdapter<PasswordRepository>('Passwords need NUXT_DATABASE_URL, or a passwordRepository from provideAdapters')
   return defaultRepository
 }
 

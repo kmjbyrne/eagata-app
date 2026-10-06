@@ -66,6 +66,14 @@ export function registerServices(factory: ServiceFactory): void {
   container.registerServices(factory)
 }
 
+/**
+ * Stands in for an adapter that can't be built, such as a repository with no
+ * NUXT_DATABASE_URL, and says how to fix it only when used. A layer's
+ * services can then be built for every request without failing the ones that
+ * never touch it.
+ */
+export { missingAdapter }
+
 export function useAdapters(): Adapters {
   return container.adapters()
 }

@@ -4,11 +4,14 @@ import type { NavigationMenuItem } from '@nuxt/ui'
 useHead({ title: 'Settings' })
 
 const { shell } = useAppConfig()
+const { me } = useMe()
 
 const tabs = computed<NavigationMenuItem[]>(() => [
   { label: 'Profile', icon: 'i-lucide-user', to: '/settings', exact: true },
   { label: 'Security', icon: 'i-lucide-shield', to: '/settings/security' },
   ...shell.settingsTabs
+    .filter(tab => !tab.platformAdminOnly || me.value?.isPlatformAdmin)
+    .map(({ label, icon, to }) => ({ label, icon, to }))
 ])
 </script>
 

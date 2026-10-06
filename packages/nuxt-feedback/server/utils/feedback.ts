@@ -12,7 +12,9 @@ export function useFeedbackRepository(): FeedbackRepository {
   if (provided) {
     return provided
   }
-  defaultRepository ??= new MysqlFeedbackRepository(useDatabase())
+  defaultRepository ??= useRuntimeConfig().databaseUrl
+    ? new MysqlFeedbackRepository(useDatabase())
+    : missingAdapter<FeedbackRepository>('Feedback needs NUXT_DATABASE_URL, or a feedbackRepository from provideAdapters')
   return defaultRepository
 }
 

@@ -23,6 +23,11 @@ sandbox, the docs and the tooling. The format follows
 
 ### Fixed
 
+- The production image builds again. Its install stage copied no manifest for
+  the editor, media, passwords and feedback packages, and the build didn't
+  generate the layers' `.nuxt` folders that Vite reads.
+- Without `NUXT_DATABASE_URL`, the passwords and feedback layers no longer fail
+  every request, only the ones that use them, as the shell already did.
 - `@varcharley/editor`: a compact editor, such as a feedback reply, no longer
   shows the block drag handle, which overflowed its box. Its padding is tighter
   to match, and the reply box no longer clips the `/` command menu.
@@ -39,6 +44,13 @@ sandbox, the docs and the tooling. The format follows
 
 ### Added
 
+- `@kmjbyrne/nuxt-platform`: an Application tab on Settings, for platform admins
+  only: version, commit, build time, blue or green slot
+  (`NUXT_DEPLOYMENT_SLOT`), host, Node version, uptime, and whether the database
+  has every migration the build ships. The build script and `Dockerfile` pass
+  the commit in. Settings tabs take `platformAdminOnly`.
+- Tooling: `pnpm lint` fails when a package's manifest is missing from the
+  `Dockerfile`.
 - The reference app: feedback at the foot of the sidebar, the inbox with the
   platform, migrations `0005` and `0006`, and the editor demo uploading real
   images.

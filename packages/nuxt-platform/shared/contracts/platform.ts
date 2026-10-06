@@ -64,3 +64,26 @@ export type PlatformOrgDetailResponse = z.infer<typeof platformOrgDetail>
 export type PlatformUserDetailResponse = z.infer<typeof platformUserDetail>
 export type CreateOrgBody = z.infer<typeof createOrgBody>
 export type CreateUserBody = z.infer<typeof createUserBody>
+
+/** Which build is answering, for Settings, Application. */
+export const applicationResponse = z.object({
+  version: z.string(),
+  commit: z.string(),
+  commitDate: z.string().nullable(),
+  builtAt: z.string(),
+  platform: z.boolean(),
+  /** blue or green, or null when not deployed side by side. */
+  slot: z.string().nullable(),
+  host: z.string(),
+  node: z.string(),
+  startedAt: z.string(),
+  database: z.object({
+    /** current, behind (migrations to run), ahead (a newer build migrated it), none (no database), or unknown. */
+    status: z.enum(['current', 'behind', 'ahead', 'none', 'unknown']),
+    applied: z.string().nullable(),
+    latest: z.string().nullable(),
+    pending: z.number()
+  })
+})
+
+export type ApplicationResponse = z.infer<typeof applicationResponse>

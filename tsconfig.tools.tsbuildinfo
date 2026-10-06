@@ -1,1 +1,1 @@
-{"root":["./scripts/check-bundle.ts","./scripts/platform-grant.ts","./drizzle.config.ts","./vitest.config.ts"],"version":"6.0.3"}
+{"root":["./scripts/check-bundle.ts","./scripts/check-dockerfile.ts","./scripts/platform-grant.ts","./drizzle.config.ts","./vitest.config.ts"],"version":"6.0.3"}

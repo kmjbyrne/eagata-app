@@ -8,7 +8,7 @@
     "dev": "scripts/ensure-env && nuxt dev sandbox --dotenv ../.env",
     "preview": "nuxt preview",
     "postinstall": "NUXT_PLATFORM=true nuxt prepare && NUXT_PLATFORM=true nuxt prepare sandbox && pnpm --filter './packages/nuxt-*' exec nuxt prepare && pnpm --filter @kmjbyrne/nuxt-feedback exec nuxt prepare platform",
-    "lint": "NUXT_PLATFORM=true nuxt prepare > /dev/null && eslint .",
+    "lint": "NUXT_PLATFORM=true nuxt prepare > /dev/null && eslint . && tsx scripts/check-dockerfile.ts",
     "typecheck": "NUXT_PLATFORM=true nuxt typecheck && NUXT_PLATFORM=true nuxt typecheck sandbox && tsc -p tsconfig.tools.json && pnpm -r --if-present typecheck",
     "test": "vitest run",
     "test:watch": "vitest",

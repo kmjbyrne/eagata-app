@@ -7,6 +7,7 @@ export default defineAppConfig({
     userExtras: [] as string[]
   },
   shell: {
+    settingsTabs: [{ label: 'Application', icon: 'i-lucide-server', to: '/settings/application', platformAdminOnly: true }],
     userMenuItems: [{
       label: 'Platform',
       icon: 'i-lucide-shield',

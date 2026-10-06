@@ -82,3 +82,17 @@ to anyone but a platform admin, and calls one platform service method.
 
 Shapes are Zod schemas in `shared/contracts/platform.ts`. The route tests boot
 the layer with `setupApp` from `@kmjbyrne/nuxt-shell/testing`.
+
+## Settings, Application
+
+Platform admins get an Application tab on Settings, at `/settings/application`,
+through the shell's `settingsTabs` with `platformAdminOnly`. It shows which
+build is answering: version, commit and its date, build time, the slot from
+`NUXT_DEPLOYMENT_SLOT` (blue or green), the host, Node version and uptime. It
+also compares the database's last applied migration with the app's
+`server/migrations` journal, so a forgotten migrate shows as "migrations to
+run".
+
+The commit comes from `GIT_COMMIT` and `GIT_COMMIT_DATE` at build, which the
+`Dockerfile` takes as build arguments, or from git when building outside Docker.
+The data comes from `GET /api/protected/application`.

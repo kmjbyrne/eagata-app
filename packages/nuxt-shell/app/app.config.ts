@@ -28,7 +28,7 @@ export default defineAppConfig({
     /** Global components rendered at the foot of the user menu, by name. */
     userMenuExtras: [] as string[],
     /** Extra tabs on the settings page, after Profile and Security. */
-    settingsTabs: [] as { label: string, icon?: string, to: string }[],
+    settingsTabs: [] as { label: string, icon?: string, to: string, platformAdminOnly?: boolean }[],
     /** Global components rendered on the Security tab, after sign-in methods, by name. */
     securityExtras: [] as string[]
   }
