@@ -167,8 +167,9 @@ sandbox, the docs and the tooling. The format follows
 ### Changed
 
 - The reference app's light mode is softer, as in boards-ui: a pale grey page
-  with white cards and panels on it, fainter borders, and dark grey text instead
-  of black. Dark mode is unchanged.
+  with white cards and panels on it, fainter borders, dark grey text instead of
+  black, and boards-ui's slate blue accent in place of mint. Dark mode is
+  unchanged, mint included.
 - `@kmjbyrne/nuxt-shell`: someone who reaches one org gets no org selector, as
   it would offer no choice, and the header's brand stands alone. The selector
   appears once they reach a second org. Settings lists their orgs as links,

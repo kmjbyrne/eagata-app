@@ -32,7 +32,8 @@
 }
 
 /* Light mode, softened as in boards-ui: a tinted page with white surfaces on
-   it, faint borders, and text short of pure black. Dark mode is unchanged. */
+   it, faint borders, text short of pure black, and a slate blue accent. Dark
+   mode is unchanged, mint included. */
 :root:not(.dark) {
   --ui-bg: #f7f8fa;
   --ui-bg-muted: #f1f3f5;
@@ -44,4 +45,6 @@
   --ui-text: #4b5157;
   --ui-text-muted: #6b7178;
   --ui-text-highlighted: #212529;
+  /* boards-ui's slate blue, in place of mint. Dark enough to carry white text. */
+  --ui-primary: #5568a0;
 }
