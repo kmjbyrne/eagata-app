@@ -142,6 +142,11 @@ sandbox, the docs and the tooling. The format follows
   the top of the sidebar instead of an org selector with no choice in it. The
   selector appears once they reach a second org. Settings lists their orgs as
   links, marking the current one.
+- `@kmjbyrne/sandbox`: "Sign in as" starts a session for the dev user at once,
+  through `POST /api/_sandbox/sign-in-as`, instead of running the stand-in
+  provider's flow. Picking a persona with a password no longer asks to link an
+  account. "Continue with Google" still runs the full flow, for trying linking.
+  The sandbox layer now extends the shell.
 - `@kmjbyrne/nuxt-shell`: a new sign-in page: the app's logo, name and tagline
   over one sign-in button, from `shell.brand` in `app.config`. The sandbox lists
   its people under "or sign in as a test persona".

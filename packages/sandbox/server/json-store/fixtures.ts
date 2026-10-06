@@ -22,8 +22,9 @@ const day = (n: number): string => new Date(Date.UTC(2026, 0, n)).toISOString()
  * - Dana was an Acme member until a platform admin deactivated her: she can't sign in.
  * - Acme was once "acme-old", so old links redirect.
  *
- * Every user has a personal org with a General workspace. Nobody has signed
- * in yet: the sandbox's sign-in links their account on first use.
+ * Every user has a personal org with a General workspace. "Sign in as"
+ * starts a session at once. "Continue with Google" runs the real flow, which
+ * links their account on first use.
  */
 export function defaultTenancyFixtures(): TenancyFixtures {
   const people = [

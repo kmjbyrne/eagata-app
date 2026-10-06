@@ -62,17 +62,20 @@ points. Nuxt prefixes them with their folder:
 | `SandboxSwitchUser`  | A "Switch user" menu, for the user menu                       |
 | `SandboxStoreStatus` | When the data was seeded, a drift warning, and a reset button |
 
-Signing in as someone signs out, then runs the real sign-in with them as the
-login hint. The stand-in signs a hinted dev user straight in.
-`useSandboxUsers()` does this for any other control.
+Signing in as someone starts a session for them at once, through
+`POST /api/_sandbox/sign-in-as`. It skips the provider, so it never asks to link
+an account or for a password. To try those, use "Continue with Google", which
+runs the real flow through the stand-in's consent screen. `useSandboxUsers()`
+signs in as someone for any other control.
 
 ## Endpoints
 
-| Route                      | What it does                                                                                              |
-| -------------------------- | --------------------------------------------------------------------------------------------------------- |
-| `GET /api/_sandbox/users`  | The people "Sign in as" offers                                                                            |
-| `GET /api/_sandbox/status` | `{ seededAt, drifted }`: when the store was seeded, and any collections that no longer match their schema |
-| `POST /api/_sandbox/reset` | Puts every collection back to its fixtures                                                                |
+| Route                           | What it does                                                                                              |
+| ------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `GET /api/_sandbox/users`       | The people "Sign in as" offers                                                                            |
+| `GET /api/_sandbox/status`      | `{ seededAt, drifted }`: when the store was seeded, and any collections that no longer match their schema |
+| `POST /api/_sandbox/reset`      | Puts every collection back to its fixtures                                                                |
+| `POST /api/_sandbox/sign-in-as` | `{ email }`: becomes that dev user at once. 403 for a deactivated one.                                    |
 
 Every sandbox route answers 404 outside a dev server, as a second guard behind
 the startup check.
@@ -119,15 +122,14 @@ exist. Mary reaches two orgs, so she lands on `/choose`.
 
 Its authorization URL is the consent screen at `/_sandbox/oidc/authorize`: a
 plain form asking for the email the account would report, an optional name, and
-a "verified" checkbox to try unverified emails. The dev users are on the login
-page's "Sign in as". Choosing sends the person back to the app's real callback,
-with a code that `complete()` turns into an identity. Dev sign-in therefore runs
-through the app's real sign-in flow.
+a "verified" checkbox to try unverified emails. The dev users are listed there
+too. Choosing sends the person back to the app's real callback, with a code that
+`complete()` turns into an identity. Dev sign-in therefore runs through the
+app's real sign-in flow.
 
 - Registration is closed, so an email nobody set up is refused as not invited.
   Use it to see that refusal, or an unverified email's.
 - The same email always gets the same subject, so a second sign-in finds the
   account the first one linked.
-- A login hint that names a dev user signs them straight in. That is how "Sign
-  in as" works in one click.
+- A login hint that names a dev user signs them straight in.
 - It only sends people back to the app's own origin.

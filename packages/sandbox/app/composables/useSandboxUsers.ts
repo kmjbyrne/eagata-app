@@ -1,13 +1,20 @@
 import type { DevUser } from '../../server/utils/sandbox'
 
-/** The people "Sign in as" offers, and a way to become one through the real sign-in flow. */
+/** The people "Sign in as" offers, and a way to become one at once. */
 export function useSandboxUsers() {
   const { data: users, refresh } = useFetch<DevUser[]>('/api/_sandbox/users', { key: 'sandbox-users', default: () => [] })
 
-  /** Signs out, then in again as `email`. The stand-in signs a hinted dev user straight in. */
+  /**
+   * Becomes `email` at once, skipping the provider, so it never asks to link
+   * an account. A full page load, so nothing of the last user stays.
+   */
   async function signInAs(email: string) {
-    await $fetch('/api/auth/logout', { method: 'POST' }).catch(() => undefined)
-    await navigateTo(`/api/auth/login?hint=${encodeURIComponent(email)}`, { external: true })
+    try {
+      await $fetch('/api/_sandbox/sign-in-as', { method: 'POST', body: { email } })
+      await navigateTo('/', { external: true })
+    } catch {
+      await navigateTo('/login?error=deactivated', { external: true })
+    }
   }
 
   return { users, refresh, signInAs }
