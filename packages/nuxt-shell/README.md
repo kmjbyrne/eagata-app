@@ -185,19 +185,21 @@ The shell's `default` layout is the app's frame, so an app needs no layout of
 its own. A full-width header holds the navigation toggle, the brand, the org and
 workspace switchers, a light and dark switch, and the user menu. Under it, on
 the left, a rail has a button for each of the current workspace's navigation
-sections, with the panel and pin controls and the user menu at its foot. Pinning
-widens the rail to show labels.
+sections, with the panel and pin controls and the user menu at its foot. Drag
+the rail's edge to size it. Wide enough, it shows labels, and pinning switches
+it between narrow and wide.
 
 Every section opens a panel, in a second rail beside the first, while it is
 active. A section can name its own, a global component. Otherwise the shell's
 `ShellSectionPanel` lists the section's `items`, or says there's nothing there
-yet. The panel can be collapsed, and dragged wider. From 768px wide (`md`) the
-rail and panel are a column that stays open across navigation. Below that, on a
-phone, they open as a slideover from the header, which closes on navigation.
+yet. The panel can be collapsed, and dragged to its own width, apart from the
+rail's. From 768px wide (`md`) the rail and panel are a column that stays open
+across navigation. Below that, on a phone, they open as a slideover from the
+header, which closes on navigation.
 
-Whether the navigation shows, whether the rail is pinned, and whether the panel
-is open are kept in the `shell-nav` cookie, so the server renders each person's
-layout on first paint.
+Whether the navigation shows, whether the rail is pinned, whether the panel is
+open, and both widths are kept in the `shell-nav` cookie, so the server renders
+each person's layout on first paint.
 
 Pages bring their own `UDashboardPanel` and `UDashboardNavbar`. The header
 carries the sidebar toggles, so the layout turns off the navbar's own.

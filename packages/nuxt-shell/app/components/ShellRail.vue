@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const { sections, active } = useNavSections()
-const { prefs, toggle } = useNavPrefs()
+const { prefs, toggle, resize } = useNavPrefs()
 const { shell } = useAppConfig()
 const route = useRoute()
 
@@ -27,11 +27,20 @@ const controls = computed(() => [
 </script>
 
 <template>
-  <!-- Narrow, the rail's tooltips stand in for the labels pinning shows. -->
+  <!-- Narrow, the rail's tooltips stand in for the labels pinning shows.
+       From md up its width is the person's, dragged by its edge. -->
   <nav
-    class="flex h-full shrink-0 flex-col gap-1 border-e border-default bg-elevated/50 py-2"
+    class="relative flex h-full shrink-0 flex-col gap-1 border-e border-default bg-elevated/50 py-2 md:w-(--shell-rail)"
     :class="prefs.pinned ? 'w-44 px-2' : 'w-14 items-center'"
+    :style="{ '--shell-rail': `${prefs.railWidth}rem` }"
   >
+    <ShellResizeHandle
+      :width="prefs.railWidth"
+      :min="RAIL.narrow"
+      :max="RAIL.max"
+      label="Resize the rail"
+      @resize="(width, done) => resize('railWidth', width, done)"
+    />
     <UTooltip
       v-for="section in sections"
       :key="section.key"

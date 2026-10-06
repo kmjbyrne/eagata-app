@@ -1,17 +1,9 @@
 <script setup lang="ts">
 const { active } = useNavSections()
-const { prefs } = useNavPrefs()
+const { prefs, resize } = useNavPrefs()
 
 // Every section opens a panel: its own component, or the list of its items.
 const panel = computed(() => prefs.value.panelOpen ? active.value : undefined)
-
-// The rail is w-14, or w-44 pinned. The panel starts 11rem wide beside it.
-const railRem = computed(() => prefs.value.pinned ? 11 : 3.5)
-const panelRem = computed(() => railRem.value + 11)
-
-// The sidebar reads its sizes and storage once, so each shape is its own
-// sidebar. Only the panel resizes, and each panel shape keeps its own width.
-const shape = computed(() => `shell-${panel.value ? 'panel' : 'rail'}${prefs.value.pinned ? '-pinned' : ''}`)
 
 // Only a column needs that. On a phone the sidebar is a slideover of fixed
 // width, and a new one would close and reopen it at every pin or toggle.
@@ -40,17 +32,14 @@ onBeforeUnmount(() => query?.removeEventListener('change', onChange))
            the slideover on a phone. Nuxt UI makes it a slideover below lg, and
            closes that on every navigation, so it switches at md instead and
            stays a column on tablets. -->
+      <!-- The rail and the panel each have their own width and drag handle,
+           so the sidebar doesn't resize: it is as wide as they are. -->
       <UDashboardSidebar
-        :id="shape"
-        :key="phone ? 'shell-phone' : shape"
-        :resizable="!!panel"
-        :default-size="panel ? panelRem : railRem"
-        :min-size="panel ? panelRem : railRem"
-        :max-size="panel ? 30 : railRem"
+        id="shell"
+        :key="phone ? 'shell-phone' : 'shell'"
         :ui="{
-          root: ['min-h-0 min-w-0 md:flex', prefs.visible ? '' : 'md:hidden lg:hidden'],
+          root: ['min-h-0 w-auto min-w-0 md:flex', prefs.visible ? '' : 'md:hidden lg:hidden'],
           body: 'flex-row gap-0 overflow-hidden p-0 sm:p-0',
-          handle: 'md:block',
           content: 'md:hidden',
           overlay: 'md:hidden'
         }"
@@ -58,15 +47,25 @@ onBeforeUnmount(() => query?.removeEventListener('change', onChange))
         <ShellRail />
         <div
           v-if="panel"
-          class="min-w-0 flex-1 overflow-y-auto"
+          class="relative min-w-0 flex-1 md:w-(--shell-panel) md:flex-none"
+          :style="{ '--shell-panel': `${prefs.panelWidth}rem` }"
         >
-          <component
-            :is="panel.panel"
-            v-if="panel.panel"
-          />
-          <ShellSectionPanel
-            v-else
-            :section="panel"
+          <div class="h-full overflow-y-auto">
+            <component
+              :is="panel.panel"
+              v-if="panel.panel"
+            />
+            <ShellSectionPanel
+              v-else
+              :section="panel"
+            />
+          </div>
+          <ShellResizeHandle
+            :width="prefs.panelWidth"
+            :min="PANEL.min"
+            :max="PANEL.max"
+            label="Resize the panel"
+            @resize="(width, done) => resize('panelWidth', width, done)"
           />
         </div>
       </UDashboardSidebar>

@@ -166,6 +166,9 @@ sandbox, the docs and the tooling. The format follows
 
 ### Changed
 
+- `@kmjbyrne/nuxt-shell`: the rail and the panel each drag to their own width,
+  instead of only the panel. The rail shows labels once wide enough, and both
+  widths are kept in the `shell-nav` cookie with the other nav preferences.
 - The reference app's light mode is softer, as in boards-ui: a pale grey page
   with white cards and panels on it, fainter borders, dark grey text instead of
   black, and boards-ui's slate blue accent in place of mint. Dark mode is
