@@ -138,6 +138,10 @@ sandbox, the docs and the tooling. The format follows
 
 ### Changed
 
+- `@kmjbyrne/nuxt-shell`: someone who reaches one org sees the app's brand at
+  the top of the sidebar instead of an org selector with no choice in it. The
+  selector appears once they reach a second org. Settings lists their orgs as
+  links, marking the current one.
 - `@kmjbyrne/nuxt-shell`: a new sign-in page: the app's logo, name and tagline
   over one sign-in button, from `shell.brand` in `app.config`. The sandbox lists
   its people under "or sign in as a test persona".

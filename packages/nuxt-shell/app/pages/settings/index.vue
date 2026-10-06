@@ -3,6 +3,7 @@ useHead({ title: 'Profile · Settings' })
 
 const { me } = useMe()
 const { orgs } = useOrgs()
+const { org: current } = useCurrentWorkspace()
 </script>
 
 <template>
@@ -34,15 +35,25 @@ const { orgs } = useOrgs()
         <li
           v-for="entry in orgs"
           :key="entry.org.id"
-          class="flex items-center justify-between gap-4 py-2"
         >
-          <span class="flex items-center gap-2">
-            <UIcon :name="entry.org.isPersonal ? 'i-lucide-user' : 'i-lucide-building-2'" />
-            {{ entry.org.name }}
-          </span>
-          <span class="text-sm text-muted">
-            {{ entry.org.isPersonal ? 'Personal' : (entry.role ?? `${entry.workspaces.length} shared workspace${entry.workspaces.length === 1 ? '' : 's'}`) }}
-          </span>
+          <NuxtLink
+            :to="entry.workspaces[0] ? `/${entry.org.slug}/${entry.workspaces[0].slug}` : '/choose'"
+            class="flex items-center justify-between gap-4 py-2 hover:text-highlighted"
+          >
+            <span class="flex items-center gap-2">
+              <UIcon :name="entry.org.isPersonal ? 'i-lucide-user' : 'i-lucide-building-2'" />
+              {{ entry.org.name }}
+              <UBadge
+                v-if="entry.org.slug === current?.org.slug"
+                label="Current"
+                variant="subtle"
+                size="sm"
+              />
+            </span>
+            <span class="text-sm text-muted">
+              {{ entry.org.isPersonal ? 'Personal' : (entry.role ?? `${entry.workspaces.length} shared workspace${entry.workspaces.length === 1 ? '' : 's'}`) }}
+            </span>
+          </NuxtLink>
         </li>
       </ul>
     </UPageCard>
