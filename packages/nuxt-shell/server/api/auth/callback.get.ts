@@ -25,7 +25,7 @@ async function connect(event: H3Event, identity: ProviderIdentity) {
  * Finishes a sign-in. The state must match the one this browser started
  * with, or the request was forged or replayed.
  */
-export default defineServiceHandler(async (event) => {
+export default defineNavigationHandler(async (event) => {
   // The query holds the provider's one-time code and our state: keep them out of the log.
   event.context.log?.set({ path: event.path.split('?')[0] })
   const query = await getValidatedQuery(event, callbackQuery.parse)
@@ -80,4 +80,4 @@ export default defineServiceHandler(async (event) => {
     throw error
   }
   return sendRedirect(event, '/')
-})
+}, () => backToLogin('unavailable'))

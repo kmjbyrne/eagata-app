@@ -23,6 +23,12 @@ sandbox, the docs and the tooling. The format follows
 
 ### Fixed
 
+- Sign-in never ends on a JSON error. A failure in `/api/auth/login` or the
+  callback, such as the database refusing the app's user, now lands on the
+  sign-in page with "Sign-in isn't available right now", and is still logged in
+  full. Routes the browser navigates to use the new `defineNavigationHandler`.
+- Pages that fail show a branded error page, with "Page not found" or a plain
+  "Something went wrong" that names nothing internal.
 - The production image builds again. Its install stage copied no manifest for
   the editor, media, passwords and feedback packages, and the build didn't
   generate the layers' `.nuxt` folders that Vite reads.

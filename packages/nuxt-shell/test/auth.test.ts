@@ -103,7 +103,8 @@ describe('connecting another account while signed in', () => {
   }
 
   it('needs a signed-in user', async () => {
-    expect((await new Browser().request('/api/auth/login?intent=connect')).status).toBe(401)
+    // The browser navigates here, so a refusal lands on a page, not a JSON error.
+    expect((await new Browser().request('/api/auth/login?intent=connect')).headers.get('location')).toBe('/login')
   })
 
   it('links the account, or keeps it linked, and returns to security settings', async () => {
@@ -143,6 +144,20 @@ describe('POST /api/me/deactivate', () => {
 
   it('needs a signed-in user', async () => {
     expect((await new Browser().request('/api/me/deactivate', post({ email: 'x@example.com' }))).status).toBe(401)
+  })
+})
+
+describe('pages that fail', () => {
+  it('shows a page for a missing route, never JSON, and names no internals', async () => {
+    const browser = new Browser()
+    await createUser('lost@example.com')
+    await browser.signIn({ email: 'lost@example.com' })
+    const response = await browser.request('/no-such-org/no-such-workspace/nothing', { headers: { accept: 'text/html' } })
+    const html = await response.text()
+
+    expect(response.status).toBe(404)
+    expect(response.headers.get('content-type')).toContain('text/html')
+    expect(html).toContain('Page not found')
   })
 })
 

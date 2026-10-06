@@ -27,6 +27,15 @@ export default defineNuxtConfig({
 })
 ```
 
+## Errors
+
+Routes the app fetches use `defineServiceHandler`, which maps domain errors to
+statuses and JSON. Routes the browser navigates to, such as sign-in and its
+callback, use `defineNavigationHandler`: any failure redirects to a page, with
+the error logged. Pages that fail render `app/error.vue`, which shows "Page not
+found" for a 404 and a plain message for anything else, never the server's
+details.
+
 ## Request Logging
 
 The shell includes [evlog](https://github.com/evloghq/evlog). Every `/api`

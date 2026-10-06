@@ -59,3 +59,30 @@ export function defineServiceHandler<T>(handler: (event: H3Event<EventHandlerReq
     }
   })
 }
+
+/**
+ * For routes the browser navigates to rather than fetches, such as sign-in and
+ * its callback: any failure lands on a page, never a JSON error. The error is
+ * still logged, as a warning when it's an expected refusal.
+ */
+export function defineNavigationHandler<T>(
+  handler: (event: H3Event<EventHandlerRequest>) => Promise<T>,
+  fallback: (error: unknown) => string
+) {
+  return defineEventHandler(async (event) => {
+    try {
+      return await handler(event)
+    } catch (error) {
+      const log = event.context.log
+      if (log) {
+        log.error(error as Error)
+        if (domainErrorStatus(error) !== undefined) {
+          log.setLevel('warn')
+        }
+      } else {
+        console.error(error)
+      }
+      return sendRedirect(event, fallback(error))
+    }
+  })
+}
