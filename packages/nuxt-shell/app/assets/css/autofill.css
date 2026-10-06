@@ -1,0 +1,11 @@
+/* Browsers paint autofilled inputs with their own background, which clashes
+   with the theme. An inset shadow covers it, and the long transition keeps the
+   browser's colour from showing through. */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--ui-text-highlighted);
+  -webkit-box-shadow: 0 0 0 1000px var(--ui-bg) inset;
+  caret-color: var(--ui-text-highlighted);
+  transition: background-color 9999s ease-out 0s;
+}

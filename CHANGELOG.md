@@ -29,6 +29,8 @@ sandbox, the docs and the tooling. The format follows
   full. Routes the browser navigates to use the new `defineNavigationHandler`.
 - Pages that fail show a branded error page, with "Page not found" or a plain
   "Something went wrong" that names nothing internal.
+- Autofilled inputs keep the theme's background and text colour, instead of the
+  browser's yellow.
 - The production image builds again. Its install stage copied no manifest for
   the editor, media, passwords and feedback packages, and the build didn't
   generate the layers' `.nuxt` folders that Vite reads.

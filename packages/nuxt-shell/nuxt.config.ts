@@ -1,8 +1,12 @@
+import { fileURLToPath } from 'node:url'
+
 // Everything every app needs on the Nuxt side. Settings come from env vars
 // through runtimeConfig, e.g. NUXT_OIDC_ISSUER or NUXT_SESSION_SECRET.
 export default defineNuxtConfig({
   // Its pages and components are Nuxt UI.
   modules: ['@nuxt/ui', 'evlog/nuxt'],
+
+  css: [fileURLToPath(new URL('./app/assets/css/autofill.css', import.meta.url))],
 
   runtimeConfig: {
     // mysql://user:password@host:3306/database. Empty means no default store.
