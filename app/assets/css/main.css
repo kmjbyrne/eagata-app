@@ -30,3 +30,18 @@
   --color-charcoal-900: #26292C;
   --color-charcoal-950: #1A1C1E;
 }
+
+/* Light mode, softened as in boards-ui: a tinted page with white surfaces on
+   it, faint borders, and text short of pure black. Dark mode is unchanged. */
+:root:not(.dark) {
+  --ui-bg: #f7f8fa;
+  --ui-bg-muted: #f1f3f5;
+  --ui-bg-elevated: #ffffff;
+  --ui-bg-accented: #e9ecef;
+  --ui-border: #e4e7eb;
+  --ui-border-muted: #eceef1;
+  --ui-border-accented: #d5d9de;
+  --ui-text: #4b5157;
+  --ui-text-muted: #6b7178;
+  --ui-text-highlighted: #212529;
+}
