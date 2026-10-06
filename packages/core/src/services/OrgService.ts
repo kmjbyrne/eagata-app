@@ -4,18 +4,25 @@ import type { Repositories } from '../ports/Repositories'
 import type { Slug } from '../values/Slug'
 import { type AccessibleOrg, accessibleWorkspaces, parseSlugOrNotFound, requireAccessibleOrg, requireActiveUserId, requireUser } from './access'
 import { acceptInvitations } from './acceptInvitations'
+import type { FeatureAccess } from './FeatureAccess'
+
+/** An org the user can reach, with the flagged features it has switched on. */
+export interface MyOrg extends AccessibleOrg {
+  features: string[]
+}
 
 export class OrgService {
   constructor(
     private readonly repositories: Repositories,
-    private readonly currentUser: CurrentUser
+    private readonly currentUser: CurrentUser,
+    private readonly features: FeatureAccess
   ) {}
 
   /**
    * Every org the user can reach, with their role and the workspaces they can
    * see in each. Their personal org comes first, then the rest by name.
    */
-  async listMine(): Promise<AccessibleOrg[]> {
+  async listMine(): Promise<MyOrg[]> {
     const user = await requireUser(this.repositories, this.currentUser)
     await acceptInvitations(this.repositories, user)
     const userId = user.id
@@ -26,12 +33,12 @@ export class OrgService {
         orgIds.add(workspace.orgId)
       }
     }
-    const orgs: AccessibleOrg[] = []
+    const orgs: MyOrg[] = []
     for (const orgId of orgIds) {
       const org = await this.repositories.orgs.findById(orgId)
       const accessible = org && await accessibleWorkspaces(this.repositories, org, userId)
       if (accessible) {
-        orgs.push(accessible)
+        orgs.push({ ...accessible, features: await this.features.of(orgId) })
       }
     }
     const isOwnPersonal = (entry: AccessibleOrg) => entry.org.isPersonal && entry.role === 'owner'
@@ -55,8 +62,9 @@ export class OrgService {
   }
 
   /** @throws NotFoundError for an org the user can't reach, or an old slug */
-  async getBySlug(slug: string): Promise<AccessibleOrg> {
-    return requireAccessibleOrg(this.repositories, slug, await requireActiveUserId(this.repositories, this.currentUser))
+  async getBySlug(slug: string): Promise<MyOrg> {
+    const accessible = await requireAccessibleOrg(this.repositories, slug, await requireActiveUserId(this.repositories, this.currentUser))
+    return { ...accessible, features: await this.features.of(accessible.org.id) }
   }
 
   /**

@@ -1,11 +1,13 @@
 import { orgSlugs, type Org } from '../entities/Org'
 import type { Membership } from '../entities/Membership'
+import type { OrgFeature } from '../entities/OrgFeature'
 import { isPlatformAdmin, type LinkedIdentity, type PlatformRoleGrant, type User, type UserIdentity } from '../entities/User'
 import type { Workspace } from '../entities/Workspace'
 import type { WorkspaceInvitation } from '../entities/WorkspaceInvitation'
 import type { WorkspaceMembership } from '../entities/WorkspaceMembership'
 import { AlreadyMemberError, EmailTakenError, IdentityInUseError, SlugTakenError } from '../errors'
 import type { MembershipRepository } from '../ports/MembershipRepository'
+import type { OrgFeatureRepository } from '../ports/OrgFeatureRepository'
 import type { OrgRepository } from '../ports/OrgRepository'
 import type { Repositories } from '../ports/Repositories'
 import type { UserRepository } from '../ports/UserRepository'
@@ -23,6 +25,7 @@ interface State {
   memberships: Membership[]
   workspaceMembers: WorkspaceMembership[]
   invitations: WorkspaceInvitation[]
+  orgFeatures: OrgFeature[]
 }
 
 const copy = <T>(value: T): T => structuredClone(value)
@@ -34,7 +37,7 @@ const sameIdentity = (a: UserIdentity, b: UserIdentity) => a.provider === b.prov
  * transaction runs as a transaction of its own, so none is lost to another.
  */
 export class InMemoryRepositories implements Repositories {
-  private state: State = { users: [], orgs: [], workspaces: [], memberships: [], workspaceMembers: [], invitations: [] }
+  private state: State = { users: [], orgs: [], workspaces: [], memberships: [], workspaceMembers: [], invitations: [], orgFeatures: [] }
   private queue: Promise<unknown> = Promise.resolve()
   readonly users = this.queued('users')
   readonly orgs = this.queued('orgs')
@@ -42,6 +45,7 @@ export class InMemoryRepositories implements Repositories {
   readonly memberships = this.queued('memberships')
   readonly workspaceMembers = this.queued('workspaceMembers')
   readonly invitations = this.queued('invitations')
+  readonly orgFeatures = this.queued('orgFeatures')
 
   transaction<R>(fn: (tx: Repositories) => Promise<R>): Promise<R> {
     const result = this.queue.then(async () => {
@@ -73,6 +77,7 @@ function bound(state: () => State): Repositories {
     memberships: new InMemoryMembershipRepository(state),
     workspaceMembers: new InMemoryWorkspaceMembershipRepository(state),
     invitations: new InMemoryInvitationRepository(state),
+    orgFeatures: new InMemoryOrgFeatureRepository(state),
     transaction: fn => fn(repositories)
   }
   return repositories
@@ -297,5 +302,25 @@ class InMemoryInvitationRepository implements WorkspaceInvitationRepository {
   async remove(workspaceId: WorkspaceId, email: Email) {
     const state = this.state()
     state.invitations = state.invitations.filter(invitation => !(invitation.workspaceId === workspaceId && invitation.email === email))
+  }
+}
+
+class InMemoryOrgFeatureRepository implements OrgFeatureRepository {
+  constructor(private readonly state: () => State) {}
+
+  async listByOrg(orgId: OrgId) {
+    return copy(this.state().orgFeatures.filter(row => row.orgId === orgId))
+      .sort((a, b) => a.feature.localeCompare(b.feature))
+  }
+
+  async enable(feature: OrgFeature) {
+    if (!this.state().orgFeatures.some(row => row.orgId === feature.orgId && row.feature === feature.feature)) {
+      this.state().orgFeatures.push(copy(feature))
+    }
+  }
+
+  async disable(orgId: OrgId, feature: string) {
+    const state = this.state()
+    state.orgFeatures = state.orgFeatures.filter(row => !(row.orgId === orgId && row.feature === feature))
   }
 }

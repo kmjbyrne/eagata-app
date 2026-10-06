@@ -67,6 +67,16 @@ export const invitationRecord = z.object({
 
 export const invitationId = (workspaceId: string, email: string) => `${workspaceId}:${email}`
 
+export const orgFeatureRecord = z.object({
+  id: z.string(),
+  orgId: z.string(),
+  feature: z.string(),
+  enabledAt: z.iso.datetime(),
+  enabledBy: z.string().nullable()
+})
+
+export const orgFeatureId = (orgId: string, feature: string) => `${orgId}:${feature}`
+
 export type UserRecord = z.infer<typeof userRecord>
 export type OrgRecord = z.infer<typeof orgRecord>
 export type WorkspaceRecord = z.infer<typeof workspaceRecord>

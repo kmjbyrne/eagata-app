@@ -53,7 +53,7 @@ platform admins only.
 | Page                           | What it is                                                                                                                                          |
 | ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `/platform/organizations`      | Company orgs, with personal ones on request. "Create organization" asks for a name, a slug and an owner, with a shortcut to create the owner first. |
-| `/platform/organizations/:org` | Members and their roles, adding and removing members, workspaces, and changing the slug                                                             |
+| `/platform/organizations/:org` | Members and their roles, adding and removing members, workspaces, feature flags, and changing the slug                                              |
 | `/platform/users`              | Every user, marked platform admin, deactivated, or not signed in yet. "Create user".                                                                |
 | `/platform/users/:id`          | Their orgs, switches for the platform role and deactivation, and who granted the role and when                                                      |
 
@@ -65,20 +65,22 @@ domain, and show as they are.
 Every route is under `/api/protected/`, answers 401 to anyone signed out and 403
 to anyone but a platform admin, and calls one platform service method.
 
-| Route                                        | What it does                                                                         |
-| -------------------------------------------- | ------------------------------------------------------------------------------------ |
-| `GET /organizations`                         | Every org, personal ones included, with member and workspace counts                  |
-| `POST /organizations`                        | `{ name, ownerUserId, slug? }`: a company org with its owner and a General workspace |
-| `GET /organizations/:org`                    | The org, its members and its workspaces                                              |
-| `PATCH /organizations/:org/slug`             | `{ slug }`. The old slug keeps redirecting.                                          |
-| `GET /organizations/:org/members`            | The members                                                                          |
-| `POST /organizations/:org/members`           | `{ userId, role }`. Never in a personal org.                                         |
-| `PATCH /organizations/:org/members/:userId`  | `{ role }`. An org keeps an owner.                                                   |
-| `DELETE /organizations/:org/members/:userId` | An org keeps an owner.                                                               |
-| `GET /users`                                 | Every user, with whether they have signed in yet                                     |
-| `POST /users`                                | `{ displayName, email }`: a user, with their personal org                            |
-| `GET /users/:id`                             | The user and their org memberships                                                   |
-| `PATCH /users/:id`                           | `{ isPlatformAdmin }` or `{ deactivated }`, one per request                          |
+| Route                                          | What it does                                                                         |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------ |
+| `GET /organizations`                           | Every org, personal ones included, with member and workspace counts                  |
+| `POST /organizations`                          | `{ name, ownerUserId, slug? }`: a company org with its owner and a General workspace |
+| `GET /organizations/:org`                      | The org, its members, its workspaces, and every feature flag with its state          |
+| `PATCH /organizations/:org/slug`               | `{ slug }`. The old slug keeps redirecting.                                          |
+| `GET /organizations/:org/members`              | The members                                                                          |
+| `POST /organizations/:org/members`             | `{ userId, role }`. Never in a personal org.                                         |
+| `PATCH /organizations/:org/members/:userId`    | `{ role }`. An org keeps an owner.                                                   |
+| `DELETE /organizations/:org/members/:userId`   | An org keeps an owner.                                                               |
+| `PUT /organizations/:org/features/:feature`    | Switches a flag on for the org. 404 for a flag no layer declares.                    |
+| `DELETE /organizations/:org/features/:feature` | Switches it off.                                                                     |
+| `GET /users`                                   | Every user, with whether they have signed in yet                                     |
+| `POST /users`                                  | `{ displayName, email }`: a user, with their personal org                            |
+| `GET /users/:id`                               | The user and their org memberships                                                   |
+| `PATCH /users/:id`                             | `{ isPlatformAdmin }` or `{ deactivated }`, one per request                          |
 
 Shapes are Zod schemas in `shared/contracts/platform.ts`. The route tests boot
 the layer with `setupApp` from `@kmjbyrne/nuxt-shell/testing`.

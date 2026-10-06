@@ -20,7 +20,14 @@ export class Container {
   private defaults?: Partial<CoreAdapters>
   private readonly factories: ServiceFactory[] = []
 
-  constructor(private readonly createDefaults: () => Partial<CoreAdapters>) {}
+  /**
+   * `features` is the app's catalog of feature flags, read per request so a
+   * test can set it.
+   */
+  constructor(
+    private readonly createDefaults: () => Partial<CoreAdapters>,
+    private readonly features: () => readonly string[] = () => []
+  ) {}
 
   /** Supplies adapters in place of the defaults, such as the sandbox's stores. */
   provideAdapters(adapters: Partial<Adapters>): void {
@@ -39,7 +46,7 @@ export class Container {
 
   services(currentUser: CurrentUser): Services {
     const adapters = this.adapters()
-    const core = createCoreServices({ repositories: adapters.repositories, currentUser, ids: adapters.ids, linkProof: adapters.linkProof })
+    const core = createCoreServices({ repositories: adapters.repositories, currentUser, ids: adapters.ids, linkProof: adapters.linkProof, features: this.features() })
     const services: Services = { ...core } as Services
     for (const factory of this.factories) {
       Object.assign(services, factory({ adapters, core, currentUser }))

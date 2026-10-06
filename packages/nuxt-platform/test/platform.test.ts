@@ -2,9 +2,11 @@ import { fileURLToPath } from 'node:url'
 import { $fetch } from '@nuxt/test-utils/e2e'
 import { Browser, createUser, setupApp } from '@kmjbyrne/nuxt-shell/testing'
 import { beforeAll, describe, expect, it } from 'vitest'
+import type { AccessibleOrgResponse } from '@kmjbyrne/nuxt-shell/contracts'
 import type { ApplicationResponse, PlatformOrg, PlatformOrgDetailResponse, PlatformOrgSummaryResponse, PlatformUserDetailResponse, PlatformUserSummary } from '../shared/contracts/platform'
 
-await setupApp(fileURLToPath(new URL('..', import.meta.url)))
+// One feature flag, as a feature's layer would declare it.
+await setupApp(fileURLToPath(new URL('..', import.meta.url)), { appConfig: { shell: { features: { beta: { label: 'Beta' } } } } })
 
 const send = (method: string, body?: unknown) =>
   ({ method, ...(body ? { body: JSON.stringify(body), headers: { 'content-type': 'application/json' } } : {}) })
@@ -33,6 +35,8 @@ describe('access', () => {
     ['POST', '/api/protected/organizations/acme/members'],
     ['PATCH', '/api/protected/organizations/acme/members/someone'],
     ['DELETE', '/api/protected/organizations/acme/members/someone'],
+    ['PUT', '/api/protected/organizations/acme/features/beta'],
+    ['DELETE', '/api/protected/organizations/acme/features/beta'],
     ['GET', '/api/protected/users'],
     ['POST', '/api/protected/users'],
     ['GET', '/api/protected/users/someone'],
@@ -80,6 +84,31 @@ describe('organizations', () => {
 
     expect(changed.body).toMatchObject({ slug: 'acme-co', previousSlugs: ['acme'] })
     expect((await ada.json<{ slug: string }>('/api/orgs/acme/resolve')).body).toEqual({ slug: 'acme-co' })
+  })
+})
+
+describe('feature flags', () => {
+  it('lists every flag off, switches one on for one org, and back off', async () => {
+    const features = '/api/protected/organizations/acme-co/features'
+    expect((await pat.json<PlatformOrgDetailResponse>('/api/protected/organizations/acme-co')).body.features)
+      .toEqual([{ feature: 'beta', enabledAt: null, enabledBy: null }])
+    expect((await ada.json<AccessibleOrgResponse>('/api/orgs/acme-co')).body.features).toEqual([])
+
+    expect((await pat.request(`${features}/beta`, send('PUT'))).status).toBe(204)
+    expect((await pat.request(`${features}/beta`, send('PUT'))).status).toBe(204)
+    const [beta] = (await pat.json<PlatformOrgDetailResponse>('/api/protected/organizations/acme-co')).body.features
+    expect(beta).toMatchObject({ feature: 'beta', enabledBy: { displayName: 'Pat Platform' } })
+    expect(beta!.enabledAt).not.toBeNull()
+    expect((await ada.json<AccessibleOrgResponse>('/api/orgs/acme-co')).body.features).toEqual(['beta'])
+    expect((await ada.json<AccessibleOrgResponse[]>('/api/orgs')).body.find(entry => entry.org.isPersonal)!.features).toEqual([])
+
+    expect((await pat.request(`${features}/beta`, send('DELETE'))).status).toBe(204)
+    expect((await ada.json<AccessibleOrgResponse>('/api/orgs/acme-co')).body.features).toEqual([])
+  })
+
+  it('answers 404 for a flag nobody declared, or an org that doesn\'t exist', async () => {
+    expect((await pat.request('/api/protected/organizations/acme-co/features/madeUp', send('PUT'))).status).toBe(404)
+    expect((await pat.request('/api/protected/organizations/nowhere/features/beta', send('PUT'))).status).toBe(404)
   })
 })
 

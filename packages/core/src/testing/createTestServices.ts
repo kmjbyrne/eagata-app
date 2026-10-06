@@ -15,11 +15,11 @@ import { SequentialIdGenerator } from './SequentialIdGenerator'
  *   const ada = await t.addUser('Ada Lovelace')
  *   t.signInAs(ada)
  */
-export function createTestServices(options: { linkProof?: LinkProof } = {}) {
+export function createTestServices(options: { linkProof?: LinkProof, features?: readonly string[] } = {}) {
   const repositories = new InMemoryRepositories()
   const currentUser = new FakeCurrentUser()
   const ids = new SequentialIdGenerator()
-  const services = createCoreServices({ repositories, currentUser, ids, linkProof: options.linkProof })
+  const services = createCoreServices({ repositories, currentUser, ids, linkProof: options.linkProof, features: options.features })
 
   /**
    * Adds a user, with their personal org, as a platform admin would. The email

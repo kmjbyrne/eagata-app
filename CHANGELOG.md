@@ -52,6 +52,14 @@ sandbox, the docs and the tooling. The format follows
 
 ### Added
 
+- Feature flags, per org, for dogfooding a feature before everyone gets it. A
+  layer declares a flag under `shell.features` in its app config. Every flag is
+  off until a platform admin switches it on for an org, on the org's platform
+  page. Services behind a flag call `features.require` first, and answer 404
+  without it. Org responses carry `features`, and `useFeature()` checks them in
+  pages. Core gains `FeatureAccess`, `Repositories.orgFeatures` and
+  `PlatformOrgService.enableFeature`/`disableFeature`. A new `org_features`
+  table comes with migration `0008`.
 - `pnpm db:migrate` reads another env file when `DOTENV` names it, as in
   `DOTENV=.env.production pnpm db:migrate`, and connects as
   `MIGRATION_DATABASE_URL` when that is set.

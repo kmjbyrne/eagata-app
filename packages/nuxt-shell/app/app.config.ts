@@ -9,6 +9,12 @@ export interface ShellMenuItem {
   whileInside?: { label: string, icon?: string, to: string }
 }
 
+/** A feature flag a layer declares, as platform admins see it. */
+export interface ShellFeature {
+  label: string
+  description?: string
+}
+
 // Extension points. Other layers add to these lists, and Nuxt merges them,
 // so the shell never imports the layers that fill them.
 export default defineAppConfig({
@@ -30,6 +36,11 @@ export default defineAppConfig({
     /** Extra tabs on the settings page, after Profile and Security. */
     settingsTabs: [] as { label: string, icon?: string, to: string, platformAdminOnly?: boolean }[],
     /** Global components rendered on the Security tab, after sign-in methods, by name. */
-    securityExtras: [] as string[]
+    securityExtras: [] as string[],
+    /**
+     * Feature flags, by name, declared by the layer that owns each feature.
+     * Every flag is off until a platform admin switches it on for an org.
+     */
+    features: {} as Record<string, ShellFeature>
   }
 })

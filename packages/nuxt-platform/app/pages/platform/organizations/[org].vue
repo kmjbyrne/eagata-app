@@ -19,6 +19,13 @@ const changeRole = (member: PlatformOrgDetailResponse['members'][number], role: 
   act(() => api(`/api/protected/organizations/${slug.value}/members/${member.user.id}`, { method: 'PATCH', body: { role } }), `${member.user.displayName} is now ${role === 'owner' || role === 'admin' ? 'an' : 'a'} ${role}`)
     .then(() => refresh())
 
+const { shell } = useAppConfig()
+const featureLabel = (feature: string) => shell.features[feature]?.label ?? feature
+
+const toggleFeature = (entry: PlatformOrgDetailResponse['features'][number], on: boolean) =>
+  act(() => api(`/api/protected/organizations/${slug.value}/features/${entry.feature}`, { method: on ? 'PUT' : 'DELETE' }), `${featureLabel(entry.feature)} is ${on ? 'on' : 'off'} for ${detail.value?.org.name}`)
+    .then(() => refresh())
+
 const remove = (member: PlatformOrgDetailResponse['members'][number]) =>
   act(() => api(`/api/protected/organizations/${slug.value}/members/${member.user.id}`, { method: 'DELETE' }), `Removed ${member.user.displayName}`)
     .then(() => refresh())
@@ -134,6 +141,59 @@ const remove = (member: PlatformOrgDetailResponse['members'][number]) =>
               <span class="text-sm text-muted">/{{ detail.org.slug }}/{{ workspace.slug }}</span>
             </li>
           </ul>
+        </UPageCard>
+
+        <UPageCard
+          title="Features"
+          description="Features still being built. Each is off for every organization until switched on here."
+          variant="subtle"
+        >
+          <ul
+            v-if="detail.features.length"
+            class="divide-y divide-default"
+          >
+            <li
+              v-for="entry in detail.features"
+              :key="entry.feature"
+              class="flex items-center justify-between gap-4 py-2"
+            >
+              <div class="min-w-0">
+                <p class="font-medium">
+                  {{ featureLabel(entry.feature) }}
+                </p>
+                <p
+                  v-if="shell.features[entry.feature]?.description"
+                  class="text-sm text-muted"
+                >
+                  {{ shell.features[entry.feature]?.description }}
+                </p>
+                <p
+                  v-if="entry.enabledAt"
+                  class="text-sm text-muted"
+                >
+                  On since
+                  <NuxtTime
+                    :datetime="entry.enabledAt"
+                    date-style="medium"
+                  />
+                  <template v-if="entry.enabledBy">
+                    by {{ entry.enabledBy.displayName }}
+                  </template>
+                </p>
+              </div>
+              <USwitch
+                :model-value="entry.enabledAt !== null"
+                :aria-label="`${featureLabel(entry.feature)} for ${detail.org.name}`"
+                @update:model-value="toggleFeature(entry, $event)"
+              />
+            </li>
+          </ul>
+          <p
+            v-else
+            class="text-sm text-muted"
+          >
+            No features to switch on. A layer declares one under <code>shell.features</code> in its app config.
+          </p>
         </UPageCard>
       </div>
 

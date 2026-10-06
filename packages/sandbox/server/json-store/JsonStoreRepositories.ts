@@ -23,13 +23,15 @@ import {
   type WorkspaceId,
   type WorkspaceMembership,
   type WorkspaceInvitation,
+  type OrgFeature,
+  type OrgFeatureRepository,
   type WorkspaceInvitationRepository,
   type WorkspaceMembershipRepository,
   type WorkspaceRepository
 } from '@kmjbyrne/core'
 import type { JsonStore } from '@kmjbyrne/json-store'
 import type { TenancyDocuments } from './collections'
-import { invitationId, membershipId, workspaceMemberId, type OrgRecord, type UserRecord, type WorkspaceRecord } from './records'
+import { invitationId, membershipId, orgFeatureId, workspaceMemberId, type OrgRecord, type UserRecord, type WorkspaceRecord } from './records'
 
 type Store = JsonStore<TenancyDocuments>
 
@@ -83,6 +85,7 @@ export class JsonStoreRepositories implements Repositories {
   readonly memberships: MembershipRepository
   readonly workspaceMembers: WorkspaceMembershipRepository
   readonly invitations: WorkspaceInvitationRepository
+  readonly orgFeatures: OrgFeatureRepository
 
   constructor(private readonly store: Store) {
     this.users = new JsonUserRepository(store)
@@ -91,6 +94,7 @@ export class JsonStoreRepositories implements Repositories {
     this.memberships = new JsonMembershipRepository(store)
     this.workspaceMembers = new JsonWorkspaceMembershipRepository(store)
     this.invitations = new JsonInvitationRepository(store)
+    this.orgFeatures = new JsonOrgFeatureRepository(store)
   }
 
   transaction<R>(fn: (tx: Repositories) => Promise<R>): Promise<R> {
@@ -361,3 +365,24 @@ const toInvitation = (record: TenancyDocuments['invitations']): WorkspaceInvitat
   invitedBy: record.invitedBy as UserId,
   createdAt: new Date(record.createdAt)
 })
+
+class JsonOrgFeatureRepository implements OrgFeatureRepository {
+  constructor(private readonly store: Store) {}
+
+  async listByOrg(orgId: OrgId) {
+    return (await this.store.find('orgFeatures', row => row.orgId === orgId))
+      .map((row): OrgFeature => ({ orgId: row.orgId as OrgId, feature: row.feature, enabledAt: new Date(row.enabledAt), enabledBy: row.enabledBy as UserId | null }))
+      .sort((a, b) => a.feature.localeCompare(b.feature))
+  }
+
+  async enable(feature: OrgFeature) {
+    const id = orgFeatureId(feature.orgId, feature.feature)
+    if (!(await this.store.get('orgFeatures', id))) {
+      await this.store.put('orgFeatures', { id, ...feature, enabledAt: feature.enabledAt.toISOString() })
+    }
+  }
+
+  async disable(orgId: OrgId, feature: string) {
+    await this.store.delete('orgFeatures', orgFeatureId(orgId, feature))
+  }
+}

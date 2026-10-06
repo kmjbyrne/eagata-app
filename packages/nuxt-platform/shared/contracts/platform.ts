@@ -23,7 +23,13 @@ export const platformUserSummary = z.object({
 export const platformOrgDetail = z.object({
   org: platformOrg,
   members: z.array(z.object({ user: platformUserSummary, role: orgRole })),
-  workspaces: z.array(z.object({ id: z.string(), name: z.string(), slug: z.string() }))
+  workspaces: z.array(z.object({ id: z.string(), name: z.string(), slug: z.string() })),
+  /** Every feature flag the app declares, and whether this org has it on. Labels come from app config. */
+  features: z.array(z.object({
+    feature: z.string(),
+    enabledAt: z.iso.datetime().nullable(),
+    enabledBy: z.object({ id: z.string(), displayName: z.string() }).nullable()
+  }))
 })
 
 export const platformUserDetail = z.object({

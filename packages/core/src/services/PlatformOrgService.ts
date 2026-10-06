@@ -10,6 +10,7 @@ import type { OrgId, UserId, WorkspaceId } from '../values/Ids'
 import { parseName } from '../values/Name'
 import { parseOrgSlug, parseSlug, suggestSlug } from '../values/Slug'
 import { parseSlugOrNotFound } from './access'
+import type { FeatureAccess } from './FeatureAccess'
 import { requirePlatformAdmin } from './platform'
 
 export interface PlatformOrgSummary {
@@ -23,12 +24,23 @@ export interface PlatformOrgMember {
   role: OrgRole
 }
 
+/** A flag from the catalog, and whether the org has it switched on. */
+export interface PlatformOrgFeature {
+  feature: string
+  /** Null while it's off. */
+  enabledAt: Date | null
+  /** Who switched it on, if anyone still known did. */
+  enabledBy: User | null
+}
+
 export interface PlatformOrgDetail {
   org: Org
   /** By display name. */
   members: PlatformOrgMember[]
   /** Oldest first. */
   workspaces: Workspace[]
+  /** Every flag in the catalog, in catalog order. */
+  features: PlatformOrgFeature[]
 }
 
 /** Company orgs and their org members, run by platform admins. */
@@ -36,7 +48,8 @@ export class PlatformOrgService {
   constructor(
     private readonly repositories: Repositories,
     private readonly currentUser: CurrentUser,
-    private readonly ids: IdGenerator
+    private readonly ids: IdGenerator,
+    private readonly features: FeatureAccess
   ) {}
 
   /**
@@ -99,7 +112,35 @@ export class PlatformOrgService {
       }
     }
     members.sort((a, b) => a.user.displayName.localeCompare(b.user.displayName))
-    return { org, members, workspaces: await this.repositories.workspaces.listByOrg(org.id) }
+    const rows = await this.repositories.orgFeatures.listByOrg(org.id)
+    const features: PlatformOrgFeature[] = []
+    for (const feature of this.features.catalog) {
+      const row = rows.find(entry => entry.feature === feature)
+      const enabledBy = row?.enabledBy ? await this.repositories.users.findById(row.enabledBy) : null
+      features.push({ feature, enabledAt: row?.enabledAt ?? null, enabledBy })
+    }
+    return { org, members, workspaces: await this.repositories.workspaces.listByOrg(org.id), features }
+  }
+
+  /**
+   * Switches a flagged feature on for the org. Already on, it stays as it was.
+   * @throws NotFoundError for a feature outside the catalog
+   */
+  enableFeature(slug: string, feature: string): Promise<void> {
+    return this.repositories.transaction(async (tx) => {
+      const admin = await requirePlatformAdmin(tx, this.currentUser)
+      const org = await this.requireOrg(tx, slug)
+      await tx.orgFeatures.enable({ orgId: org.id, feature: this.features.requireKnown(feature), enabledAt: new Date(), enabledBy: admin.id })
+    })
+  }
+
+  /** @throws NotFoundError for a feature outside the catalog */
+  disableFeature(slug: string, feature: string): Promise<void> {
+    return this.repositories.transaction(async (tx) => {
+      await requirePlatformAdmin(tx, this.currentUser)
+      const org = await this.requireOrg(tx, slug)
+      await tx.orgFeatures.disable(org.id, this.features.requireKnown(feature))
+    })
   }
 
   /** The old slug keeps redirecting. @throws SlugTakenError */

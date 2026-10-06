@@ -330,6 +330,30 @@ Request and response shapes are Zod schemas in `shared/contracts/`. Entities
 never leave the server as they are: routes map them with the helpers in
 `server/utils/responses.ts`.
 
+### Feature Flags
+
+A layer declares its feature's flag under `shell.features` in its app config:
+
+```ts
+export default defineAppConfig({
+  shell: {
+    features: {
+      progressBoard: {
+        label: 'Progress board',
+        description: 'Drag-and-drop matrix of work'
+      }
+    }
+  }
+})
+```
+
+The merged names are the catalog core checks against. Every flag is off until a
+platform admin switches it on for an org. The org responses carry the org's
+`features`, and `useFeature('progressBoard')` says whether the current org has
+it, for showing a page or nav entry. The feature's services check again with
+`features.require`, so hiding is never the only guard. Flags live in the
+`org_features` table.
+
 ## Adapters
 
 | Adapter              | Implements       | What it does                                                     |

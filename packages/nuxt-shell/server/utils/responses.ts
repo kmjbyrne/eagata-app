@@ -1,4 +1,4 @@
-import { type AccessibleOrg, type AccessibleWorkspace, type Org, orgPermissions, type Workspace, type WorkspaceInvitation, type WorkspaceMember, workspacePermissions } from '@kmjbyrne/core'
+import { type AccessibleWorkspace, type MyOrg, type Org, orgPermissions, type Workspace, type WorkspaceInvitation, type WorkspaceMember, workspacePermissions } from '@kmjbyrne/core'
 import type { AccessibleOrgResponse, AccessibleWorkspaceResponse, OrgSummary } from '../../shared/contracts/orgs'
 import type { InvitationResponse, WorkspaceMemberResponse, WorkspaceResponse } from '../../shared/contracts/workspaces'
 
@@ -13,11 +13,12 @@ export const toWorkspaceResponse = (workspace: Workspace): WorkspaceResponse =>
 export const toAccessibleWorkspace = ({ workspace, role }: AccessibleWorkspace): AccessibleWorkspaceResponse =>
   ({ ...toWorkspaceResponse(workspace), role, permissions: workspacePermissions.of(role) })
 
-export const toAccessibleOrg = (entry: AccessibleOrg): AccessibleOrgResponse =>
+export const toAccessibleOrg = (entry: MyOrg): AccessibleOrgResponse =>
   ({
     org: toOrgSummary(entry.org),
     role: entry.role,
     permissions: entry.role ? orgPermissions.of(entry.role) : [],
+    features: entry.features,
     workspaces: entry.workspaces.map(toAccessibleWorkspace)
   })
 

@@ -17,5 +17,10 @@ export const toPlatformUser = (user: User): PlatformUserSummary => ({
 export const toPlatformOrgDetail = (detail: PlatformOrgDetail): PlatformOrgDetailResponse => ({
   org: toPlatformOrg(detail.org),
   members: detail.members.map(member => ({ user: toPlatformUser(member.user), role: member.role })),
-  workspaces: detail.workspaces.map(workspace => ({ id: workspace.id, name: workspace.name, slug: workspace.slug }))
+  workspaces: detail.workspaces.map(workspace => ({ id: workspace.id, name: workspace.name, slug: workspace.slug })),
+  features: detail.features.map(({ feature, enabledAt, enabledBy }) => ({
+    feature,
+    enabledAt: enabledAt?.toISOString() ?? null,
+    enabledBy: enabledBy && { id: enabledBy.id, displayName: enabledBy.displayName }
+  }))
 })

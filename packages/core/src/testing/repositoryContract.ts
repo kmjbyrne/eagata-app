@@ -334,6 +334,30 @@ export function repositoryContract(createRepositories: () => Repositories | Prom
     })
   })
 
+  describe('org features', () => {
+    it('enables, lists by name, keeps the first enabling, and disables', async () => {
+      const repositories = await createRepositories()
+      const acme = org()
+      const other = org()
+      const ada = user()
+      await repositories.orgs.create(acme)
+      await repositories.orgs.create(other)
+      await repositories.users.create(ada)
+      const board = { orgId: acme.id, feature: 'progressBoard', enabledAt: new Date('2026-06-01T12:00:00.123Z'), enabledBy: ada.id }
+      const reports = { orgId: acme.id, feature: 'reports', enabledAt: new Date('2026-06-01T12:05:00.123Z'), enabledBy: null }
+      await repositories.orgFeatures.enable(reports)
+      await repositories.orgFeatures.enable(board)
+      await repositories.orgFeatures.enable({ ...board, enabledAt: new Date('2026-06-02T00:00:00.000Z'), enabledBy: null })
+      await repositories.orgFeatures.enable({ ...board, orgId: other.id })
+
+      expect(await repositories.orgFeatures.listByOrg(acme.id)).toEqual([board, reports])
+      await repositories.orgFeatures.disable(acme.id, 'progressBoard')
+      await repositories.orgFeatures.disable(acme.id, 'never-enabled')
+      expect(await repositories.orgFeatures.listByOrg(acme.id)).toEqual([reports])
+      expect((await repositories.orgFeatures.listByOrg(other.id)).map(row => row.feature)).toEqual(['progressBoard'])
+    })
+  })
+
   describe('transactions', () => {
     it('keeps every write when the callback resolves, and returns its value', async () => {
       const repositories = await createRepositories()

@@ -25,6 +25,8 @@ export const accessibleOrg = z.object({
   role: orgRole.nullable(),
   /** What the user may do in the org, such as `workspaces.create`. Empty without an org role. */
   permissions: z.array(z.string()),
+  /** The flagged features the org has switched on, such as `progressBoard`. Pages check these. */
+  features: z.array(z.string()),
   workspaces: z.array(accessibleWorkspace)
 })
 

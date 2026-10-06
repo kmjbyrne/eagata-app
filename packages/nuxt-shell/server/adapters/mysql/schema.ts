@@ -120,3 +120,17 @@ export const workspaceInvitations = mysqlTable('workspace_invitations', {
   index('workspace_invitations_email_idx').on(table.email),
   check('workspace_invitations_role_check', oneOf(table.role, WORKSPACE_ROLES))
 ])
+
+/**
+ * The flagged features each org has switched on: a row means on. The feature
+ * is a name from the app's catalog, with no CHECK, so adding or retiring a
+ * flag needs no migration.
+ */
+export const orgFeatures = mysqlTable('org_features', {
+  orgId: varchar('org_id', { length: 64 }).notNull().references(() => orgs.id, { onDelete: 'cascade' }),
+  feature: varchar('feature', { length: 64 }).notNull(),
+  enabledAt: datetime('enabled_at', { fsp: 3 }).notNull(),
+  enabledBy: varchar('enabled_by', { length: 64 }).references(() => users.id, { onDelete: 'set null' })
+}, table => [
+  primaryKey({ name: 'org_features_pk', columns: [table.orgId, table.feature] })
+])

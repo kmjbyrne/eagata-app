@@ -75,6 +75,28 @@ Three kinds of role decide who may do what, and they stay separate everywhere:
 `effectiveWorkspaceRole(orgRole, membership)` combines the last two into what a
 user may do in a workspace, or null for no access.
 
+## Feature Flags
+
+A feature still being built sits behind a flag, switched on per org. Every flag
+is off until a platform admin switches it on, so you can dogfood a feature in
+one org while every other org never sees it.
+
+- **The catalog** is every flag the app knows, passed to `createCoreServices` as
+  `features`, such as `['progressBoard']`. The shell builds it from the layers'
+  app config. A switched-on row for a name outside it is ignored, so retiring a
+  flag needs no migration.
+- **`features.require(orgSlug, feature)`** is the first check of every service
+  method behind a flag, before `workspaceAccess.require`. An org without the
+  feature answers `NotFoundError`, like one that doesn't exist.
+- **`orgs.listMine()` and `orgs.getBySlug()`** return each org's switched-on
+  `features`, in catalog order, for pages to check.
+- **`platformOrgs.enableFeature` and `disableFeature`** switch a flag, for
+  platform admins only. `platformOrgs.get` lists every flag in the catalog, with
+  who switched it on and when.
+
+`Repositories` stores them in `orgFeatures`. `createTestServices({ features })`
+sets the catalog for tests.
+
 ## Entities
 
 | Entity       | Fields                                                                                   |

@@ -11,7 +11,9 @@ import { SessionCurrentUser } from '../adapters/SessionCurrentUser'
 import { UuidIdGenerator } from '../adapters/UuidIdGenerator'
 import { Container, missingAdapter, type ServiceFactory } from '../container/Container'
 
-const container = new Container(createDefaultAdapters)
+// The flag catalog is every name under `shell.features` in the merged app
+// config, declared by the layers that own the features.
+const container = new Container(createDefaultAdapters, () => Object.keys(useAppConfig().shell.features))
 
 function createDefaultAdapters(): Partial<CoreAdapters> {
   const { oidc, databaseUrl, email } = useRuntimeConfig()

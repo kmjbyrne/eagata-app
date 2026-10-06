@@ -25,12 +25,14 @@ import {
   type WorkspaceId,
   type WorkspaceMembership,
   type WorkspaceInvitation,
+  type OrgFeature,
+  type OrgFeatureRepository,
   type WorkspaceInvitationRepository,
   type WorkspaceMembershipRepository,
   type WorkspaceRepository,
   type WorkspaceRole
 } from '@kmjbyrne/core'
-import { and, asc, eq, inArray, isNull } from 'drizzle-orm'
+import { and, asc, eq, inArray, isNull, sql } from 'drizzle-orm'
 import { drizzle } from 'drizzle-orm/mysql2'
 import * as schema from './schema'
 
@@ -54,6 +56,7 @@ export class MysqlRepositories implements Repositories {
   readonly memberships: MembershipRepository
   readonly workspaceMembers: WorkspaceMembershipRepository
   readonly invitations: WorkspaceInvitationRepository
+  readonly orgFeatures: OrgFeatureRepository
 
   constructor(private readonly db: Database, private readonly executor: Executor = db, private readonly inTransaction = false) {
     const atomically = <R>(fn: (executor: Executor) => Promise<R>) =>
@@ -64,6 +67,7 @@ export class MysqlRepositories implements Repositories {
     this.memberships = new MysqlMembershipRepository(executor, inTransaction)
     this.workspaceMembers = new MysqlWorkspaceMembershipRepository(executor, inTransaction)
     this.invitations = new MysqlInvitationRepository(executor)
+    this.orgFeatures = new MysqlOrgFeatureRepository(executor)
   }
 
   transaction<R>(fn: (tx: Repositories) => Promise<R>): Promise<R> {
@@ -418,3 +422,23 @@ const toInvitation = (row: typeof schema.workspaceInvitations.$inferSelect): Wor
   invitedBy: row.invitedBy as UserId,
   createdAt: row.createdAt
 })
+
+class MysqlOrgFeatureRepository implements OrgFeatureRepository {
+  constructor(private readonly db: Executor) {}
+
+  async listByOrg(orgId: OrgId) {
+    const rows = await this.db.select().from(schema.orgFeatures)
+      .where(eq(schema.orgFeatures.orgId, orgId))
+      .orderBy(asc(schema.orgFeatures.feature))
+    return rows.map((row): OrgFeature => ({ orgId: row.orgId as OrgId, feature: row.feature, enabledAt: row.enabledAt, enabledBy: row.enabledBy as UserId | null }))
+  }
+
+  async enable(feature: OrgFeature) {
+    await this.db.insert(schema.orgFeatures).values(feature).onDuplicateKeyUpdate({ set: { orgId: sql`org_id` } })
+  }
+
+  async disable(orgId: OrgId, feature: string) {
+    await this.db.delete(schema.orgFeatures)
+      .where(and(eq(schema.orgFeatures.orgId, orgId), eq(schema.orgFeatures.feature, feature)))
+  }
+}
