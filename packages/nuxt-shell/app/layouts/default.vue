@@ -12,6 +12,18 @@ const panelRem = computed(() => railRem.value + 11)
 // The sidebar reads its sizes and storage once, so each shape is its own
 // sidebar. Only the panel resizes, and each panel shape keeps its own width.
 const shape = computed(() => `shell-${panel.value ? 'panel' : 'rail'}${prefs.value.pinned ? '-pinned' : ''}`)
+
+// Only a column needs that. On a phone the sidebar is a slideover of fixed
+// width, and a new one would close and reopen it at every pin or toggle.
+const phone = ref(false)
+let query: MediaQueryList | undefined
+const onChange = () => phone.value = query!.matches
+onMounted(() => {
+  query = window.matchMedia('(max-width: 767.98px)')
+  onChange()
+  query.addEventListener('change', onChange)
+})
+onBeforeUnmount(() => query?.removeEventListener('change', onChange))
 </script>
 
 <template>
@@ -30,7 +42,7 @@ const shape = computed(() => `shell-${panel.value ? 'panel' : 'rail'}${prefs.val
            stays a column on tablets. -->
       <UDashboardSidebar
         :id="shape"
-        :key="shape"
+        :key="phone ? 'shell-phone' : shape"
         :resizable="!!panel"
         :default-size="panel ? panelRem : railRem"
         :min-size="panel ? panelRem : railRem"
