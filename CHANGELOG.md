@@ -52,6 +52,9 @@ sandbox, the docs and the tooling. The format follows
 
 ### Added
 
+- `pnpm db:migrate` reads another env file when `DOTENV` names it, as in
+  `DOTENV=.env.production pnpm db:migrate`, and connects as
+  `MIGRATION_DATABASE_URL` when that is set.
 - `@kmjbyrne/nuxt-platform`: an Application tab on Settings, for platform admins
   only: version, commit, build time, blue or green slot
   (`NUXT_DEPLOYMENT_SLOT`), host, Node version, uptime, and whether the database

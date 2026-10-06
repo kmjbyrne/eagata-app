@@ -1,8 +1,11 @@
 import { existsSync } from 'node:fs'
 import { defineConfig } from 'drizzle-kit'
 
-if (existsSync('.env')) {
-  process.loadEnvFile('.env')
+// DOTENV=.env.production pnpm db:migrate. drizzle-kit rejects flags it
+// doesn't know, so the file comes in through a variable.
+const envFile = process.env.DOTENV || '.env'
+if (existsSync(envFile)) {
+  process.loadEnvFile(envFile)
 }
 
 // The shell's tables and, as the app grows, its own. One migration history
@@ -16,6 +19,7 @@ export default defineConfig({
   ],
   out: './server/migrations',
   dbCredentials: {
-    url: process.env.NUXT_DATABASE_URL ?? ''
+    // The migrator may change the schema, as in compose's tools service.
+    url: process.env.MIGRATION_DATABASE_URL || process.env.NUXT_DATABASE_URL || ''
   }
 })
