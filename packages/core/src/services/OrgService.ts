@@ -2,7 +2,8 @@ import { NotFoundError } from '../errors'
 import type { CurrentUser } from '../ports/CurrentUser'
 import type { Repositories } from '../ports/Repositories'
 import type { Slug } from '../values/Slug'
-import { accessibleWorkspaces, parseSlugOrNotFound, requireAccessibleOrg, requireActiveUserId, type AccessibleOrg } from './access'
+import { type AccessibleOrg, accessibleWorkspaces, parseSlugOrNotFound, requireAccessibleOrg, requireActiveUserId, requireUser } from './access'
+import { acceptInvitations } from './acceptInvitations'
 
 export class OrgService {
   constructor(
@@ -15,7 +16,9 @@ export class OrgService {
    * see in each. Their personal org comes first, then the rest by name.
    */
   async listMine(): Promise<AccessibleOrg[]> {
-    const userId = await requireActiveUserId(this.repositories, this.currentUser)
+    const user = await requireUser(this.repositories, this.currentUser)
+    await acceptInvitations(this.repositories, user)
+    const userId = user.id
     const orgIds = new Set((await this.repositories.memberships.listByUser(userId)).map(membership => membership.orgId))
     for (const membership of await this.repositories.workspaceMembers.listByUser(userId)) {
       const workspace = await this.repositories.workspaces.findById(membership.workspaceId)

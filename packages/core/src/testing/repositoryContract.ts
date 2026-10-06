@@ -308,6 +308,32 @@ export function repositoryContract(createRepositories: () => Repositories | Prom
     })
   })
 
+  describe('workspace invitations', () => {
+    it('puts, lists, replaces and removes invitations by email', async () => {
+      const repositories = await createRepositories()
+      const acme = org()
+      const ada = user()
+      await repositories.orgs.create(acme)
+      await repositories.users.create(ada)
+      const general = workspace(acme.id)
+      const finance = workspace(acme.id)
+      await repositories.workspaces.create(general)
+      await repositories.workspaces.create(finance)
+      const email = `${id()}@example.com` as Email
+      const first = { workspaceId: general.id, email, role: 'viewer' as const, invitedBy: ada.id, createdAt: new Date('2026-06-01T12:00:00.123Z') }
+      const second = { ...first, workspaceId: finance.id, createdAt: new Date('2026-06-01T12:05:00.123Z') }
+      await repositories.invitations.put(first)
+      await repositories.invitations.put(second)
+      await repositories.invitations.put({ ...first, role: 'editor' })
+
+      expect(await repositories.invitations.listByWorkspace(general.id)).toEqual([{ ...first, role: 'editor' }])
+      expect((await repositories.invitations.listByEmail(email)).map(invitation => invitation.workspaceId).sort()).toEqual([general.id, finance.id].sort())
+      await repositories.invitations.remove(general.id, email)
+      expect(await repositories.invitations.listByWorkspace(general.id)).toEqual([])
+      expect(await repositories.invitations.listByEmail(email)).toEqual([second])
+    })
+  })
+
   describe('transactions', () => {
     it('keeps every write when the callback resolves, and returns its value', async () => {
       const repositories = await createRepositories()

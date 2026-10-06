@@ -50,6 +50,13 @@
       "when": 1791244438182,
       "tag": "0006_hard_gorgon",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "5",
+      "when": 1791244848901,
+      "tag": "0007_boring_daimon_hellstrom",
+      "breakpoints": true
     }
   ]
 }

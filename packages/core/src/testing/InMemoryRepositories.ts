@@ -2,12 +2,14 @@ import { orgSlugs, type Org } from '../entities/Org'
 import type { Membership } from '../entities/Membership'
 import { isPlatformAdmin, type LinkedIdentity, type PlatformRoleGrant, type User, type UserIdentity } from '../entities/User'
 import type { Workspace } from '../entities/Workspace'
+import type { WorkspaceInvitation } from '../entities/WorkspaceInvitation'
 import type { WorkspaceMembership } from '../entities/WorkspaceMembership'
 import { AlreadyMemberError, EmailTakenError, IdentityInUseError, SlugTakenError } from '../errors'
 import type { MembershipRepository } from '../ports/MembershipRepository'
 import type { OrgRepository } from '../ports/OrgRepository'
 import type { Repositories } from '../ports/Repositories'
 import type { UserRepository } from '../ports/UserRepository'
+import type { WorkspaceInvitationRepository } from '../ports/WorkspaceInvitationRepository'
 import type { WorkspaceMembershipRepository } from '../ports/WorkspaceMembershipRepository'
 import type { WorkspaceRepository } from '../ports/WorkspaceRepository'
 import type { Email } from '../values/Email'
@@ -20,6 +22,7 @@ interface State {
   workspaces: Workspace[]
   memberships: Membership[]
   workspaceMembers: WorkspaceMembership[]
+  invitations: WorkspaceInvitation[]
 }
 
 const copy = <T>(value: T): T => structuredClone(value)
@@ -31,13 +34,14 @@ const sameIdentity = (a: UserIdentity, b: UserIdentity) => a.provider === b.prov
  * transaction runs as a transaction of its own, so none is lost to another.
  */
 export class InMemoryRepositories implements Repositories {
-  private state: State = { users: [], orgs: [], workspaces: [], memberships: [], workspaceMembers: [] }
+  private state: State = { users: [], orgs: [], workspaces: [], memberships: [], workspaceMembers: [], invitations: [] }
   private queue: Promise<unknown> = Promise.resolve()
   readonly users = this.queued('users')
   readonly orgs = this.queued('orgs')
   readonly workspaces = this.queued('workspaces')
   readonly memberships = this.queued('memberships')
   readonly workspaceMembers = this.queued('workspaceMembers')
+  readonly invitations = this.queued('invitations')
 
   transaction<R>(fn: (tx: Repositories) => Promise<R>): Promise<R> {
     const result = this.queue.then(async () => {
@@ -68,6 +72,7 @@ function bound(state: () => State): Repositories {
     workspaces: new InMemoryWorkspaceRepository(state),
     memberships: new InMemoryMembershipRepository(state),
     workspaceMembers: new InMemoryWorkspaceMembershipRepository(state),
+    invitations: new InMemoryInvitationRepository(state),
     transaction: fn => fn(repositories)
   }
   return repositories
@@ -269,5 +274,28 @@ class InMemoryWorkspaceMembershipRepository implements WorkspaceMembershipReposi
     if (index !== -1) {
       workspaceMembers.splice(index, 1)
     }
+  }
+}
+
+class InMemoryInvitationRepository implements WorkspaceInvitationRepository {
+  constructor(private readonly state: () => State) {}
+
+  async listByWorkspace(workspaceId: WorkspaceId) {
+    return copy(this.state().invitations.filter(invitation => invitation.workspaceId === workspaceId))
+      .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
+  }
+
+  async listByEmail(email: Email) {
+    return copy(this.state().invitations.filter(invitation => invitation.email === email))
+  }
+
+  async put(invitation: WorkspaceInvitation) {
+    await this.remove(invitation.workspaceId, invitation.email)
+    this.state().invitations.push(copy(invitation))
+  }
+
+  async remove(workspaceId: WorkspaceId, email: Email) {
+    const state = this.state()
+    state.invitations = state.invitations.filter(invitation => !(invitation.workspaceId === workspaceId && invitation.email === email))
   }
 }

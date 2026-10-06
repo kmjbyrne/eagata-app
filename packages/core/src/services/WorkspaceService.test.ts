@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { workspacePermissions } from '../entities/permissions'
-import { AlreadyMemberError, ForbiddenError, LastOwnerError, NotFoundError, SlugTakenError } from '../errors'
+import { ForbiddenError, LastOwnerError, NotFoundError, SlugTakenError } from '../errors'
 import { companyOrg } from '../testing/companyOrg'
 import { createTestServices } from '../testing/createTestServices'
 
@@ -113,30 +113,68 @@ describe('WorkspaceService', () => {
   })
 
   describe('members', () => {
-    it('shares a workspace by email, and lists its members', async () => {
+    it('invites by email, and the invitation becomes a membership when they next open the app', async () => {
       const { t, ada, mary } = await setup()
       t.signInAs(ada)
-      await t.services.workspaces.addMember('acme', 'general', mary.email, 'editor')
+      const invitation = await t.services.workspaces.invite('acme', 'general', ' Mary.Somerville@example.com ', 'editor')
 
-      expect((await t.services.workspaces.listMembers('acme', 'general')).map(member => [member.user.displayName, member.role]))
-        .toEqual([['Ada Lovelace', 'owner'], ['Grace Hopper', 'viewer'], ['Mary Somerville', 'editor']])
+      expect(invitation).toMatchObject({ email: mary.email, role: 'editor', invitedBy: ada.id })
+      expect((await t.services.workspaces.listMembers('acme', 'general')).invitations.map(entry => [entry.email, entry.role])).toEqual([[mary.email, 'editor']])
       t.signInAs(mary)
+      await t.services.orgs.listMine()
       expect((await t.services.workspaceAccess.require('acme', 'general')).role).toBe('editor')
+      t.signInAs(ada)
+      const { members, invitations } = await t.services.workspaces.listMembers('acme', 'general')
+      expect(members.map(member => [member.user.displayName, member.role])).toEqual([['Ada Lovelace', 'owner'], ['Grace Hopper', 'viewer'], ['Mary Somerville', 'editor']])
+      expect(invitations).toEqual([])
     })
 
-    it('rejects an email with no account, and someone already a member', async () => {
+    it('answers the same for an email with no account, and someone already a member, revealing neither', async () => {
       const { t, ada, grace } = await setup()
       t.signInAs(ada)
 
-      await expect(t.services.workspaces.addMember('acme', 'general', 'nobody@example.com', 'viewer')).rejects.toThrow(NotFoundError)
-      await expect(t.services.workspaces.addMember('acme', 'general', grace.email, 'editor')).rejects.toThrow(AlreadyMemberError)
+      expect(await t.services.workspaces.invite('acme', 'general', 'nobody@example.com', 'viewer')).toMatchObject({ email: 'nobody@example.com', role: 'viewer' })
+      expect(await t.services.workspaces.invite('acme', 'general', grace.email, 'editor')).toMatchObject({ email: grace.email, role: 'editor' })
+    })
+
+    it('keeps an existing membership as it is when its member accepts an invitation', async () => {
+      const { t, ada, grace } = await setup()
+      t.signInAs(ada)
+      await t.services.workspaces.invite('acme', 'general', grace.email, 'owner')
+      t.signInAs(grace)
+      await t.services.orgs.listMine()
+
+      expect((await t.services.workspaceAccess.require('acme', 'general')).role).toBe('viewer')
+    })
+
+    it('waits for an account that doesn\'t exist yet, and applies once it does', async () => {
+      const { t, ada } = await setup()
+      t.signInAs(ada)
+      await t.services.workspaces.invite('acme', 'general', 'newcomer@example.com', 'viewer')
+      const newcomer = await t.addUser('New Comer', { email: 'newcomer@example.com' })
+      t.signInAs(newcomer)
+      await t.services.orgs.listMine()
+
+      expect((await t.services.workspaceAccess.require('acme', 'general')).role).toBe('viewer')
+    })
+
+    it('cancels an invitation', async () => {
+      const { t, ada, mary } = await setup()
+      t.signInAs(ada)
+      await t.services.workspaces.invite('acme', 'general', mary.email, 'editor')
+      await t.services.workspaces.cancelInvitation('acme', 'general', mary.email)
+      t.signInAs(mary)
+      await t.services.orgs.listMine()
+
+      await expect(t.services.workspaceAccess.require('acme', 'general')).rejects.toThrow(NotFoundError)
     })
 
     it('lets only workspace owners add, change and remove members', async () => {
       const { t, ada, grace, mary } = await setup()
       t.signInAs(grace)
 
-      await expect(t.services.workspaces.addMember('acme', 'general', mary.email, 'viewer')).rejects.toThrow(ForbiddenError)
+      await expect(t.services.workspaces.invite('acme', 'general', mary.email, 'viewer')).rejects.toThrow(ForbiddenError)
+      await expect(t.services.workspaces.cancelInvitation('acme', 'general', mary.email)).rejects.toThrow(ForbiddenError)
       await expect(t.services.workspaces.changeMemberRole('acme', 'general', ada.id, 'viewer')).rejects.toThrow(ForbiddenError)
       await expect(t.services.workspaces.removeMember('acme', 'general', ada.id)).rejects.toThrow(ForbiddenError)
     })

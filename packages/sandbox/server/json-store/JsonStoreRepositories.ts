@@ -22,12 +22,14 @@ import {
   type Workspace,
   type WorkspaceId,
   type WorkspaceMembership,
+  type WorkspaceInvitation,
+  type WorkspaceInvitationRepository,
   type WorkspaceMembershipRepository,
   type WorkspaceRepository
 } from '@kmjbyrne/core'
 import type { JsonStore } from '@kmjbyrne/json-store'
 import type { TenancyDocuments } from './collections'
-import { membershipId, workspaceMemberId, type OrgRecord, type UserRecord, type WorkspaceRecord } from './records'
+import { invitationId, membershipId, workspaceMemberId, type OrgRecord, type UserRecord, type WorkspaceRecord } from './records'
 
 type Store = JsonStore<TenancyDocuments>
 
@@ -80,6 +82,7 @@ export class JsonStoreRepositories implements Repositories {
   readonly workspaces: WorkspaceRepository
   readonly memberships: MembershipRepository
   readonly workspaceMembers: WorkspaceMembershipRepository
+  readonly invitations: WorkspaceInvitationRepository
 
   constructor(private readonly store: Store) {
     this.users = new JsonUserRepository(store)
@@ -87,6 +90,7 @@ export class JsonStoreRepositories implements Repositories {
     this.workspaces = new JsonWorkspaceRepository(store)
     this.memberships = new JsonMembershipRepository(store)
     this.workspaceMembers = new JsonWorkspaceMembershipRepository(store)
+    this.invitations = new JsonInvitationRepository(store)
   }
 
   transaction<R>(fn: (tx: Repositories) => Promise<R>): Promise<R> {
@@ -327,3 +331,33 @@ class JsonWorkspaceMembershipRepository implements WorkspaceMembershipRepository
 
 const toWorkspaceMembership = ({ workspaceId, userId, role }: TenancyDocuments['workspaceMembers']): WorkspaceMembership =>
   ({ workspaceId: workspaceId as WorkspaceId, userId: userId as UserId, role })
+
+class JsonInvitationRepository implements WorkspaceInvitationRepository {
+  constructor(private readonly store: Store) {}
+
+  async listByWorkspace(workspaceId: WorkspaceId) {
+    return (await this.store.find('invitations', invitation => invitation.workspaceId === workspaceId))
+      .map(toInvitation)
+      .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
+  }
+
+  async listByEmail(email: Email) {
+    return (await this.store.find('invitations', invitation => invitation.email === email)).map(toInvitation)
+  }
+
+  async put(invitation: WorkspaceInvitation) {
+    await this.store.put('invitations', { id: invitationId(invitation.workspaceId, invitation.email), ...invitation, createdAt: invitation.createdAt.toISOString() })
+  }
+
+  async remove(workspaceId: WorkspaceId, email: Email) {
+    await this.store.delete('invitations', invitationId(workspaceId, email))
+  }
+}
+
+const toInvitation = (record: TenancyDocuments['invitations']): WorkspaceInvitation => ({
+  workspaceId: record.workspaceId as WorkspaceId,
+  email: record.email as Email,
+  role: record.role,
+  invitedBy: record.invitedBy as UserId,
+  createdAt: new Date(record.createdAt)
+})

@@ -16,7 +16,7 @@ describe.skipIf(!url)('MysqlRepositories', () => {
 
   beforeAll(async () => {
     await migrate(db, { migrationsFolder })
-    for (const table of ['workspace_memberships', 'org_memberships', 'workspaces', 'org_slugs', 'orgs', 'user_identities', 'users']) {
+    for (const table of ['workspace_invitations', 'workspace_memberships', 'org_memberships', 'workspaces', 'org_slugs', 'orgs', 'user_identities', 'users']) {
       await db.execute(sql.raw(`DELETE FROM ${table}`))
     }
   })

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { WorkspaceRoleValue } from '../../../../shared/contracts/orgs'
-import type { WorkspaceMemberResponse } from '../../../../shared/contracts/workspaces'
+import type { InvitationResponse, MembersResponse, WorkspaceMemberResponse } from '../../../../shared/contracts/workspaces'
 
 const { org, workspace } = useCurrentWorkspace()
 if (!org.value || !workspace.value) {
@@ -13,7 +13,10 @@ const api = useApi()
 const { me } = useMe()
 const { refresh: refreshOrgs } = useOrgs()
 const path = computed(() => `/api/orgs/${org.value!.org.slug}/workspaces/${workspace.value!.slug}/members`)
-const { data: members, refresh } = await useFetch<WorkspaceMemberResponse[]>(path, { default: () => [], headers: useRequestHeaders(['cookie']) })
+const { data, refresh } = await useFetch<MembersResponse>(path, { default: () => ({ members: [], invitations: [] }), headers: useRequestHeaders(['cookie']) })
+const members = computed(() => data.value.members)
+const invitations = computed(() => data.value.invitations)
+const invitationsPath = computed(() => path.value.replace(/\/members$/, '/invitations'))
 
 const canManage = computed(() => workspace.value?.permissions.includes('members.manage') ?? false)
 const roles: { label: string, value: WorkspaceRoleValue }[] = [
@@ -38,12 +41,15 @@ async function act(work: () => Promise<unknown>, done: string) {
   }
 }
 
-async function add() {
+async function invite() {
   adding.value = true
-  await act(() => api(path.value, { method: 'POST', body: { email: email.value, role: role.value } }), `Shared with ${email.value}`)
+  await act(() => api(invitationsPath.value, { method: 'POST', body: { email: email.value, role: role.value } }), `Invited ${email.value}`)
   email.value = ''
   adding.value = false
 }
+
+const cancel = (invitation: InvitationResponse) =>
+  act(() => api(`${invitationsPath.value}/${encodeURIComponent(invitation.email)}`, { method: 'DELETE' }), `Withdrew the invitation to ${invitation.email}`)
 
 const changeRole = (member: WorkspaceMemberResponse, value: WorkspaceRoleValue) =>
   act(() => api(`${path.value}/${member.user.id}`, { method: 'PATCH', body: { role: value } }), `${member.user.displayName} is now ${value === 'owner' ? 'an' : 'a'} ${value}`)
@@ -77,12 +83,12 @@ async function leave() {
         <UPageCard
           v-if="canManage"
           title="Share this workspace"
-          description="Add someone who has an account, by their email."
+          description="Invite someone by email. They join the next time they open the app with an account for that email."
           variant="subtle"
         >
           <form
             class="flex flex-wrap items-end gap-2"
-            @submit.prevent="add"
+            @submit.prevent="invite"
           >
             <UFormField
               label="Email"
@@ -104,7 +110,7 @@ async function leave() {
             </UFormField>
             <UButton
               type="submit"
-              label="Add"
+              label="Invite"
               :loading="adding"
               :disabled="!email"
             />
@@ -155,8 +161,39 @@ async function leave() {
               </div>
             </li>
           </ul>
+          <ul
+            v-if="invitations.length"
+            class="divide-y divide-default border-t border-default"
+          >
+            <li
+              v-for="invitation in invitations"
+              :key="invitation.email"
+              class="flex items-center justify-between gap-4 py-2"
+            >
+              <UUser
+                :name="invitation.email"
+                description="Invited"
+                :avatar="{ icon: 'i-lucide-mail' }"
+              />
+              <div class="flex items-center gap-2">
+                <UBadge
+                  :label="invitation.role"
+                  color="neutral"
+                  variant="subtle"
+                />
+                <UButton
+                  v-if="canManage"
+                  icon="i-lucide-x"
+                  color="neutral"
+                  variant="ghost"
+                  :aria-label="`Withdraw the invitation to ${invitation.email}`"
+                  @click="cancel(invitation)"
+                />
+              </div>
+            </li>
+          </ul>
           <p
-            v-if="!members.length"
+            v-if="!members.length && !invitations.length"
             class="text-sm text-muted"
           >
             Nobody has been added to this workspace. Organization owners and admins manage it.

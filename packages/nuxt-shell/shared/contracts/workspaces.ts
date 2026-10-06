@@ -23,9 +23,21 @@ export const workspaceMember = z.object({
   role: workspaceRole
 })
 
-export const addMemberBody = z.object({
-  email: z.string(),
+export const inviteBody = z.object({
+  email: z.string().max(255),
   role: workspaceRole
+})
+
+/** An invitation waiting to become a membership, when its email next opens the app. */
+export const invitationResponse = z.object({
+  email: z.string(),
+  role: workspaceRole,
+  createdAt: z.iso.datetime()
+})
+
+export const membersResponse = z.object({
+  members: z.array(workspaceMember),
+  invitations: z.array(invitationResponse)
 })
 
 export const changeMemberRoleBody = z.object({
@@ -35,5 +47,7 @@ export const changeMemberRoleBody = z.object({
 export type CreateWorkspaceBody = z.infer<typeof createWorkspaceBody>
 export type WorkspaceResponse = z.infer<typeof workspaceResponse>
 export type WorkspaceMemberResponse = z.infer<typeof workspaceMember>
-export type AddMemberBody = z.infer<typeof addMemberBody>
+export type InviteBody = z.infer<typeof inviteBody>
+export type InvitationResponse = z.infer<typeof invitationResponse>
+export type MembersResponse = z.infer<typeof membersResponse>
 export type ChangeMemberRoleBody = z.infer<typeof changeMemberRoleBody>

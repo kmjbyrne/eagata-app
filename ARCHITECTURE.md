@@ -111,7 +111,9 @@ Three kinds of role decide who may do what, and they stay separate everywhere:
 - The **workspace role** belongs to a workspace membership: `owner`, `editor` or
   `viewer`. Plain org members, and people from outside the org, see a workspace
   only through a workspace membership. That is how a workspace is shared: its
-  owner adds someone by the email of their account.
+  owner invites someone by email, and the invitation becomes a membership when
+  they next open the app. Inviting answers the same for every email, so it never
+  reveals who has an account.
 
 An org always keeps an owner, and a workspace always keeps an owner member.
 Anything a user can't see is "not found", so its existence isn't revealed. A

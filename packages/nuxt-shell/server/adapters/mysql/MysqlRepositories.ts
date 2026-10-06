@@ -24,6 +24,8 @@ import {
   type Workspace,
   type WorkspaceId,
   type WorkspaceMembership,
+  type WorkspaceInvitation,
+  type WorkspaceInvitationRepository,
   type WorkspaceMembershipRepository,
   type WorkspaceRepository,
   type WorkspaceRole
@@ -51,6 +53,7 @@ export class MysqlRepositories implements Repositories {
   readonly workspaces: WorkspaceRepository
   readonly memberships: MembershipRepository
   readonly workspaceMembers: WorkspaceMembershipRepository
+  readonly invitations: WorkspaceInvitationRepository
 
   constructor(private readonly db: Database, private readonly executor: Executor = db, private readonly inTransaction = false) {
     const atomically = <R>(fn: (executor: Executor) => Promise<R>) =>
@@ -60,6 +63,7 @@ export class MysqlRepositories implements Repositories {
     this.workspaces = new MysqlWorkspaceRepository(executor)
     this.memberships = new MysqlMembershipRepository(executor, inTransaction)
     this.workspaceMembers = new MysqlWorkspaceMembershipRepository(executor, inTransaction)
+    this.invitations = new MysqlInvitationRepository(executor)
   }
 
   transaction<R>(fn: (tx: Repositories) => Promise<R>): Promise<R> {
@@ -381,3 +385,36 @@ class MysqlWorkspaceMembershipRepository implements WorkspaceMembershipRepositor
 
 const toWorkspaceMembership = (row: typeof schema.workspaceMemberships.$inferSelect): WorkspaceMembership =>
   ({ workspaceId: row.workspaceId as WorkspaceId, userId: row.userId as UserId, role: row.role as WorkspaceRole })
+
+class MysqlInvitationRepository implements WorkspaceInvitationRepository {
+  constructor(private readonly db: Executor) {}
+
+  async listByWorkspace(workspaceId: WorkspaceId) {
+    const rows = await this.db.select().from(schema.workspaceInvitations)
+      .where(eq(schema.workspaceInvitations.workspaceId, workspaceId))
+      .orderBy(asc(schema.workspaceInvitations.createdAt))
+    return rows.map(toInvitation)
+  }
+
+  async listByEmail(email: Email) {
+    return (await this.db.select().from(schema.workspaceInvitations).where(eq(schema.workspaceInvitations.email, email))).map(toInvitation)
+  }
+
+  async put(invitation: WorkspaceInvitation) {
+    await this.db.insert(schema.workspaceInvitations).values(invitation)
+      .onDuplicateKeyUpdate({ set: { role: invitation.role, invitedBy: invitation.invitedBy, createdAt: invitation.createdAt } })
+  }
+
+  async remove(workspaceId: WorkspaceId, email: Email) {
+    await this.db.delete(schema.workspaceInvitations)
+      .where(and(eq(schema.workspaceInvitations.workspaceId, workspaceId), eq(schema.workspaceInvitations.email, email)))
+  }
+}
+
+const toInvitation = (row: typeof schema.workspaceInvitations.$inferSelect): WorkspaceInvitation => ({
+  workspaceId: row.workspaceId as WorkspaceId,
+  email: row.email as Email,
+  role: row.role as WorkspaceRole,
+  invitedBy: row.invitedBy as UserId,
+  createdAt: row.createdAt
+})

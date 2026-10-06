@@ -10,6 +10,17 @@ sandbox, the docs and the tooling. The format follows
 
 ## Unreleased
 
+### Security
+
+- Sharing a workspace no longer reveals whether an email has an account.
+  Workspace owners now invite by email, and get the same answer for every email.
+  An invitation becomes a membership when someone with that email next opens the
+  app, or once a platform admin sets an account up for them. The members page
+  lists pending invitations, which owners can withdraw. Invites are limited to
+  50 an hour per person. `WorkspaceService.addMember` is replaced by `invite`
+  and `cancelInvitation`, and `Repositories` gains `invitations`. A new
+  `workspace_invitations` table comes with migration `0007`.
+
 ### Fixed
 
 - `@varcharley/editor`: a compact editor, such as a feedback reply, no longer

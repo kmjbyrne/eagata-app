@@ -2,7 +2,7 @@ import { $fetch } from '@nuxt/test-utils/e2e'
 import { beforeAll, describe, expect, it } from 'vitest'
 import type { HomeResponse, MeResponse } from '../shared/contracts/me'
 import type { AccessibleOrgResponse, AccessibleWorkspaceResponse, ResolveSlugResponse } from '../shared/contracts/orgs'
-import type { WorkspaceMemberResponse, WorkspaceResponse } from '../shared/contracts/workspaces'
+import type { InvitationResponse, MembersResponse, WorkspaceResponse } from '../shared/contracts/workspaces'
 import { Browser, createUser } from '../testing'
 import { setupLayer } from './setup'
 
@@ -41,7 +41,8 @@ describe('signed out', () => {
     ['GET', `/api/orgs/${acme}/workspaces`],
     ['POST', `/api/orgs/${acme}/workspaces`],
     ['GET', `/api/orgs/${acme}/workspaces/general/members`],
-    ['POST', `/api/orgs/${acme}/workspaces/general/members`],
+    ['POST', `/api/orgs/${acme}/workspaces/general/invitations`],
+    ['DELETE', `/api/orgs/${acme}/workspaces/general/invitations/x%40example.com`],
     ['PATCH', `/api/orgs/${acme}/workspaces/general/members/someone`],
     ['DELETE', `/api/orgs/${acme}/workspaces/general/members/someone`],
     ['PUT', '/api/me/last-workspace'],
@@ -105,29 +106,39 @@ describe('workspaces', () => {
   })
 })
 
-describe('workspace members', () => {
+describe('workspace members and invitations', () => {
   const members = `/api/orgs/${acme}/workspaces/finance/members`
+  const invitations = `/api/orgs/${acme}/workspaces/finance/invitations`
 
-  it('lets an owner share a workspace by email, change the role, and remove the member', async () => {
+  it('invites by email, the invitee joins on their next visit, and the owner changes the role and removes them', async () => {
     const me = (await mary.json<MeResponse>('/api/me')).body
-    const added = await ada.json<WorkspaceMemberResponse>(members, json({ email: email('mary'), role: 'viewer' }))
-    expect(added).toMatchObject({ status: 201, body: { role: 'viewer', user: { email: email('mary') } } })
+    const invited = await ada.json<InvitationResponse>(invitations, json({ email: email('mary'), role: 'viewer' }))
+    expect(invited).toMatchObject({ status: 201, body: { email: email('mary'), role: 'viewer' } })
+    expect((await ada.json<MembersResponse>(members)).body.invitations.map(invitation => invitation.email)).toContain(email('mary'))
+
+    await mary.json('/api/orgs')
     expect((await mary.json(`/api/orgs/${acme}/workspaces`)).status).toBe(200)
+    expect((await ada.json<MembersResponse>(members)).body.invitations).toEqual([])
 
     expect((await ada.request(`${members}/${me.id}`, send('PATCH', { role: 'editor' }))).status).toBe(204)
-    expect((await ada.json<WorkspaceMemberResponse[]>(members)).body.find(member => member.user.id === me.id)?.role).toBe('editor')
+    expect((await ada.json<MembersResponse>(members)).body.members.find(member => member.user.id === me.id)?.role).toBe('editor')
 
     expect((await ada.request(`${members}/${me.id}`, send('DELETE'))).status).toBe(204)
     expect((await mary.json(`/api/orgs/${acme}/workspaces`)).status).toBe(404)
   })
 
-  it('refuses anyone but a workspace owner, and hides the workspace from outsiders', async () => {
-    expect((await grace.request(members, json({ email: email('mary'), role: 'viewer' }))).status).toBe(404)
-    expect((await mary.request(members)).status).toBe(404)
+  it('answers the same for an email with no account, so it reveals nothing, and withdraws an invitation', async () => {
+    const unknown = await ada.json<InvitationResponse>(invitations, json({ email: 'nobody@example.com', role: 'viewer' }))
+    expect(unknown).toMatchObject({ status: 201, body: { email: 'nobody@example.com', role: 'viewer' } })
+
+    expect((await ada.request(`${invitations}/${encodeURIComponent('nobody@example.com')}`, send('DELETE'))).status).toBe(204)
+    expect((await ada.json<MembersResponse>(members)).body.invitations.map(invitation => invitation.email)).not.toContain('nobody@example.com')
   })
 
-  it('answers 404 for an email with no account', async () => {
-    expect((await ada.request(members, json({ email: 'nobody@example.com', role: 'viewer' }))).status).toBe(404)
+  it('refuses anyone but a workspace owner, and hides the workspace from outsiders', async () => {
+    expect((await grace.request(invitations, json({ email: email('mary'), role: 'viewer' }))).status).toBe(404)
+    expect((await mary.request(members)).status).toBe(404)
+    expect((await mary.request(invitations, json({ email: email('mary'), role: 'viewer' }))).status).toBe(404)
   })
 })
 

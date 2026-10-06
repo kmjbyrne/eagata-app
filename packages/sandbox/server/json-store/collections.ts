@@ -1,6 +1,6 @@
 import { defineCollections, type DocumentsOf } from '@kmjbyrne/json-store'
 import { defaultTenancyFixtures, type TenancyFixtures } from './fixtures'
-import { membershipRecord, orgRecord, userRecord, workspaceMemberRecord, workspaceRecord } from './records'
+import { invitationRecord, membershipRecord, orgRecord, userRecord, workspaceMemberRecord, workspaceRecord } from './records'
 
 /**
  * The tenancy collections, seeded from fixtures: the defaults, or an app's
@@ -12,7 +12,8 @@ export function tenancyCollections(fixtures: TenancyFixtures = defaultTenancyFix
     orgs: { schema: orgRecord, seed: () => fixtures.orgs },
     workspaces: { schema: workspaceRecord, seed: () => fixtures.workspaces },
     memberships: { schema: membershipRecord, seed: () => fixtures.memberships },
-    workspaceMembers: { schema: workspaceMemberRecord, seed: () => fixtures.workspaceMembers }
+    workspaceMembers: { schema: workspaceMemberRecord, seed: () => fixtures.workspaceMembers },
+    invitations: { schema: invitationRecord, seed: () => [] }
   })
 }
 

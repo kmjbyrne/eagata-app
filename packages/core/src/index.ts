@@ -15,6 +15,7 @@ export {
   WORKSPACE_ROLES
 } from './entities/WorkspaceMembership'
 export type { WorkspaceMembership, WorkspaceRole } from './entities/WorkspaceMembership'
+export type { WorkspaceInvitation } from './entities/WorkspaceInvitation'
 export type { Workspace } from './entities/Workspace'
 export {
   AccountDeactivatedError,
@@ -54,6 +55,7 @@ export type { Slug } from './values/Slug'
 export type { CurrentUser } from './ports/CurrentUser'
 export type { EmailMessage, EmailSender } from './ports/EmailSender'
 export type { IdGenerator } from './ports/IdGenerator'
+export type { WorkspaceInvitationRepository } from './ports/WorkspaceInvitationRepository'
 export { TooManyAttemptsError } from './ports/RateLimiter'
 export type { RateLimiter, RateRule } from './ports/RateLimiter'
 export type { LinkProof } from './ports/LinkProof'
@@ -81,4 +83,5 @@ export { PlatformOrgService } from './services/PlatformOrgService'
 export type { PlatformOrgDetail, PlatformOrgMember, PlatformOrgSummary } from './services/PlatformOrgService'
 export { PlatformUserService } from './services/PlatformUserService'
 export type { PlatformUserDetail } from './services/PlatformUserService'
+export { acceptInvitations } from './services/acceptInvitations'
 export { bootstrapPlatformAdmin } from './services/bootstrapPlatformAdmin'

@@ -56,6 +56,17 @@ export const workspaceMemberRecord = z.object({
   role: z.enum(['owner', 'editor', 'viewer'])
 })
 
+export const invitationRecord = z.object({
+  id: z.string(),
+  workspaceId: z.string(),
+  email: z.string(),
+  role: z.enum(['owner', 'editor', 'viewer']),
+  invitedBy: z.string(),
+  createdAt: z.iso.datetime()
+})
+
+export const invitationId = (workspaceId: string, email: string) => `${workspaceId}:${email}`
+
 export type UserRecord = z.infer<typeof userRecord>
 export type OrgRecord = z.infer<typeof orgRecord>
 export type WorkspaceRecord = z.infer<typeof workspaceRecord>

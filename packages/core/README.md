@@ -158,12 +158,12 @@ the given adapters. It is cheap, so build it per request with that request's
 `CurrentUser`. Every service acts as the current user, and throws
 `NotSignedInError` if there is none.
 
-| Service           | Methods                                                                          |
-| ----------------- | -------------------------------------------------------------------------------- |
-| `users`           | `getMe()`                                                                        |
-| `orgs`            | `listMine()`, `getBySlug(slug)`, `resolveSlug(oldSlug)`                          |
-| `workspaces`      | `list`, `create`, `listMembers`, `addMember`, `changeMemberRole`, `removeMember` |
-| `workspaceAccess` | `require(orgSlug, workspaceSlug, role?)`                                         |
+| Service           | Methods                                                                                           |
+| ----------------- | ------------------------------------------------------------------------------------------------- |
+| `users`           | `getMe()`                                                                                         |
+| `orgs`            | `listMine()`, `getBySlug(slug)`, `resolveSlug(oldSlug)`                                           |
+| `workspaces`      | `list`, `create`, `listMembers`, `invite`, `cancelInvitation`, `changeMemberRole`, `removeMember` |
+| `workspaceAccess` | `require(orgSlug, workspaceSlug, role?)`                                                          |
 
 The rules they enforce:
 
@@ -177,9 +177,12 @@ The rules they enforce:
   revealed. Old org slugs aren't accepted, except by `resolveSlug`, which
   returns the current slug so an old link can redirect.
 - Org owners and admins create workspaces, and become the new workspace's owner.
-- Workspace owners add people by the email of an existing account, and change or
-  remove members. Any member can remove themselves. A workspace always keeps an
-  owner.
+- Workspace owners invite people by email, and change or remove members.
+  Inviting answers the same whether or not the email has an account, so it can't
+  be used to find out who has one. An invitation becomes a membership when
+  someone with that email next loads their orgs, through `acceptInvitations`, or
+  once a platform admin sets an account up for them. Any member can remove
+  themselves. A workspace always keeps an owner.
 
 ### Permissions
 

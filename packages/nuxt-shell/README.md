@@ -162,13 +162,13 @@ migrations in `test/mysql-migrations`. Regenerate them with
 
 ## Pages and Components
 
-| Page                       | What it is                                                                         |
-| -------------------------- | ---------------------------------------------------------------------------------- |
-| `/login`                   | The sign-in button, error messages, and any `loginExtras`                          |
-| `/`                        | Redirects to the last-used workspace, the only org's first workspace, or `/choose` |
-| `/choose`                  | Every org and workspace the user reaches, with their roles                         |
-| `/profile`                 | The user, their sign-in providers and their orgs                                   |
-| `/:org/:workspace/members` | Who the workspace is shared with. Owners add, change and remove.                   |
+| Page                       | What it is                                                                             |
+| -------------------------- | -------------------------------------------------------------------------------------- |
+| `/login`                   | The sign-in button, error messages, and any `loginExtras`                              |
+| `/`                        | Redirects to the last-used workspace, the only org's first workspace, or `/choose`     |
+| `/choose`                  | Every org and workspace the user reaches, with their roles                             |
+| `/profile`                 | The user, their sign-in providers and their orgs                                       |
+| `/:org/:workspace/members` | Who the workspace is shared with, and who's invited. Owners invite, change and remove. |
 
 The app supplies its own layout and workspace pages, and places these components
 in it:
@@ -298,19 +298,20 @@ Other failures go back to `/login?error=` with a reason:
 Every route acts as the signed-in user, answers 401 to anyone signed out, and
 404 for anything the user can't see. API routes accept current org slugs only.
 
-| Route                                                         | What it does                                                                      |
-| ------------------------------------------------------------- | --------------------------------------------------------------------------------- |
-| `GET /api/orgs`                                               | The orgs the user reaches, with roles and visible workspaces                      |
-| `GET /api/orgs/:org`                                          | One of them                                                                       |
-| `GET /api/orgs/:oldSlug/resolve`                              | `{ slug }`: the current slug, so old links can redirect                           |
-| `GET /api/orgs/:org/workspaces`                               | The org's workspaces the user sees                                                |
-| `POST /api/orgs/:org/workspaces`                              | `{ name, slug? }`. Org owners and admins only.                                    |
-| `GET /api/orgs/:org/workspaces/:workspace/members`            | The workspace's members                                                           |
-| `POST /api/orgs/:org/workspaces/:workspace/members`           | `{ email, role }`: shares the workspace. Owners only.                             |
-| `PATCH /api/orgs/:org/workspaces/:workspace/members/:userId`  | `{ role }`. Owners only.                                                          |
-| `DELETE /api/orgs/:org/workspaces/:workspace/members/:userId` | Owners remove anyone. A member removes themselves to leave.                       |
-| `PUT /api/me/last-workspace`                                  | `{ org, workspace }`: remembers it, for where `/` goes                            |
-| `GET /api/me/home`                                            | `{ path }`: the last-used workspace, the only org's first workspace, or `/choose` |
+| Route                                                            | What it does                                                                          |
+| ---------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `GET /api/orgs`                                                  | The orgs the user reaches, with roles and visible workspaces                          |
+| `GET /api/orgs/:org`                                             | One of them                                                                           |
+| `GET /api/orgs/:oldSlug/resolve`                                 | `{ slug }`: the current slug, so old links can redirect                               |
+| `GET /api/orgs/:org/workspaces`                                  | The org's workspaces the user sees                                                    |
+| `POST /api/orgs/:org/workspaces`                                 | `{ name, slug? }`. Org owners and admins only.                                        |
+| `GET /api/orgs/:org/workspaces/:workspace/members`               | The workspace's members, and invitations waiting                                      |
+| `POST /api/orgs/:org/workspaces/:workspace/invitations`          | `{ email, role }`: invites. The same answer for every email. Owners only, 50 an hour. |
+| `DELETE /api/orgs/:org/workspaces/:workspace/invitations/:email` | Withdraws an invitation. Owners only.                                                 |
+| `PATCH /api/orgs/:org/workspaces/:workspace/members/:userId`     | `{ role }`. Owners only.                                                              |
+| `DELETE /api/orgs/:org/workspaces/:workspace/members/:userId`    | Owners remove anyone. A member removes themselves to leave.                           |
+| `PUT /api/me/last-workspace`                                     | `{ org, workspace }`: remembers it, for where `/` goes                                |
+| `GET /api/me/home`                                               | `{ path }`: the last-used workspace, the only org's first workspace, or `/choose`     |
 
 The old-slug route sits under the org (`/api/orgs/:oldSlug/resolve`) rather than
 at `/api/orgs/resolve/:slug`. An org slugged `resolve` would otherwise clash

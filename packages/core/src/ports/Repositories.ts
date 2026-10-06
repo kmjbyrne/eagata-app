@@ -1,6 +1,7 @@
 import type { MembershipRepository } from './MembershipRepository'
 import type { OrgRepository } from './OrgRepository'
 import type { UserRepository } from './UserRepository'
+import type { WorkspaceInvitationRepository } from './WorkspaceInvitationRepository'
 import type { WorkspaceMembershipRepository } from './WorkspaceMembershipRepository'
 import type { WorkspaceRepository } from './WorkspaceRepository'
 
@@ -12,6 +13,8 @@ export interface Repositories {
   /** Org memberships. */
   memberships: MembershipRepository
   workspaceMembers: WorkspaceMembershipRepository
+  /** Workspace invitations by email, waiting to become memberships. */
+  invitations: WorkspaceInvitationRepository
   /**
    * Keeps all of `fn`'s writes or none. Inside, use the repositories `fn` is
    * given: checks made through them hold until it ends, so a rule such as "an

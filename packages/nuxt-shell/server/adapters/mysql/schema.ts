@@ -104,3 +104,19 @@ export const workspaceMemberships = mysqlTable('workspace_memberships', {
   index('workspace_memberships_user_idx').on(table.userId),
   check('workspace_memberships_role_check', oneOf(table.role, WORKSPACE_ROLES))
 ])
+
+/**
+ * Workspace invitations by email, until they become memberships. An email may
+ * have no account yet, so it isn't a foreign key.
+ */
+export const workspaceInvitations = mysqlTable('workspace_invitations', {
+  workspaceId: varchar('workspace_id', { length: 64 }).notNull().references(() => workspaces.id, { onDelete: 'cascade' }),
+  email: varchar('email', { length: 255 }).notNull(),
+  role: varchar('role', { length: 16 }).notNull(),
+  invitedBy: varchar('invited_by', { length: 64 }).notNull().references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: datetime('created_at', { fsp: 3 }).notNull()
+}, table => [
+  primaryKey({ name: 'workspace_invitations_pk', columns: [table.workspaceId, table.email] }),
+  index('workspace_invitations_email_idx').on(table.email),
+  check('workspace_invitations_role_check', oneOf(table.role, WORKSPACE_ROLES))
+])

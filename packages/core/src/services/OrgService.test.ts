@@ -44,7 +44,7 @@ describe('OrgService', () => {
       const { t, ada, mary } = await setup()
       t.signInAs(ada)
       const personal = (await t.services.orgs.listMine())[0]!
-      await t.services.workspaces.addMember(personal.org.slug, 'general', mary.email, 'viewer')
+      await t.services.workspaces.invite(personal.org.slug, 'general', mary.email, 'viewer')
       t.signInAs(mary)
 
       expect((await t.services.orgs.listMine()).map(entry => [entry.org.slug, entry.role, entry.workspaces.length]))

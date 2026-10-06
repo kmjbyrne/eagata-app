@@ -1,6 +1,7 @@
 import { orgPermissions } from '../entities/permissions'
 import type { User } from '../entities/User'
 import type { Workspace } from '../entities/Workspace'
+import type { WorkspaceInvitation } from '../entities/WorkspaceInvitation'
 import { ensureWorkspaceOwnerRemains, parseWorkspaceRole } from '../entities/WorkspaceMembership'
 import { ForbiddenError, NotFoundError } from '../errors'
 import type { CurrentUser } from '../ports/CurrentUser'
@@ -57,8 +58,11 @@ export class WorkspaceService {
     return workspace
   }
 
-  /** Everyone with a workspace membership. Org owners and admins without one aren't listed. */
-  async listMembers(orgSlug: string, workspaceSlug: string): Promise<WorkspaceMember[]> {
+  /**
+   * Everyone with a workspace membership, and the invitations waiting to
+   * become one. Org owners and admins without a membership aren't listed.
+   */
+  async listMembers(orgSlug: string, workspaceSlug: string): Promise<{ members: WorkspaceMember[], invitations: WorkspaceInvitation[] }> {
     const { workspace } = await this.access.require(orgSlug, workspaceSlug, 'members.view')
     const members: WorkspaceMember[] = []
     for (const membership of await this.repositories.workspaceMembers.listByWorkspace(workspace.id)) {
@@ -67,24 +71,28 @@ export class WorkspaceService {
         members.push({ user: { id: user.id, displayName: user.displayName, email: user.email, avatarUrl: user.avatarUrl }, role: membership.role })
       }
     }
-    return members.sort((a, b) => a.user.displayName.localeCompare(b.user.displayName))
+    members.sort((a, b) => a.user.displayName.localeCompare(b.user.displayName))
+    return { members, invitations: await this.repositories.invitations.listByWorkspace(workspace.id) }
   }
 
   /**
-   * Shares the workspace with someone who has an account, by their email.
-   * @throws ForbiddenError unless the current user is a workspace owner
-   * @throws NotFoundError if no account has the email
-   * @throws AlreadyMemberError
+   * Invites someone by email. The answer is the same whether or not the email
+   * has an account, so this can't be used to find out who does. They join
+   * when they next open the app, or once an account is set up for them.
+   * Inviting the same email again replaces the role.
+   * @throws ForbiddenError unless the current user may manage members
    */
-  async addMember(orgSlug: string, workspaceSlug: string, email: string, role: string): Promise<WorkspaceMember> {
+  async invite(orgSlug: string, workspaceSlug: string, email: string, role: string): Promise<WorkspaceInvitation> {
+    const { workspace, userId } = await this.access.require(orgSlug, workspaceSlug, 'members.manage')
+    const invitation: WorkspaceInvitation = { workspaceId: workspace.id, email: parseEmail(email), role: parseWorkspaceRole(role), invitedBy: userId, createdAt: new Date() }
+    await this.repositories.invitations.put(invitation)
+    return invitation
+  }
+
+  /** Withdraws an invitation. Withdrawing one that doesn't exist does nothing. */
+  async cancelInvitation(orgSlug: string, workspaceSlug: string, email: string): Promise<void> {
     const { workspace } = await this.access.require(orgSlug, workspaceSlug, 'members.manage')
-    const parsedRole = parseWorkspaceRole(role)
-    const user = await this.repositories.users.findByEmail(parseEmail(email))
-    if (!user) {
-      throw new NotFoundError('No account has that email. They need to sign up first')
-    }
-    await this.repositories.workspaceMembers.add({ workspaceId: workspace.id, userId: user.id, role: parsedRole })
-    return { user: { id: user.id, displayName: user.displayName, email: user.email, avatarUrl: user.avatarUrl }, role: parsedRole }
+    await this.repositories.invitations.remove(workspace.id, parseEmail(email))
   }
 
   /** @throws LastOwnerError if no owner would remain */
