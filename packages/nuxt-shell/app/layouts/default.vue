@@ -1,9 +1,20 @@
 <script setup lang="ts">
 const { active } = useNavSections()
-const { prefs, resize } = useNavPrefs()
+const { prefs, resize, toggle } = useNavPrefs()
 
 // Every section opens a panel: its own component, or the list of its items.
 const panel = computed(() => prefs.value.panelOpen ? active.value : undefined)
+
+// A page's UDashboardSidebarCollapse collapses the sidebar, which here means
+// the panel: the same as the rail's own control, and kept in step with it.
+const collapsed = computed({
+  get: () => !prefs.value.panelOpen,
+  set: (value) => {
+    if (value === prefs.value.panelOpen) {
+      toggle('panelOpen')
+    }
+  }
+})
 
 // Only a column needs that. On a phone the sidebar is a slideover of fixed
 // width, and a new one would close and reopen it at every pin or toggle.
@@ -37,6 +48,9 @@ onBeforeUnmount(() => query?.removeEventListener('change', onChange))
       <UDashboardSidebar
         id="shell"
         :key="phone ? 'shell-phone' : 'shell'"
+        v-model:collapsed="collapsed"
+        collapsible
+        :persistent="false"
         :ui="{
           root: ['min-h-0 w-auto min-w-0 md:flex', prefs.visible ? '' : 'md:hidden lg:hidden'],
           body: 'flex-row gap-0 overflow-hidden p-0 sm:p-0',

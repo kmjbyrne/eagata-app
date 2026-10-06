@@ -166,6 +166,9 @@ sandbox, the docs and the tooling. The format follows
 
 ### Changed
 
+- `@kmjbyrne/nuxt-shell`: a page's `UDashboardSidebarCollapse` collapses and
+  expands the section panel again, in step with the rail's own control. It had
+  done nothing since the double rail replaced the collapsible sidebar.
 - `@kmjbyrne/nuxt-shell`: the rail and the panel each drag to their own width,
   instead of only the panel. The rail shows labels once wide enough, and both
   widths are kept in the `shell-nav` cookie with the other nav preferences.
