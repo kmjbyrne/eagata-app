@@ -3,6 +3,8 @@
 # No secrets enter any stage. Runtime config comes from NUXT_* variables at
 # `docker run` time, and .dockerignore keeps .env out of the context.
 
+# Matches Volta's pin in package.json. pnpm lint checks it, and the build
+# script passes Volta's value in.
 ARG NODE_VERSION=24.21.0
 
 FROM node:${NODE_VERSION}-slim AS deps

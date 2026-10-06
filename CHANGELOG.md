@@ -50,7 +50,8 @@ sandbox, the docs and the tooling. The format follows
   has every migration the build ships. The build script and `Dockerfile` pass
   the commit in. Settings tabs take `platformAdminOnly`.
 - Tooling: `pnpm lint` fails when a package's manifest is missing from the
-  `Dockerfile`.
+  `Dockerfile`, or when its Node version differs from Volta's pin. CI reads the
+  same pin.
 - The reference app: feedback at the foot of the sidebar, the inbox with the
   platform, migrations `0005` and `0006`, and the editor demo uploading real
   images.

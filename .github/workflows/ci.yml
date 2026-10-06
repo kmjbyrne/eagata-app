@@ -9,7 +9,6 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        node: [24]
 
     steps:
       - name: Checkout
@@ -21,7 +20,8 @@ jobs:
       - name: Install node
         uses: actions/setup-node@v7
         with:
-          node-version: ${{ matrix.node }}
+          # Volta's pin in package.json, as the Dockerfile uses.
+          node-version-file: package.json
           cache: pnpm
 
       - name: Install dependencies
