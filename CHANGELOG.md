@@ -23,6 +23,11 @@ sandbox, the docs and the tooling. The format follows
 
 ### Fixed
 
+- Building the images for another platform, such as `linux/arm64` for a
+  Raspberry Pi, no longer emulates the Nuxt build. The app is built natively and
+  copied into the target platform's image, since its output has no native code.
+  The tools image still installs for the target platform, for drizzle-kit's and
+  tsx's binaries.
 - The tools image no longer runs the full app build, so `make migrate` and
   `make admin` rebuild it in seconds after a code change.
 - Sign-in never ends on a JSON error. A failure in `/api/auth/login` or the

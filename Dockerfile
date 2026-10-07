@@ -7,11 +7,10 @@
 # script passes Volta's value in.
 ARG NODE_VERSION=24.21.0
 
-FROM node:${NODE_VERSION}-slim AS deps
+# Every workspace manifest, so each install matches the lockfile exactly.
+FROM scratch AS manifests
 WORKDIR /app
-RUN corepack enable
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-# Every workspace manifest, so the install matches the lockfile exactly.
 COPY packages/core/package.json packages/core/
 COPY packages/oidc/package.json packages/oidc/
 COPY packages/json-store/package.json packages/json-store/
@@ -23,11 +22,29 @@ COPY packages/nuxt-feedback/package.json packages/nuxt-feedback/
 COPY packages/editor/package.json packages/editor/
 COPY packages/sandbox/package.json packages/sandbox/
 COPY sandbox/package.json sandbox/
+
+# The packages for the image's platform, which the tools run on: drizzle-kit
+# and tsx carry platform-specific binaries.
+FROM node:${NODE_VERSION}-slim AS deps
+WORKDIR /app
+RUN corepack enable
+COPY --from=manifests /app ./
 # postinstall runs `nuxt prepare`, which needs the sources copied below.
 RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store \
     pnpm install --frozen-lockfile --ignore-scripts
 
-FROM deps AS build
+# The same packages for the machine doing the build. The app's build output is
+# plain JavaScript with no native code, so building it here and copying it
+# into an image for another platform, such as linux/arm64, skips emulating
+# the slowest step.
+FROM --platform=$BUILDPLATFORM node:${NODE_VERSION}-slim AS build-deps
+WORKDIR /app
+RUN corepack enable
+COPY --from=manifests /app ./
+RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store \
+    pnpm install --frozen-lockfile --ignore-scripts
+
+FROM build-deps AS build
 # true builds in the platform admin area. Off by default, so an image without
 # it ships none of its code.
 ARG NUXT_PLATFORM=false
