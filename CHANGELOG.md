@@ -97,6 +97,11 @@ sandbox, the docs and the tooling. The format follows
 
 ### Added
 
+- The sign-in button and settings name the provider and show its logo from
+  `NUXT_PUBLIC_SIGN_IN_PROVIDER` alone. `google` and `janus` have their own name
+  and logo, and any other provider is named after its key with a plain key icon.
+  `NUXT_PUBLIC_SIGN_IN_LABEL` now defaults to empty, which reads "Continue with"
+  and the provider's name, and still overrides it when set.
 - Feature flags, per org, for dogfooding a feature before everyone gets it. A
   layer declares a flag under `shell.features` in its app config. Every flag is
   off until a platform admin switches it on for an org, on the org's platform

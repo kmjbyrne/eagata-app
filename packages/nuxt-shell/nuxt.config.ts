@@ -33,12 +33,13 @@ export default defineNuxtConfig({
       redirectUri: ''
     },
     public: {
-      // Stored with each linked account, and picks the button's logo. A
-      // provider with a preset in @kmjbyrne/oidc, such as "google", needs no
-      // issuer settings.
+      // Stored with each linked account, and picks the button's name and
+      // logo: "google" and "janus" have their own. A provider with a preset
+      // in @kmjbyrne/oidc, such as "google", needs no issuer settings.
       signInProvider: 'google',
-      // The sign-in button's label.
-      signInLabel: 'Continue with Google'
+      // The sign-in button's label. Empty names the provider, as in
+      // "Continue with Janus".
+      signInLabel: ''
     }
   },
   routeRules: {

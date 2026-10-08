@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { SignInError } from '../../shared/contracts/auth'
 
-const { public: { signInLabel, signInProvider } } = useRuntimeConfig()
+const { provider: signInProvider, label: signInLabel } = useSignInProvider()
 const { shell: { brand } } = useAppConfig()
 const route = useRoute()
 
