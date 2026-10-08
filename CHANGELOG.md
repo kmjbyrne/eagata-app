@@ -12,6 +12,11 @@ sandbox, the docs and the tooling. The format follows
 
 ### Security
 
+- Removing someone from an org now removes them from that org's workspaces too.
+  Before, a workspace membership outlived the org membership, so a removed
+  workspace creator kept owning their workspaces. `platformOrgs.removeMember`
+  drops the memberships in the same transaction, even where the person was a
+  workspace's last owner member, as the org's owners and admins still manage it.
 - Sharing a workspace no longer reveals whether an email has an account.
   Workspace owners now invite by email, and get the same answer for every email.
   An invitation becomes a membership when someone with that email next opens the

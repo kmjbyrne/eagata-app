@@ -100,6 +100,43 @@ describe('PlatformOrgService', () => {
       expect((await t.services.platformOrgs.get(acme.slug)).members).toHaveLength(1)
     })
 
+    it('takes away their memberships of the org\'s workspaces, and nothing else', async () => {
+      const { t, admin, ada, grace, acme } = await setup()
+      const linus = await t.addUser('Linus Torvalds')
+      await t.services.platformOrgs.addMember(acme.slug, grace.id, 'admin')
+      t.signInAs(grace)
+      const design = await t.services.workspaces.create(acme.slug, 'Design')
+      const general = (await t.repositories.workspaces.listByOrg(acme.id)).find(workspace => workspace.slug === 'general')!
+      await t.repositories.workspaceMembers.add({ workspaceId: general.id, userId: grace.id, role: 'editor' })
+      await t.repositories.workspaceMembers.add({ workspaceId: general.id, userId: linus.id, role: 'viewer' })
+      const before = await t.repositories.workspaceMembers.listByUser(grace.id)
+      t.signInAs(admin)
+
+      await t.services.platformOrgs.removeMember(acme.slug, grace.id)
+
+      const after = await t.repositories.workspaceMembers.listByUser(grace.id)
+      expect(after).toEqual(before.filter(membership => membership.workspaceId !== general.id && membership.workspaceId !== design.id))
+      expect(after).toHaveLength(1)
+      expect(await t.repositories.workspaceMembers.find(general.id, linus.id)).not.toBeNull()
+      expect(await t.repositories.workspaceMembers.find(general.id, ada.id)).not.toBeNull()
+    })
+
+    it('removes the last owner member of a workspace, which the org\'s owners still manage', async () => {
+      const { t, admin, ada, grace, acme } = await setup()
+      await t.services.platformOrgs.addMember(acme.slug, grace.id, 'admin')
+      t.signInAs(grace)
+      const design = await t.services.workspaces.create(acme.slug, 'Design')
+      t.signInAs(admin)
+
+      await t.services.platformOrgs.removeMember(acme.slug, grace.id)
+
+      expect(await t.repositories.workspaceMembers.listByWorkspace(design.id)).toEqual([])
+      t.signInAs(ada)
+      await t.services.workspaces.invite(acme.slug, design.slug, 'grace.hopper@example.com', 'viewer')
+      t.signInAs(grace)
+      await expect(t.services.workspaces.listMembers(acme.slug, design.slug)).rejects.toThrow(NotFoundError)
+    })
+
     it('rejects someone already a member', async () => {
       const { t, ada, acme } = await setup()
 
