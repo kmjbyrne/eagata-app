@@ -183,7 +183,11 @@ export class PlatformOrgService {
     })
   }
 
-  /** @throws LastOwnerError if the org would have no owner */
+  /**
+   * Their memberships of the org's workspaces go too, even where they were the
+   * last owner member: the org's owners still manage every workspace.
+   * @throws LastOwnerError if the org would have no owner
+   */
   removeMember(slug: string, userId: UserId): Promise<void> {
     return this.repositories.transaction(async (tx) => {
       await requirePlatformAdmin(tx, this.currentUser)
@@ -191,6 +195,12 @@ export class PlatformOrgService {
       await this.requireMembership(tx, org, userId)
       ensureOwnerRemains(await tx.memberships.listByOrg(org.id), userId, null)
       await tx.memberships.remove(org.id, userId)
+      const workspaceIds = new Set((await tx.workspaces.listByOrg(org.id)).map(workspace => workspace.id))
+      for (const membership of await tx.workspaceMembers.listByUser(userId)) {
+        if (workspaceIds.has(membership.workspaceId)) {
+          await tx.workspaceMembers.remove(membership.workspaceId, userId)
+        }
+      }
     })
   }
 

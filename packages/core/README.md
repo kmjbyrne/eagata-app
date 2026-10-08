@@ -205,6 +205,10 @@ The rules they enforce:
   someone with that email next loads their orgs, through `acceptInvitations`, or
   once a platform admin sets an account up for them. Any member can remove
   themselves. A workspace always keeps an owner.
+- `platformOrgs.removeMember` also removes the person from every workspace in
+  that org, even one they were the last owner member of, since the org's owners
+  and admins manage every workspace in it. Their access through other orgs, and
+  their personal org, stays.
 
 ### Permissions
 
