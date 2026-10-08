@@ -54,11 +54,52 @@ describe('legacy content round trip', () => {
     expect(html).toBe('<video class="video-container-element" controls=""><source src="https://s3.eu-west-1.amazonaws.com/bns.assets/public/multimedia/video-1607437271.mp4" type="video/mp4"></video>')
   })
 
-  it('keeps YouTube and Google Drive iframes', () => {
+  it('keeps video from an http(s) URL or a path on this site', () => {
+    expect(roundTrip('<video><source src="/media/clip.mp4" type="video/mp4"></video>')).toBe('<video controls=""><source src="/media/clip.mp4" type="video/mp4"></video>')
+    expect(roundTrip('<video src="http://example.com/clip.mp4"></video>')).toBe('<video controls=""><source src="http://example.com/clip.mp4"></video>')
+  })
+
+  it('drops video from any other source', () => {
+    for (const src of ['javascript:alert(1)', 'data:video/mp4;base64,AAAA', '//evil.example/clip.mp4', 'clip.mp4']) {
+      expect(roundTrip(`<p>Before</p><video><source src="${src}"></video>`)).toBe('<p>Before</p>')
+    }
+  })
+
+  it('never renders a video source it would not parse', () => {
+    const html = generateHTML({ type: 'doc', content: [{ type: 'video', attrs: { src: 'javascript:alert(1)' } }] }, extensions)
+    expect(html).toBe('<video controls=""><source></video>')
+  })
+
+  it('keeps YouTube and Google Drive iframes, sandboxed', () => {
+    const sandbox = 'sandbox="allow-scripts allow-same-origin allow-presentation allow-popups allow-popups-to-escape-sandbox" referrerpolicy="strict-origin-when-cross-origin"'
     expect(roundTrip('<p><iframe title="YouTube video player" src="https://www.youtube.com/embed/wGhfdLLDaec" width="560" height="315" frameborder="0" allowfullscreen="allowfullscreen"></iframe></p>'))
-      .toContain('<iframe src="https://www.youtube.com/embed/wGhfdLLDaec" width="560" height="315" title="YouTube video player" frameborder="0" allowfullscreen="allowfullscreen"></iframe>')
+      .toContain(`<iframe src="https://www.youtube.com/embed/wGhfdLLDaec" width="560" height="315" title="YouTube video player" frameborder="0" allowfullscreen="allowfullscreen" ${sandbox}></iframe>`)
+    expect(roundTrip('<iframe src="https://www.youtube-nocookie.com/embed/wGhfdLLDaec?start=30"></iframe>'))
+      .toBe(`<iframe src="https://www.youtube-nocookie.com/embed/wGhfdLLDaec?start=30" ${sandbox}></iframe>`)
     expect(roundTrip('<iframe src="https://drive.google.com/file/d/1ocMVaGjJ/preview" width="640" height="480"></iframe>'))
-      .toBe('<iframe src="https://drive.google.com/file/d/1ocMVaGjJ/preview" width="640" height="480"></iframe>')
+      .toBe(`<iframe src="https://drive.google.com/file/d/1ocMVaGjJ/preview" width="640" height="480" ${sandbox}></iframe>`)
+  })
+
+  it('drops iframes from any other source', () => {
+    for (const src of [
+      'javascript:alert(document.domain)',
+      'data:text/html,<script>alert(1)</script>',
+      'http://evil.example/',
+      'https://evil.example/embed/x',
+      'http://www.youtube.com/embed/wGhfdLLDaec',
+      'https://www.youtube.com.evil.example/embed/wGhfdLLDaec',
+      'https://www.youtube.com@evil.example/embed/wGhfdLLDaec',
+      'https://www.youtube.com/watch?v=wGhfdLLDaec',
+      'https://drive.google.com/file/d/1ocMVaGjJ/edit'
+    ]) {
+      expect(roundTrip(`<p>Before</p><iframe src="${src}"></iframe>`)).toBe('<p>Before</p>')
+    }
+  })
+
+  it('never renders an iframe source it would not parse', () => {
+    const html = generateHTML({ type: 'doc', content: [{ type: 'iframe', attrs: { src: 'javascript:alert(1)' } }] }, extensions)
+    expect(html).not.toContain('javascript:')
+    expect(html).toContain('sandbox=')
   })
 
   it('keeps superscript ordinals', () => {
@@ -83,8 +124,8 @@ describe('legacy content round trip', () => {
 
   it('keeps tables with colspan', () => {
     const html = roundTrip('<table class="datatable" border="1"><tbody><tr><th>Role</th><th>Name</th></tr><tr><td colspan="2" style="text-align: left; padding: 1rem;">Board of Management</td></tr></tbody></table>')
-    expect(html).toContain('<th colspan="1" rowspan="1"><p>Role</p></th>')
-    expect(html).toContain('<td colspan="2" rowspan="1" style="text-align: left;"><p>Board of Management</p></td>')
+    expect(html).toContain('<th><p>Role</p></th>')
+    expect(html).toContain('<td colspan="2" style="text-align: left;"><p>Board of Management</p></td>')
   })
 
   it('keeps ordered list start and underline', () => {

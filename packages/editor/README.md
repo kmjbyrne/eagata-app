@@ -66,3 +66,9 @@ It uploads the result as a new file named `<original>-edited.<ext>`, at the
 source's resolution up to 2000px on the long edge, and points the image at the
 new URL. Images from another origin must be served with CORS headers, or the
 browser won't let the editor read their pixels.
+
+Embedded frames are limited to YouTube (`youtube.com/embed/...`,
+`youtube-nocookie.com/embed/...`) and Google Drive previews
+(`drive.google.com/file/d/<id>/preview`), over HTTPS. Any other iframe in pasted
+or loaded content is dropped, and the kept ones render sandboxed. Video sources
+must be http(s) URLs or paths on the same site.

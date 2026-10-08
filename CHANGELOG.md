@@ -26,6 +26,12 @@ sandbox, the docs and the tooling. The format follows
   drops the memberships in the same transaction, even where the person was a
   workspace's last owner member, as the org's owners and admins still manage it.
 
+- Pasted or loaded content can no longer put an arbitrary iframe in the
+  editor. Before, a `javascript:` or other frame ran live in the app's origin
+  before the server's sanitizer saw it. Only YouTube embed and Google Drive
+  preview URLs now parse or render, and each frame is sandboxed with a referrer
+  policy. Video sources must be http(s) URLs or same-site paths, and the link
+  popover opens only http(s), `mailto:` and `tel:` links.
 - Sharing a workspace no longer reveals whether an email has an account.
   Workspace owners now invite by email, and get the same answer for every email.
   An invitation becomes a membership when someone with that email next opens the
@@ -50,6 +56,8 @@ sandbox, the docs and the tooling. The format follows
   copied into the target platform's image, since its output has no native code.
   The tools image still installs for the target platform, for drizzle-kit's and
   tsx's binaries.
+- The editor's tests now run. `pnpm test` includes `packages/*/app`, and
+  `happy-dom` is installed for the tests that need a DOM.
 - The tools image no longer runs the full app build, so `make migrate` and
   `make admin` rebuild it in seconds after a code change.
 - Sign-in never ends on a JSON error. A failure in `/api/auth/login` or the
