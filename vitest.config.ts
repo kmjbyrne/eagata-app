@@ -23,7 +23,7 @@ export default defineConfig({
         extends: true,
         test: {
           name: 'main',
-          include: ['packages/*/src/**/*.test.ts', 'packages/*/server/**/*.test.ts', 'packages/*/test/**/*.test.ts'],
+          include: ['packages/*/src/**/*.test.ts', 'packages/*/app/**/*.test.ts', 'packages/*/server/**/*.test.ts', 'packages/*/test/**/*.test.ts'],
           exclude: ['**/node_modules/**', ...mariadb]
         }
       },

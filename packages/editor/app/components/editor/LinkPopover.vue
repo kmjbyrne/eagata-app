@@ -40,8 +40,18 @@ function removeLink() {
   open.value = false
 }
 
+const OPENABLE_PROTOCOLS = ['http:', 'https:', 'mailto:', 'tel:']
+
 function openLink() {
-  window.open(url.value, '_blank', 'noopener,noreferrer')
+  let target: URL
+  try {
+    target = new URL(url.value, window.location.href)
+  } catch {
+    return
+  }
+  if (OPENABLE_PROTOCOLS.includes(target.protocol)) {
+    window.open(target.href, '_blank', 'noopener,noreferrer')
+  }
 }
 
 function onKeydown(event: KeyboardEvent) {

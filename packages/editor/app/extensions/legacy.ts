@@ -101,6 +101,42 @@ export const Figcaption = Node.create({
   }
 })
 
+const EMBED_SOURCES: [origin: string, path: RegExp][] = [
+  ['https://www.youtube.com', /^\/embed\/[\w-]+$/],
+  ['https://www.youtube-nocookie.com', /^\/embed\/[\w-]+$/],
+  ['https://drive.google.com', /^\/file\/d\/[\w-]+\/preview$/]
+]
+
+function parseUrl(src: string) {
+  try {
+    return new URL(src)
+  } catch {
+    return null
+  }
+}
+
+/** A YouTube or Google Drive player URL, the only frames the editor shows. */
+function isEmbedSrc(src: unknown): src is string {
+  const url = typeof src === 'string' ? parseUrl(src) : null
+  return !!url && EMBED_SOURCES.some(([origin, path]) => url.origin === origin && path.test(url.pathname))
+}
+
+/** An http(s) URL, or a path on this site. */
+function isVideoSrc(src: unknown): src is string {
+  if (typeof src !== 'string') {
+    return false
+  }
+  if (/^\/(?![/\\])/.test(src)) {
+    return true
+  }
+  const protocol = parseUrl(src)?.protocol
+  return protocol === 'http:' || protocol === 'https:'
+}
+
+function videoSrc(element: HTMLElement) {
+  return element.getAttribute('src') ?? element.querySelector('source')?.getAttribute('src') ?? null
+}
+
 /** `<video>` with one `<source>`, as TinyMCE's media plugin wrote it. */
 export const Video = Node.create({
   name: 'video',
@@ -112,7 +148,7 @@ export const Video = Node.create({
     return {
       src: {
         default: null,
-        parseHTML: element => element.getAttribute('src') ?? element.querySelector('source')?.getAttribute('src') ?? null,
+        parseHTML: videoSrc,
         renderHTML: () => ({})
       },
       type: {
@@ -127,16 +163,20 @@ export const Video = Node.create({
   },
 
   parseHTML() {
-    return [{ tag: 'video' }]
+    return [{ tag: 'video', getAttrs: element => isVideoSrc(videoSrc(element)) ? null : false }]
   },
 
   renderHTML({ node, HTMLAttributes }) {
-    const source = mergeAttributes({ src: node.attrs.src }, node.attrs.type ? { type: node.attrs.type } : {})
+    const source = mergeAttributes(isVideoSrc(node.attrs.src) ? { src: node.attrs.src } : {}, node.attrs.type ? { type: node.attrs.type } : {})
     return ['video', mergeAttributes(HTMLAttributes, { controls: '' }), ['source', source]]
   }
 })
 
-/** Embedded players (YouTube, Google Drive previews). */
+/**
+ * Embedded players (YouTube, Google Drive previews). Pasted HTML can hold any
+ * iframe, and the editor renders it in the app's origin, so only known player
+ * URLs parse or render, and every frame is sandboxed.
+ */
 export const Iframe = Node.create({
   name: 'iframe',
   group: 'block',
@@ -145,7 +185,11 @@ export const Iframe = Node.create({
 
   addAttributes() {
     return {
-      src: keep('src'),
+      src: {
+        default: null,
+        parseHTML: (element: HTMLElement) => element.getAttribute('src'),
+        renderHTML: (attributes: Record<string, unknown>) => isEmbedSrc(attributes.src) ? { src: attributes.src } : {}
+      },
       width: keep('width'),
       height: keep('height'),
       title: keep('title'),
@@ -155,10 +199,13 @@ export const Iframe = Node.create({
   },
 
   parseHTML() {
-    return [{ tag: 'iframe[src]' }]
+    return [{ tag: 'iframe[src]', getAttrs: element => isEmbedSrc(element.getAttribute('src')) ? null : false }]
   },
 
   renderHTML({ HTMLAttributes }) {
-    return ['iframe', HTMLAttributes]
+    return ['iframe', mergeAttributes(HTMLAttributes, {
+      sandbox: 'allow-scripts allow-same-origin allow-presentation allow-popups allow-popups-to-escape-sandbox',
+      referrerpolicy: 'strict-origin-when-cross-origin'
+    })]
   }
 })
