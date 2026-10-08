@@ -1,0 +1,44 @@
+<!-- Janus's padlock tile, as its console's favicon draws it. -->
+<template>
+  <svg
+    viewBox="0 0 64 64"
+    aria-hidden="true"
+    class="shrink-0"
+  >
+    <rect
+      width="64"
+      height="64"
+      rx="12"
+      fill="#1d2033"
+    />
+    <rect
+      x="16"
+      y="28"
+      width="32"
+      height="24"
+      rx="4"
+      fill="#90caf9"
+    />
+    <path
+      d="M24 28V20a8 8 0 0 1 16 0v8"
+      fill="none"
+      stroke="#90caf9"
+      stroke-width="4"
+      stroke-linecap="round"
+    />
+    <circle
+      cx="32"
+      cy="40"
+      r="3"
+      fill="#1d2033"
+    />
+    <rect
+      x="31"
+      y="40"
+      width="2"
+      height="6"
+      rx="1"
+      fill="#1d2033"
+    />
+  </svg>
+</template>

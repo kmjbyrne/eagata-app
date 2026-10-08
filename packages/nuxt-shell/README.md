@@ -65,23 +65,29 @@ useLogger(event).set({ invoice: { id: invoice.id } })
 
 Every setting is a `runtimeConfig` key, set from env vars:
 
-| Env var                                                    | Meaning                                                                         | Default                                      |
-| ---------------------------------------------------------- | ------------------------------------------------------------------------------- | -------------------------------------------- |
-| `NUXT_DATABASE_URL`                                        | `mysql://user:password@host:3306/database`                                      | None                                         |
-| `NUXT_SESSION_SECRET`                                      | Seals the session cookie. At least 32 characters.                               | A fixed secret, in dev only                  |
-| `NUXT_EMAIL_SES_SENDER`                                    | The verified SES sender. Required outside dev. Empty in dev logs mail instead.  |                                              |
-| `NUXT_EMAIL_SES_REGION`                                    | The SES region                                                                  | `eu-west-1`                                  |
-| `NUXT_EMAIL_ACCESS_KEY_ID`, `NUXT_EMAIL_SECRET_ACCESS_KEY` | AWS keys. Blank uses the default credential chain.                              |                                              |
-| `NUXT_OIDC_CLIENT_ID`                                      | The OAuth client id                                                             |                                              |
-| `NUXT_OIDC_CLIENT_SECRET`                                  | The OAuth client secret                                                         |                                              |
-| `NUXT_OIDC_REDIRECT_URI`                                   | The callback URL registered with the provider                                   | `/api/auth/callback` on the request's origin |
-| `NUXT_PUBLIC_SIGN_IN_PROVIDER`                             | The name stored with each linked account. Picks a preset and the button's logo. | `google`                                     |
-| `NUXT_OIDC_ISSUER`                                         | For a provider without a preset                                                 | The preset's                                 |
-| `NUXT_OIDC_ISSUER_ALIASES`                                 | Comma-separated other spellings of the issuer in ID tokens                      | The preset's                                 |
+| Env var                                                    | Meaning                                                                                  | Default                                      |
+| ---------------------------------------------------------- | ---------------------------------------------------------------------------------------- | -------------------------------------------- |
+| `NUXT_DATABASE_URL`                                        | `mysql://user:password@host:3306/database`                                               | None                                         |
+| `NUXT_SESSION_SECRET`                                      | Seals the session cookie. At least 32 characters.                                        | A fixed secret, in dev only                  |
+| `NUXT_EMAIL_SES_SENDER`                                    | The verified SES sender. Required outside dev. Empty in dev logs mail instead.           |                                              |
+| `NUXT_EMAIL_SES_REGION`                                    | The SES region                                                                           | `eu-west-1`                                  |
+| `NUXT_EMAIL_ACCESS_KEY_ID`, `NUXT_EMAIL_SECRET_ACCESS_KEY` | AWS keys. Blank uses the default credential chain.                                       |                                              |
+| `NUXT_OIDC_CLIENT_ID`                                      | The OAuth client id                                                                      |                                              |
+| `NUXT_OIDC_CLIENT_SECRET`                                  | The OAuth client secret                                                                  |                                              |
+| `NUXT_OIDC_REDIRECT_URI`                                   | The callback URL registered with the provider                                            | `/api/auth/callback` on the request's origin |
+| `NUXT_PUBLIC_SIGN_IN_PROVIDER`                             | The name stored with each linked account. Picks a preset and the button's name and logo. | `google`                                     |
+| `NUXT_PUBLIC_SIGN_IN_LABEL`                                | The sign-in button's label                                                               | `Continue with` and the provider's name      |
+| `NUXT_OIDC_ISSUER`                                         | For a provider without a preset                                                          | The preset's                                 |
+| `NUXT_OIDC_ISSUER_ALIASES`                                 | Comma-separated other spellings of the issuer in ID tokens                               | The preset's                                 |
 
 For Google, set only the client id and secret. The provider name picks its
 issuer settings from the presets in `@kmjbyrne/oidc`. Set the redirect URI
 behind a proxy that changes the host.
+
+`google` and `janus` have their own name and logo on the sign-in button and in
+settings. Any other provider is named after its key, as in "Continue with Okta",
+with a plain key icon. Janus has no issuer preset, since its issuer ends in the
+tenant's slug: set `NUXT_OIDC_ISSUER` to `https://<janus-host>/<tenant>`.
 
 Nothing in the code assumes Google. A different OIDC provider needs only
 different values.

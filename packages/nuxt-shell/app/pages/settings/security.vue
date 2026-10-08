@@ -5,11 +5,8 @@ useHead({ title: 'Security · Settings' })
 
 const { me } = useMe()
 const { shell } = useAppConfig()
-const { public: { signInLabel, signInProvider } } = useRuntimeConfig()
+const { provider: signInProvider, name: provider } = useSignInProvider()
 const route = useRoute()
-
-// "Continue with Google" names the provider, so the connect button can too.
-const provider = computed(() => signInLabel.replace(/^Continue with\s+/i, ''))
 
 const outcomes: Record<ConnectOutcome, { color: 'success' | 'error' | 'neutral', text: string }> = {
   'connected': { color: 'success', text: 'Connected. You can now sign in with it.' },
@@ -68,8 +65,8 @@ async function deactivate() {
               class="size-5"
             />
             <div>
-              <p class="capitalize">
-                {{ identity.provider }}
+              <p>
+                {{ signInProviderDisplay(identity.provider).name }}
               </p>
               <p class="text-sm text-muted">
                 Linked

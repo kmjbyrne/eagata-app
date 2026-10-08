@@ -59,6 +59,9 @@ sandbox, the docs and the tooling. The format follows
 
 ### Fixed
 
+- `docker-compose.yml` passes `NUXT_PUBLIC_SIGN_IN_PROVIDER`,
+  `NUXT_PUBLIC_SIGN_IN_LABEL`, `NUXT_OIDC_ISSUER` and `NUXT_OIDC_ISSUER_ALIASES`
+  to the app. Before, the containers could only sign in with Google.
 - Building the images for another platform, such as `linux/arm64` for a
   Raspberry Pi, no longer emulates the Nuxt build. The app is built natively and
   copied into the target platform's image, since its output has no native code.
@@ -97,6 +100,11 @@ sandbox, the docs and the tooling. The format follows
 
 ### Added
 
+- The sign-in button and settings name the provider and show its logo from
+  `NUXT_PUBLIC_SIGN_IN_PROVIDER` alone. `google` and `janus` have their own name
+  and logo, and any other provider is named after its key with a plain key icon.
+  `NUXT_PUBLIC_SIGN_IN_LABEL` now defaults to empty, which reads "Continue with"
+  and the provider's name, and still overrides it when set.
 - Feature flags, per org, for dogfooding a feature before everyone gets it. A
   layer declares a flag under `shell.features` in its app config. Every flag is
   off until a platform admin switches it on for an org, on the org's platform
