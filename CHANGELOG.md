@@ -12,6 +12,17 @@ sandbox, the docs and the tooling. The format follows
 
 ### Security
 
+- Password attempts sent at the same moment can no longer get past the limit
+  of five per account. Each attempt now counts before its password is checked,
+  and a right password resets the count, so someone trying one at a time sees
+  the same limit as before. `RateLimiter` replaces `retryAfter` and `hit` with
+  `consume`, which checks and counts in one step. Per-address limits, reset
+  emails and workspace invites use it too, so an invite that fails now counts
+  toward the 50 an hour.
+- Per-address limits behind a proxy can no longer be dodged with a made-up
+  `X-Forwarded-For`. With `NUXT_TRUST_PROXY=true`, the client's address is the
+  last entry, the one the proxy appended, not the first, which the client
+  writes. One proxy in front of the app is assumed.
 - Every page and API response now carries security headers, set by the
   shell's `server/middleware/securityHeaders.ts`: a CSP with
   `frame-ancestors 'none'`, `base-uri 'self'`, `object-src 'none'` and

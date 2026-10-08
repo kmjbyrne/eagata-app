@@ -11,15 +11,16 @@ import { InvalidCredentialsError, InvalidResetTokenError, WrongPasswordError } f
 import { InMemoryPasswordRepository, PlainPasswordHasher } from './InMemoryPasswordRepository'
 import { InvalidPasswordError } from './Password'
 import { PasswordService } from './PasswordService'
+import type { PasswordHasher } from './ports'
 
-function setup() {
+function setup(hasher: PasswordHasher = new PlainPasswordHasher()) {
   const passwords = new InMemoryPasswordRepository()
   const mail = new RecordingEmailSender()
   const limiter = new CountingRateLimiter()
   const holder: { service?: PasswordService } = {}
   const t = createTestServices({ linkProof: { requiredFor: id => holder.service!.linkProof().requiredFor(id) } })
   let clock = new Date('2026-06-01T12:00:00.000Z')
-  const service = new PasswordService({ repositories: t.repositories, passwords, hasher: new PlainPasswordHasher(), mail, limiter, currentUser: t.currentUser, now: () => clock })
+  const service = new PasswordService({ repositories: t.repositories, passwords, hasher, mail, limiter, currentUser: t.currentUser, now: () => clock })
   holder.service = service
   const tick = (ms: number) => {
     clock = new Date(clock.getTime() + ms)
@@ -76,6 +77,26 @@ describe('PasswordService.signIn', () => {
     }
 
     await expect(ctx.service.signIn(ada.email, 'correct horse battery')).rejects.toThrow(TooManyAttemptsError)
+  })
+
+  it('checks no more than five of the attempts made at the same moment', async () => {
+    let checks = 0
+    class SlowHasher extends PlainPasswordHasher {
+      override async verify(password: string, stored: string) {
+        checks++
+        await new Promise(resolve => setTimeout(resolve, 10))
+        return super.verify(password, stored)
+      }
+    }
+    const ctx = setup(new SlowHasher())
+    const ada = await withPassword(ctx, 'Ada Lovelace')
+
+    const results = await Promise.allSettled(Array.from({ length: 20 }, () => ctx.service.signIn(ada.email, 'wrong password!')))
+
+    const reasons = results.map(result => result.status === 'rejected' && result.reason)
+    expect(reasons.filter(reason => reason instanceof InvalidCredentialsError)).toHaveLength(5)
+    expect(reasons.filter(reason => reason instanceof TooManyAttemptsError)).toHaveLength(15)
+    expect(checks).toBe(5)
   })
 })
 

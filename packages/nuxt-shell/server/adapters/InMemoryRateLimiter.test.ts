@@ -9,37 +9,44 @@ describe('InMemoryRateLimiter', () => {
     return { clock, limiter: new InMemoryRateLimiter(() => clock.now) }
   }
 
-  it('allows a key until it reaches the limit', async () => {
+  it('counts attempts until the key reaches the limit, then refuses without counting', async () => {
     const { limiter } = limiterAt(0)
-    await limiter.hit('k', RULE)
-    await limiter.hit('k', RULE)
-    expect(await limiter.retryAfter('k', RULE)).toBe(0)
+    expect(await limiter.consume('k', RULE)).toBe(0)
+    expect(await limiter.consume('k', RULE)).toBe(0)
+    expect(await limiter.consume('k', RULE)).toBe(0)
 
-    await limiter.hit('k', RULE)
-    expect(await limiter.retryAfter('k', RULE)).toBe(60_000)
+    expect(await limiter.consume('k', RULE)).toBe(60_000)
+    expect(await limiter.consume('k', RULE)).toBe(60_000)
   })
 
-  it('frees the key as the oldest hit leaves the window', async () => {
+  it('lets only the limit through when attempts arrive together', async () => {
+    const { limiter } = limiterAt(0)
+    const waits = await Promise.all(Array.from({ length: 10 }, () => limiter.consume('k', RULE)))
+
+    expect(waits.filter(wait => wait === 0)).toHaveLength(3)
+  })
+
+  it('frees the key as the oldest attempt leaves the window', async () => {
     const { clock, limiter } = limiterAt(0)
     for (const at of [0, 10_000, 20_000]) {
       clock.now = at
-      await limiter.hit('k', RULE)
+      await limiter.consume('k', RULE)
     }
 
     clock.now = 59_000
-    expect(await limiter.retryAfter('k', RULE)).toBe(1_000)
+    expect(await limiter.consume('k', RULE)).toBe(1_000)
     clock.now = 60_001
-    expect(await limiter.retryAfter('k', RULE)).toBe(0)
+    expect(await limiter.consume('k', RULE)).toBe(0)
   })
 
   it('keeps keys apart and clears one on reset', async () => {
     const { limiter } = limiterAt(0)
     for (let i = 0; i < 3; i++) {
-      await limiter.hit('a', RULE)
+      await limiter.consume('a', RULE)
     }
 
-    expect(await limiter.retryAfter('b', RULE)).toBe(0)
+    expect(await limiter.consume('b', RULE)).toBe(0)
     await limiter.reset('a')
-    expect(await limiter.retryAfter('a', RULE)).toBe(0)
+    expect(await limiter.consume('a', RULE)).toBe(0)
   })
 })

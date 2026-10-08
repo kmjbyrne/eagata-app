@@ -1,6 +1,7 @@
 import { TooManyAttemptsError, type RateRule } from '@kmjbyrne/core'
 import type { PasswordRepository } from '@kmjbyrne/core/passwords'
 import type { H3Event } from 'h3'
+import { clientAddress } from './clientAddress'
 import { MysqlPasswordRepository } from '../adapters/mysql/MysqlPasswordRepository'
 // Adds this layer's adapters and service to the shell's types, wherever the layer is used.
 import type {} from '../../types'
@@ -25,17 +26,14 @@ export const ADDRESS_SIGN_IN_ATTEMPTS: RateRule = { limit: 20, windowMs: 15 * 60
 /**
  * Counts one attempt at `action` from the client's address, or throws once
  * the address is over the rule. Behind a proxy, set NUXT_TRUST_PROXY, or
- * every client shares the proxy's address and one bucket.
+ * every client shares the proxy's address and one bucket. See `clientAddress`.
  */
 export async function limitByAddress(event: H3Event, action: string, rule: RateRule): Promise<void> {
-  const address = getRequestIP(event, { xForwardedFor: useRuntimeConfig().trustProxy }) ?? 'unknown'
-  const key = `address:${action}:${address}`
-  const { rateLimiter } = useAdapters()
-  const wait = await rateLimiter.retryAfter(key, rule)
+  const address = clientAddress(event, useRuntimeConfig().trustProxy) ?? 'unknown'
+  const wait = await useAdapters().rateLimiter.consume(`address:${action}:${address}`, rule)
   if (wait > 0) {
     throw new TooManyAttemptsError(wait)
   }
-  await rateLimiter.hit(key, rule)
 }
 
 /**

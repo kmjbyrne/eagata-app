@@ -12,9 +12,12 @@ export class TooManyAttemptsError extends DomainError {
 }
 
 export interface RateLimiter {
-  /** Milliseconds until the key is back under the rule's limit, or 0 when it already is. */
-  retryAfter(key: string, rule: RateRule): Promise<number>
-  /** Counts one event against the key. */
-  hit(key: string, rule: RateRule): Promise<void>
+  /**
+   * Counts one attempt against the key and returns 0, or, when the key is
+   * already at the rule's limit, counts nothing and returns the milliseconds
+   * until it is back under. Checking and counting must be one step, so
+   * attempts made at the same moment can't all pass the check.
+   */
+  consume(key: string, rule: RateRule): Promise<number>
   reset(key: string): Promise<void>
 }

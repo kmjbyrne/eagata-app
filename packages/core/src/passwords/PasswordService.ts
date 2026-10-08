@@ -16,7 +16,7 @@ import { InvalidCredentialsError, InvalidResetTokenError, WrongPasswordError } f
 import { parsePassword } from './Password'
 import type { PasswordHasher, PasswordRepository } from './ports'
 
-/** Failed password checks per account, across sign-in, linking and changing it. */
+/** Password checks per account since the last right one, across sign-in, linking and changing it. */
 export const PASSWORD_ATTEMPTS: RateRule = { limit: 5, windowMs: 15 * 60 * 1000 }
 
 /** Reset emails per address, so the form can't be used to flood an inbox. */
@@ -64,10 +64,9 @@ export class PasswordService {
    */
   async signIn(emailInput: string, password: string): Promise<User> {
     const email = parseEmail(emailInput)
-    await this.requireUnderLimit(email)
+    await this.countAttempt(email)
     const user = await this.adapters.repositories.users.findByEmail(email)
     if (!(await this.check(user, password)) || !user) {
-      await this.adapters.limiter.hit(passwordKey(email), PASSWORD_ATTEMPTS)
       throw new InvalidCredentialsError()
     }
     await this.adapters.limiter.reset(passwordKey(email))
@@ -89,9 +88,8 @@ export class PasswordService {
     if (!user) {
       throw new InvalidCredentialsError()
     }
-    await this.requireUnderLimit(user.email)
+    await this.countAttempt(user.email)
     if (!(await this.check(user, password))) {
-      await this.adapters.limiter.hit(passwordKey(user.email), PASSWORD_ATTEMPTS)
       throw new InvalidCredentialsError()
     }
     await this.adapters.limiter.reset(passwordKey(user.email))
@@ -129,9 +127,8 @@ export class PasswordService {
     const password = parsePassword(input.password)
     const stored = await this.adapters.passwords.findHash(user.id)
     if (stored) {
-      await this.requireUnderLimit(user.email)
+      await this.countAttempt(user.email)
       if (!(await this.adapters.hasher.verify(input.current ?? '', stored))) {
-        await this.adapters.limiter.hit(passwordKey(user.email), PASSWORD_ATTEMPTS)
         throw new WrongPasswordError()
       }
       await this.adapters.limiter.reset(passwordKey(user.email))
@@ -147,10 +144,9 @@ export class PasswordService {
   async requestReset(emailInput: string, resetUrl: (token: string) => string): Promise<void> {
     const email = parseEmail(emailInput)
     const key = `reset:${email}`
-    if (await this.adapters.limiter.retryAfter(key, RESET_EMAILS) > 0) {
+    if (await this.adapters.limiter.consume(key, RESET_EMAILS) > 0) {
       return
     }
-    await this.adapters.limiter.hit(key, RESET_EMAILS)
     const user = await this.adapters.repositories.users.findByEmail(email)
     if (!user || !isActive(user)) {
       return
@@ -220,8 +216,13 @@ export class PasswordService {
     return this.adapters.hasher.verify(password, stored)
   }
 
-  private async requireUnderLimit(email: Email): Promise<void> {
-    const wait = await this.adapters.limiter.retryAfter(passwordKey(email), PASSWORD_ATTEMPTS)
+  /**
+   * Counts the attempt before the password is checked, and a right one
+   * resets the count. Counting only failures would let attempts made at the
+   * same moment all pass the limit while their slow hash checks run.
+   */
+  private async countAttempt(email: Email): Promise<void> {
+    const wait = await this.adapters.limiter.consume(passwordKey(email), PASSWORD_ATTEMPTS)
     if (wait > 0) {
       throw new TooManyAttemptsError(wait)
     }

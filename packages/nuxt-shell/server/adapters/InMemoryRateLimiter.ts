@@ -12,20 +12,16 @@ export class InMemoryRateLimiter implements RateLimiter {
 
   constructor(private readonly now: () => number = Date.now) {}
 
-  async retryAfter(key: string, rule: RateRule): Promise<number> {
+  async consume(key: string, rule: RateRule): Promise<number> {
     const recent = this.recent(key, rule.windowMs)
-    if (recent.length < rule.limit) {
-      return 0
+    if (recent.length >= rule.limit) {
+      return recent[recent.length - rule.limit]! + rule.windowMs - this.now()
     }
-    return recent[recent.length - rule.limit]! + rule.windowMs - this.now()
-  }
-
-  async hit(key: string, rule: RateRule): Promise<void> {
-    const at = [...this.recent(key, rule.windowMs), this.now()]
-    this.hits.set(key, { at, windowMs: rule.windowMs })
+    this.hits.set(key, { at: [...recent, this.now()], windowMs: rule.windowMs })
     if (++this.sinceSweep >= SWEEP_EVERY) {
       this.sweep()
     }
+    return 0
   }
 
   async reset(key: string): Promise<void> {
