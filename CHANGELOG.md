@@ -59,6 +59,9 @@ sandbox, the docs and the tooling. The format follows
 
 ### Fixed
 
+- `docker-compose.yml` passes `NUXT_PUBLIC_SIGN_IN_PROVIDER`,
+  `NUXT_PUBLIC_SIGN_IN_LABEL`, `NUXT_OIDC_ISSUER` and `NUXT_OIDC_ISSUER_ALIASES`
+  to the app. Before, the containers could only sign in with Google.
 - Building the images for another platform, such as `linux/arm64` for a
   Raspberry Pi, no longer emulates the Nuxt build. The app is built natively and
   copied into the target platform's image, since its output has no native code.
