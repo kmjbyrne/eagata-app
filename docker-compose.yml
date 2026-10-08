@@ -19,10 +19,10 @@ name: eagata
 # for compose itself, and never reaches the app.
 #
 # "# required" marks what the app can't run without: the image has no
-# sandbox, so it needs the Google client to sign anyone in, and NUXT_APP_URL
-# for links in emails. They aren't enforced here, because compose checks every
-# value for every command and a build needs none of them. `make check` lists
-# any that are missing, and `make up` runs it first.
+# sandbox, so it needs the Google client to sign anyone in, NUXT_APP_URL for
+# links in emails, and an SES sender to send them. They aren't enforced here,
+# because compose checks every value for every command and a build needs none
+# of them. `make check` lists any that are missing, and `make up` runs it first.
 x-app-environment: &app-environment
   NUXT_DATABASE_URL: ${NUXT_DATABASE_URL:-} # required
   NUXT_SESSION_SECRET: ${NUXT_SESSION_SECRET:-} # required
@@ -31,7 +31,7 @@ x-app-environment: &app-environment
   NUXT_OIDC_REDIRECT_URI: ${NUXT_OIDC_REDIRECT_URI:-}
   NUXT_APP_URL: ${NUXT_APP_URL:-} # required
   NUXT_TRUST_PROXY: ${NUXT_TRUST_PROXY:-true}
-  NUXT_EMAIL_SES_SENDER: ${NUXT_EMAIL_SES_SENDER:-}
+  NUXT_EMAIL_SES_SENDER: ${NUXT_EMAIL_SES_SENDER:-} # required
   NUXT_EMAIL_SES_REGION: ${NUXT_EMAIL_SES_REGION:-eu-west-1}
   NUXT_EMAIL_ACCESS_KEY_ID: ${NUXT_EMAIL_ACCESS_KEY_ID:-}
   NUXT_EMAIL_SECRET_ACCESS_KEY: ${NUXT_EMAIL_SECRET_ACCESS_KEY:-}

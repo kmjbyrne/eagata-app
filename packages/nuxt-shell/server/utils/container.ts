@@ -3,28 +3,22 @@ import { OIDC_PRESETS, OidcClient } from '@kmjbyrne/oidc'
 import type { H3Event } from 'h3'
 import type { Adapters, CoreAdapters, Services } from '../../types'
 import { MysqlRepositories } from '../adapters/mysql/MysqlRepositories'
-import { ConsoleEmailSender } from '../adapters/ConsoleEmailSender'
 import { InMemoryRateLimiter } from '../adapters/InMemoryRateLimiter'
 import { OidcSignInProvider } from '../adapters/OidcSignInProvider'
-import { SesEmailSender } from '../adapters/SesEmailSender'
 import { SessionCurrentUser } from '../adapters/SessionCurrentUser'
 import { UuidIdGenerator } from '../adapters/UuidIdGenerator'
 import { Container, missingAdapter, type ServiceFactory } from '../container/Container'
+import { createEmailSender } from '../container/createEmailSender'
 
 // The flag catalog is every name under `shell.features` in the merged app
 // config, declared by the layers that own the features.
 const container = new Container(createDefaultAdapters, () => Object.keys(useAppConfig().shell.features))
 
-function createDefaultAdapters(): Partial<CoreAdapters> {
+function createDefaultAdapters(provided: Partial<Adapters>): Partial<CoreAdapters> {
   const { oidc, databaseUrl, email } = useRuntimeConfig()
-  if (!email.sesSender) {
-    console.info('[email] No SES sender configured: mail is logged, not sent.')
-  }
   return {
     ids: new UuidIdGenerator(),
-    emailSender: email.sesSender
-      ? new SesEmailSender({ from: email.sesSender, region: email.sesRegion, accessKeyId: email.accessKeyId, secretAccessKey: email.secretAccessKey })
-      : new ConsoleEmailSender(),
+    emailSender: provided.emailSender ?? createEmailSender(email, import.meta.dev),
     // One per process, shared by every request. Counts reset on restart.
     rateLimiter: new InMemoryRateLimiter(),
     repositories: databaseUrl

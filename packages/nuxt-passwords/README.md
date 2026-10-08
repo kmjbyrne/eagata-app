@@ -58,7 +58,8 @@ own as the `passwordRepository` adapter.
 | `NUXT_TRUST_PROXY` | `true` behind a proxy, so per-address limits read `X-Forwarded-For`                 |
 
 Mail goes through the shell's email sender: AWS SES when `NUXT_EMAIL_SES_SENDER`
-is set, the log otherwise.
+is set. Without it, dev prints mail to the log, and anywhere else the shell
+fails with an error naming the setting.
 
 ## Limits
 

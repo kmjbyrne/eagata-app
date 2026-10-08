@@ -167,5 +167,7 @@ docker run --rm -e NUXT_DATABASE_URL=... eagata-tools drizzle-kit migrate
 docker run --rm -e NUXT_DATABASE_URL=... eagata-tools tsx scripts/platform-grant.ts you@example.com "Your Name"
 ```
 
-The `app` container needs `NUXT_DATABASE_URL`, `NUXT_SESSION_SECRET`, and the
-OIDC client settings.
+The `app` container needs `NUXT_DATABASE_URL`, `NUXT_SESSION_SECRET`, the
+OIDC client settings, `NUXT_APP_URL` and `NUXT_EMAIL_SES_SENDER`. Outside dev,
+mail is never printed to the log, because reset and invite links in it would
+let anyone who reads the log take over an account.
