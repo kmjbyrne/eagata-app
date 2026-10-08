@@ -137,7 +137,9 @@ startup, but runs a util only when something imports it. Once registered,
 `server/adapters/mysql/` holds the Drizzle schema for the shell's tables, and
 `MysqlRepositories`, which implements core's `Repositories` on it and passes
 `repositoryContract`. It works on MariaDB and MySQL. Tables and columns are
-snake_case, and TypeScript fields camelCase.
+snake_case, and TypeScript fields camelCase. Emails, and identity providers and
+subjects, use the `utf8mb4_bin` collation, because MariaDB's default ignores
+accents and case and would match look-alike values.
 
 Scripts outside Nuxt, such as `platform:grant`, import the adapter from
 `@kmjbyrne/nuxt-shell/mysql`: `createDatabase`, `MysqlRepositories` and

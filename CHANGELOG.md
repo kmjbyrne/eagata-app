@@ -42,6 +42,14 @@ sandbox, the docs and the tooling. The format follows
   `FeedbackService.attachImage` now take a function that reads the bytes, in
   place of the bytes. `readImageUpload(event)` in `@kmjbyrne/nuxt-media` is
   that function for a multipart `file` field.
+- A provider can no longer sign someone in to another person's account with a
+  look-alike email. MariaDB's default collation, `utf8mb4_uca1400_ai_ci`,
+  ignores accents, so a verified `jöhn@corp.com` matched `john@corp.com` and
+  linked to John's account, and an invitation could go to the wrong person.
+  `parseEmail` now accepts printable ASCII only, with internationalised domains
+  in their `xn--` form. Emails, and identity providers and subjects, are
+  compared byte for byte, with migration `0009`. Existing stored emails still
+  load, but one with non-ASCII characters can no longer sign in by email.
 
 ### Fixed
 

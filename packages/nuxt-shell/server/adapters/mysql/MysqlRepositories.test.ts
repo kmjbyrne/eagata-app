@@ -1,4 +1,5 @@
 import { fileURLToPath } from 'node:url'
+import type { Email } from '@kmjbyrne/core'
 import { repositoryContract } from '@kmjbyrne/core/contract'
 import { sql } from 'drizzle-orm'
 import { migrate } from 'drizzle-orm/mysql2/migrator'
@@ -37,5 +38,25 @@ describe.skipIf(!url)('MysqlRepositories', () => {
     expect(await failure(db.execute(sql`INSERT INTO workspace_memberships (workspace_id, user_id, role) VALUES ('check-ws', 'check-user', 'admin')`))).toMatch(/workspace_memberships_role_check/)
     expect(await failure(db.execute(sql`INSERT INTO platform_roles (user_id, role, granted_at) VALUES ('check-user', 'owner', NOW())`))).toMatch(/platform_roles_role_check/)
     await db.execute(sql`INSERT INTO org_memberships (org_id, user_id, role) VALUES ('check-org', 'check-user', 'owner')`)
+  })
+
+  // Written around core, which would refuse the accented emails before they got here.
+  it('matches emails and identities exactly, never by accent or case', async () => {
+    const repositories = new MysqlRepositories(db)
+    await db.execute(sql`INSERT INTO users (id, display_name, email) VALUES ('exact-user', 'John', 'john@corp.com')`)
+    await db.execute(sql`INSERT INTO user_identities (provider, subject, user_id) VALUES ('oidc', 'AbC', 'exact-user')`)
+    await db.execute(sql`INSERT INTO orgs (id, name) VALUES ('exact-org', 'Exact')`)
+    await db.execute(sql`INSERT INTO workspaces (id, org_id, name, slug) VALUES ('exact-ws', 'exact-org', 'Exact', 'exact')`)
+    await db.execute(sql`INSERT INTO workspace_invitations (workspace_id, email, role, invited_by, created_at) VALUES ('exact-ws', 'john@corp.com', 'viewer', 'exact-user', NOW())`)
+
+    expect(await repositories.users.findByEmail('jöhn@corp.com' as Email)).toBeNull()
+    expect(await repositories.users.findByEmail('john@cörp.com' as Email)).toBeNull()
+    expect(await repositories.users.findByIdentity({ provider: 'oidc', subject: 'abc' })).toBeNull()
+    expect(await repositories.users.findByIdentity({ provider: 'OIDC', subject: 'AbC' })).toBeNull()
+    expect(await repositories.invitations.listByEmail('jöhn@corp.com' as Email)).toEqual([])
+    expect(await failure(db.execute(sql`INSERT INTO users (id, display_name, email) VALUES ('accented-user', 'Jöhn', 'jöhn@corp.com')`))).toBe('accepted')
+
+    expect((await repositories.users.findByEmail('john@corp.com' as Email))?.id).toBe('exact-user')
+    expect((await repositories.users.findByIdentity({ provider: 'oidc', subject: 'AbC' }))?.id).toBe('exact-user')
   })
 })

@@ -4,7 +4,12 @@ export type Email = string & { readonly __brand: 'Email' }
 
 export const EMAIL_MAX_LENGTH = 255
 
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+/**
+ * Printable ASCII only, so no two emails differ by an accent or a look-alike
+ * letter that a database collation or a person might read as the same. An
+ * internationalised domain is accepted in its `xn--` form.
+ */
+const EMAIL_PATTERN = /^[\x21-\x3F\x41-\x7E]+@[\x21-\x3F\x41-\x7E]+\.[\x21-\x3F\x41-\x7E]+$/
 
 export class InvalidEmailError extends InvalidInputError {
   constructor(readonly input: string) {
