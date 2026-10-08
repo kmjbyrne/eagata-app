@@ -296,7 +296,7 @@ interfaces. Adapters elsewhere implement them.
 | `SignInProvider`       | Starts and completes a sign-in with an identity provider             |
 | `LinkProof`            | Whether linking a provider account needs proof, such as a password   |
 | `EmailSender`          | Sends an email                                                       |
-| `RateLimiter`          | Counts attempts per key, for limits such as failed passwords         |
+| `RateLimiter`          | Counts attempts per key and refuses those over a limit, in one step  |
 
 The repositories enforce uniqueness themselves, so two requests at once can't
 both win: emails across users, identities across users, org slugs across every

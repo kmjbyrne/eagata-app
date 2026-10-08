@@ -55,7 +55,7 @@ own as the `passwordRepository` adapter.
 | Setting            | What it does                                                                        |
 | ------------------ | ----------------------------------------------------------------------------------- |
 | `NUXT_APP_URL`     | Where emailed links point, such as `https://app.example.com`. Required outside dev. |
-| `NUXT_TRUST_PROXY` | `true` behind a proxy, so per-address limits read `X-Forwarded-For`                 |
+| `NUXT_TRUST_PROXY` | `true` behind one proxy, so per-address limits read `X-Forwarded-For`. See below.   |
 
 Mail goes through the shell's email sender: AWS SES when `NUXT_EMAIL_SES_SENDER`
 is set. Without it, dev prints mail to the log, and anywhere else the shell
@@ -63,9 +63,18 @@ fails with an error naming the setting.
 
 ## Limits
 
-Five failed password checks per account in 15 minutes, 20 sign-in attempts per
-address in 15 minutes, three reset emails per address an hour, and ten reset
-requests per client address an hour.
+Five password checks per account in 15 minutes, counted from the last right
+one, 20 sign-in attempts per address in 15 minutes, three reset emails per
+address an hour, and ten reset requests per client address an hour.
+
+An attempt counts before its password is checked, so attempts sent at the same
+moment can't all slip under the limit while the hash checks run.
+
+With `NUXT_TRUST_PROXY=true`, the client's address is the last
+`X-Forwarded-For` entry, the one the proxy appended. Entries before it are
+whatever the client sent. This assumes exactly one proxy in front of the app,
+appending to the header, as nginx's `$proxy_add_x_forwarded_for` does. Behind
+more than one, every client shares the outer proxy's address.
 
 ## Routes
 
