@@ -17,7 +17,7 @@ export default defineSandboxHandler(async (event) => {
   if (!isActive(user)) {
     throw createError({ statusCode: 403, message: 'Deactivated', data: { error: 'AccountDeactivatedError' } })
   }
-  await startSession(event, user.id)
+  await startSession(event, user)
   setResponseStatus(event, 204)
   return null
 })

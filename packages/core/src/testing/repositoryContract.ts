@@ -28,6 +28,7 @@ function user(overrides: Partial<User> = {}): User {
     platformRole: null,
     identities: [],
     deactivatedAt: null,
+    sessionVersion: 0,
     ...overrides
   }
 }
@@ -79,14 +80,27 @@ export function repositoryContract(createRepositories: () => Repositories | Prom
       await expect(repositories.users.create(user({ email: ada.email }))).rejects.toThrow(EmailTakenError)
     })
 
-    it('updates a user but not their identities', async () => {
+    it('updates a user but not their identities or session version', async () => {
       const repositories = await createRepositories()
       const ada = user({ identities: [google(id())] })
       await repositories.users.create(ada)
-      const changed = { ...ada, displayName: 'Ada L' as Name, avatarUrl: 'https://example.com/a.png', platformRole: admin(null), identities: [], deactivatedAt: new Date('2026-03-01T12:00:00.123Z') }
+      const changed = { ...ada, displayName: 'Ada L' as Name, avatarUrl: 'https://example.com/a.png', platformRole: admin(null), identities: [], deactivatedAt: new Date('2026-03-01T12:00:00.123Z'), sessionVersion: 7 }
       await repositories.users.update(changed)
 
-      expect(await repositories.users.findById(ada.id)).toEqual({ ...changed, identities: ada.identities, platformRole: null })
+      expect(await repositories.users.findById(ada.id)).toEqual({ ...changed, identities: ada.identities, platformRole: null, sessionVersion: 0 })
+    })
+
+    it('bumps one user\'s session version, one at a time', async () => {
+      const repositories = await createRepositories()
+      const ada = user({ sessionVersion: 2 })
+      const grace = user()
+      await repositories.users.create(ada)
+      await repositories.users.create(grace)
+
+      expect(await repositories.users.bumpSessionVersion(ada.id)).toBe(3)
+      expect(await repositories.users.bumpSessionVersion(ada.id)).toBe(4)
+      expect((await repositories.users.findById(ada.id))?.sessionVersion).toBe(4)
+      expect((await repositories.users.findById(grace.id))?.sessionVersion).toBe(0)
     })
 
     it('rejects an update to another user\'s email', async () => {

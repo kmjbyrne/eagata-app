@@ -12,6 +12,16 @@ sandbox, the docs and the tooling. The format follows
 
 ### Security
 
+- Sessions can now be ended on the server. Each user has a session version,
+  sealed into every session they start, and a session with an older version
+  counts as signed out. Changing or resetting a password and linking a provider
+  account move the version on, so a stolen cookie stops working. The browser
+  that changes the password stays signed in. Settings gain a "Sign out
+  everywhere" button, backed by `POST /api/me/sign-out-everywhere` and
+  `UserService.signOutEverywhere`. `CurrentUser` gains `sessionVersion`,
+  `UserRepository` gains `bumpSessionVersion`, `startSession` takes the user,
+  and `PasswordService.setPassword` returns the user. A `users.session_version`
+  column comes with migration `0010`.
 - Password attempts sent at the same moment can no longer get past the limit
   of five per account. Each attempt now counts before its password is checked,
   and a right password resets the count, so someone trying one at a time sees

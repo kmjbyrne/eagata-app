@@ -292,7 +292,7 @@ interfaces. Adapters elsewhere implement them.
 | `MembershipRepository` | Memberships by org or by user                                        |
 | `Repositories`         | All the repositories, plus `transaction` for writes that go together |
 | `IdGenerator`          | New ids                                                              |
-| `CurrentUser`          | The signed-in user's id, or null                                     |
+| `CurrentUser`          | The signed-in user's id, or null, and the session's version          |
 | `SignInProvider`       | Starts and completes a sign-in with an identity provider             |
 | `LinkProof`            | Whether linking a provider account needs proof, such as a password   |
 | `EmailSender`          | Sends an email                                                       |

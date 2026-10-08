@@ -44,7 +44,8 @@ const toUser = (record: UserRecord): User => ({
   avatarUrl: record.avatarUrl,
   platformRole: record.platformRole && { ...record.platformRole, grantedAt: new Date(record.platformRole.grantedAt), grantedBy: record.platformRole.grantedBy as UserId | null },
   identities: record.identities.map(identity => ({ ...identity, linkedAt: new Date(identity.linkedAt) })),
-  deactivatedAt: record.deactivatedAt ? new Date(record.deactivatedAt) : null
+  deactivatedAt: record.deactivatedAt ? new Date(record.deactivatedAt) : null,
+  sessionVersion: record.sessionVersion
 })
 
 const toUserRecord = (user: User): UserRecord => ({
@@ -144,7 +145,7 @@ class JsonUserRepository implements UserRepository {
         return
       }
       await requireEmailFree(tx, user)
-      await tx.put('users', { ...toUserRecord(user), identities: stored.identities, platformRole: stored.platformRole })
+      await tx.put('users', { ...toUserRecord(user), identities: stored.identities, platformRole: stored.platformRole, sessionVersion: stored.sessionVersion })
     })
   }
 
@@ -167,6 +168,18 @@ class JsonUserRepository implements UserRepository {
       if (user && !owner) {
         await tx.put('users', { ...user, identities: [...user.identities, { provider: identity.provider, subject: identity.subject, linkedAt: identity.linkedAt.toISOString() }] })
       }
+    })
+  }
+
+  bumpSessionVersion(userId: UserId) {
+    return this.store.transaction(async (tx) => {
+      const user = await tx.get('users', userId)
+      if (!user) {
+        throw new Error(`No user ${userId}`)
+      }
+      const sessionVersion = user.sessionVersion + 1
+      await tx.put('users', { ...user, sessionVersion })
+      return sessionVersion
     })
   }
 }

@@ -36,7 +36,7 @@ export function createTestServices(options: { linkProof?: LinkProof, features?: 
     ids,
     services,
     addUser,
-    signInAs: (user: User) => currentUser.signInAs(user.id),
+    signInAs: (user: User) => currentUser.signInAs(user.id, user.sessionVersion),
     signOut: () => currentUser.signOut()
   }
 }

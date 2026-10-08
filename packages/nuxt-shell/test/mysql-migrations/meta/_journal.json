@@ -50,6 +50,13 @@
       "when": 1791331366054,
       "tag": "0006_brainy_tyrannus",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "5",
+      "when": 1791488407601,
+      "tag": "0007_tricky_purple_man",
+      "breakpoints": true
     }
   ]
 }

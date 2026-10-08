@@ -49,6 +49,12 @@ export interface User {
    * sessions end, but nothing of theirs is removed: reactivating restores it.
    */
   deactivatedAt: Date | null
+  /**
+   * Sealed into each session when it starts. A session with an older version
+   * is signed out, so moving it on ends every session the user has. Saved
+   * through `bumpSessionVersion`, never `update`.
+   */
+  sessionVersion: number
 }
 
 export const hasSignedIn = (user: User) => user.identities.length > 0

@@ -1,4 +1,4 @@
-import type { PendingLink, UserId } from '@kmjbyrne/core'
+import type { PendingLink, User, UserId } from '@kmjbyrne/core'
 import type { H3Event, SessionConfig } from 'h3'
 
 const SESSION_COOKIE = 'session'
@@ -14,6 +14,11 @@ const DEV_SECRET = 'nuxt-shell-dev-only-session-secret-0123456789'
  */
 export interface SessionData {
   userId?: UserId
+  /**
+   * The user's session version when the session started. Sessions sealed
+   * before versions existed have none, and count as version 0.
+   */
+  sessionVersion?: number
   lastOrg?: string
   lastWorkspace?: string
   /** Whose last-used workspace it is, so it survives sign-out for them and no one else. */
@@ -61,8 +66,8 @@ export async function resolveActor(event: H3Event): Promise<void> {
   if (event.context.actorResolved) {
     return
   }
-  const { userId } = await readSession(event)
-  event.context.actor = userId ? { id: userId } : undefined
+  const { userId, sessionVersion } = await readSession(event)
+  event.context.actor = userId ? { id: userId, sessionVersion: sessionVersion ?? 0 } : undefined
   event.context.actorResolved = true
   // Present only on logged routes, /api/** by default.
   if (userId && event.context.log) {
@@ -74,23 +79,28 @@ export async function readSession(event: H3Event): Promise<SessionData> {
   return { ...(await useSession<SessionData>(event, sessionConfig(SESSION_COOKIE, SESSION_MAX_AGE_S))).data }
 }
 
-/** Starts a session. The last-used workspace carries over only if it was this user's. */
-export async function startSession(event: H3Event, userId: UserId): Promise<void> {
+/**
+ * Starts a session at the user's current session version. The last-used
+ * workspace carries over only if it was this user's.
+ */
+export async function startSession(event: H3Event, user: Pick<User, 'id' | 'sessionVersion'>): Promise<void> {
+  const userId = user.id
   const session = await useSession<SessionData>(event, sessionConfig(SESSION_COOKIE, SESSION_MAX_AGE_S))
   const keepLast = session.data.lastUserId === userId
   await session.update({
     userId,
+    sessionVersion: user.sessionVersion,
     lastUserId: userId,
     lastOrg: keepLast ? session.data.lastOrg : undefined,
     lastWorkspace: keepLast ? session.data.lastWorkspace : undefined
   })
-  event.context.actor = { id: userId }
+  event.context.actor = { id: userId, sessionVersion: user.sessionVersion }
   event.context.actorResolved = true
 }
 
 /** Signs out, keeping the last-used workspace for when the same user signs in again. */
 export async function endSession(event: H3Event): Promise<void> {
-  await (await useSession<SessionData>(event, sessionConfig(SESSION_COOKIE, SESSION_MAX_AGE_S))).update({ userId: undefined })
+  await (await useSession<SessionData>(event, sessionConfig(SESSION_COOKIE, SESSION_MAX_AGE_S))).update({ userId: undefined, sessionVersion: undefined })
   event.context.actor = undefined
   event.context.actorResolved = true
 }

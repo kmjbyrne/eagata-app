@@ -116,6 +116,21 @@ describe('Google sign-in for a user with a password', () => {
     expect((await ctx.t.services.auth.signIn(google(ada.email))).kind).toBe('signed-in')
   })
 
+  it('ends the user\'s other sessions when it links', async () => {
+    const ctx = setup()
+    const ada = await withPassword(ctx, 'Ada Lovelace')
+    ctx.t.signInAs(ada)
+    const result = await ctx.t.services.auth.signIn(google(ada.email))
+    if (result.kind !== 'link-required') {
+      throw new Error('expected link-required')
+    }
+    const linked = await ctx.service.linkIdentity(result.link, 'correct horse battery')
+
+    await expect(ctx.service.hasPassword()).rejects.toThrow(NotSignedInError)
+    ctx.t.signInAs(linked)
+    expect(await ctx.service.hasPassword()).toBe(true)
+  })
+
   it('links straight away for a user without a password', async () => {
     const ctx = setup()
     const grace = await ctx.t.addUser('Grace Hopper')
@@ -131,7 +146,7 @@ describe('PasswordService.setPassword', () => {
     ctx.t.signInAs(grace)
     expect(await ctx.service.hasPassword()).toBe(false)
 
-    await ctx.service.setPassword({ password: 'a brand new one' })
+    ctx.t.signInAs(await ctx.service.setPassword({ password: 'a brand new one' }))
     expect(await ctx.service.hasPassword()).toBe(true)
     expect((await ctx.service.signIn(grace.email, 'a brand new one')).id).toBe(grace.id)
   })
@@ -145,6 +160,18 @@ describe('PasswordService.setPassword', () => {
     await expect(ctx.service.setPassword({ current: 'correct horse battery', password: 'short' })).rejects.toThrow(InvalidPasswordError)
     await ctx.service.setPassword({ current: 'correct horse battery', password: 'a brand new one' })
     await expect(ctx.service.signIn(ada.email, 'correct horse battery')).rejects.toThrow(InvalidCredentialsError)
+  })
+
+  it('ends every session, and returns the user to start a new one with', async () => {
+    const ctx = setup()
+    const ada = await withPassword(ctx, 'Ada Lovelace')
+    ctx.t.signInAs(ada)
+    const user = await ctx.service.setPassword({ current: 'correct horse battery', password: 'a brand new one' })
+
+    expect(user.sessionVersion).toBe(ada.sessionVersion + 1)
+    await expect(ctx.service.hasPassword()).rejects.toThrow(NotSignedInError)
+    ctx.t.signInAs(user)
+    expect(await ctx.service.hasPassword()).toBe(true)
   })
 
   it('needs a signed-in user', async () => {
@@ -163,6 +190,18 @@ describe('password resets', () => {
     expect((await ctx.service.resetPassword(token, 'a brand new one')).id).toBe(grace.id)
     await expect(ctx.service.resetPassword(token, 'another new one')).rejects.toThrow(InvalidResetTokenError)
     expect((await ctx.service.signIn(grace.email, 'a brand new one')).id).toBe(grace.id)
+  })
+
+  it('ends every session, and returns the user to start a new one with', async () => {
+    const ctx = setup()
+    const grace = await ctx.t.addUser('Grace Hopper')
+    ctx.t.signInAs(grace)
+    await ctx.service.requestReset(grace.email, ctx.url)
+    const user = await ctx.service.resetPassword(ctx.tokenFrom(), 'a brand new one')
+
+    await expect(ctx.service.hasPassword()).rejects.toThrow(NotSignedInError)
+    ctx.t.signInAs(user)
+    expect(await ctx.service.hasPassword()).toBe(true)
   })
 
   it('says nothing, and sends nothing, for unknown or deactivated accounts', async () => {

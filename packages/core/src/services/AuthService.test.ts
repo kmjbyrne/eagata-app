@@ -52,6 +52,18 @@ describe('AuthService.signIn', () => {
       expect(await t.repositories.orgs.list()).toHaveLength(1)
     })
 
+    it('ends the user\'s other sessions when it links', async () => {
+      const t = createTestServices()
+      const ada = await t.addUser('Ada Lovelace', { email: 'ada@example.com' })
+      t.signInAs(ada)
+      const signedIn = await signIn(t, identity())
+
+      await expect(t.services.users.getMe()).rejects.toThrow(NotSignedInError)
+      t.signInAs(signedIn)
+      expect((await t.services.users.getMe()).id).toBe(ada.id)
+      expect((await signIn(t, identity())).sessionVersion).toBe(signedIn.sessionVersion)
+    })
+
     it('keeps the name the platform admin gave', async () => {
       const t = createTestServices()
       await t.addUser('Ada Lovelace', { email: 'ada@example.com' })
@@ -154,8 +166,19 @@ describe('AuthService.connectIdentity', () => {
     t.signInAs(grace)
 
     await expect(t.services.auth.connectIdentity(identity())).rejects.toThrow(IdentityInUseError)
-    await t.services.auth.connectIdentity(identity({ subject: 'g-grace' }))
+    t.signInAs(await t.services.auth.connectIdentity(identity({ subject: 'g-grace' })))
     await expect(t.services.auth.connectIdentity(identity({ subject: 'g-grace-2' }))).rejects.toThrow(IdentityMismatchError)
+  })
+
+  it('ends the user\'s sessions, and returns the user to start a new one with', async () => {
+    const t = createTestServices()
+    const ada = await t.addUser('Ada Lovelace', { email: 'ada@example.com' })
+    t.signInAs(ada)
+    const user = await t.services.auth.connectIdentity(identity())
+
+    await expect(t.services.users.getMe()).rejects.toThrow(NotSignedInError)
+    t.signInAs(user)
+    expect((await t.services.users.getMe()).id).toBe(ada.id)
   })
 
   it('needs a signed-in user', async () => {

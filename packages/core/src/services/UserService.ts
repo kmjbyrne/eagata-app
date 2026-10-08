@@ -15,6 +15,12 @@ export class UserService {
     return requireUser(this.repositories, this.currentUser)
   }
 
+  /** Ends every session the signed-in user has, this one included. @throws NotSignedInError */
+  async signOutEverywhere(): Promise<void> {
+    const user = await requireUser(this.repositories, this.currentUser)
+    await this.repositories.users.bumpSessionVersion(user.id)
+  }
+
   /**
    * Deactivates the signed-in user's own account, confirmed by typing their
    * email. Their sessions stop working and nothing is removed: only a

@@ -78,7 +78,8 @@ export class PasswordService {
 
   /**
    * Links the provider account that sign-in matched by email, once the user
-   * proves the account is theirs with its password.
+   * proves the account is theirs with its password. Ends the user's other
+   * sessions.
    * @throws InvalidCredentialsError
    * @throws TooManyAttemptsError
    * @throws IdentityMismatchError if another account at the provider was linked meanwhile
@@ -103,7 +104,8 @@ export class PasswordService {
       }
       const link = { ...pending.identity, linkedAt: this.now() }
       await tx.users.linkIdentity(user.id, link)
-      const updated = { ...current, avatarUrl: pending.picture, identities: [...current.identities.filter(own => own.provider !== link.provider), link] }
+      const sessionVersion = await tx.users.bumpSessionVersion(user.id)
+      const updated = { ...current, avatarUrl: pending.picture, identities: [...current.identities.filter(own => own.provider !== link.provider), link], sessionVersion }
       await tx.users.update(updated)
       return updated
     })
@@ -117,12 +119,14 @@ export class PasswordService {
 
   /**
    * Sets the signed-in user's password. One they already have must be
-   * confirmed first. Any reset links stop working.
+   * confirmed first. Any reset links stop working, and so do all the user's
+   * sessions, this one included: start a new one with the returned user to
+   * stay signed in.
    * @throws InvalidPasswordError
    * @throws WrongPasswordError
    * @throws TooManyAttemptsError
    */
-  async setPassword(input: { current?: string, password: string }): Promise<void> {
+  async setPassword(input: { current?: string, password: string }): Promise<User> {
     const user = await requireUser(this.adapters.repositories, this.adapters.currentUser)
     const password = parsePassword(input.password)
     const stored = await this.adapters.passwords.findHash(user.id)
@@ -133,7 +137,7 @@ export class PasswordService {
       }
       await this.adapters.limiter.reset(passwordKey(user.email))
     }
-    await this.save(user.id, password)
+    return this.save(user, password)
   }
 
   /**
@@ -174,7 +178,11 @@ export class PasswordService {
     await this.adapters.mail.send(inviteEmail(user.email, user.displayName, inviteUrl(token), INVITE_TOKEN_TTL_MS / 3_600_000))
   }
 
-  /** @throws InvalidPasswordError, before the token is spent @throws InvalidResetTokenError */
+  /**
+   * Ends the user's sessions, and returns the user to start a new one with.
+   * @throws InvalidPasswordError, before the token is spent
+   * @throws InvalidResetTokenError
+   */
   async resetPassword(token: string, passwordInput: string): Promise<User> {
     const password = parsePassword(passwordInput)
     const userId = await this.adapters.passwords.consumeReset(hashResetToken(token), this.now())
@@ -182,9 +190,9 @@ export class PasswordService {
     if (!user || !isActive(user)) {
       throw new InvalidResetTokenError()
     }
-    await this.save(user.id, password)
+    const updated = await this.save(user, password)
     await this.adapters.limiter.reset(passwordKey(user.email))
-    return user
+    return updated
   }
 
   /** Makes Google sign-in ask for the password before linking, for users who have one. */
@@ -192,10 +200,11 @@ export class PasswordService {
     return { requiredFor: async userId => (await this.adapters.passwords.findHash(userId)) !== null }
   }
 
-  private async save(userId: UserId, password: string): Promise<void> {
+  private async save(user: User, password: string): Promise<User> {
     const now = this.now()
-    await this.adapters.passwords.setHash(userId, await this.adapters.hasher.hash(password), now)
-    await this.adapters.passwords.revokeResets(userId, now)
+    await this.adapters.passwords.setHash(user.id, await this.adapters.hasher.hash(password), now)
+    await this.adapters.passwords.revokeResets(user.id, now)
+    return { ...user, sessionVersion: await this.adapters.repositories.users.bumpSessionVersion(user.id) }
   }
 
   private async issueToken(userId: UserId, ttlMs: number): Promise<string> {

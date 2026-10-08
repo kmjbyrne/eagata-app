@@ -173,6 +173,30 @@ describe('POST /api/auth/logout', () => {
   })
 })
 
+describe('POST /api/me/sign-out-everywhere', () => {
+  it('ends every session the user has, and no one else\'s', async () => {
+    await createUser('everywhere@example.com')
+    await createUser('bystander@example.com')
+    const laptop = new Browser()
+    await laptop.signIn({ email: 'everywhere@example.com' })
+    const phone = new Browser()
+    await phone.signIn({ email: 'everywhere@example.com' })
+    const bystander = new Browser()
+    await bystander.signIn({ email: 'bystander@example.com' })
+
+    expect((await laptop.request('/api/me/sign-out-everywhere', { method: 'POST' })).status).toBe(204)
+    expect((await laptop.json('/api/me')).status).toBe(401)
+    expect((await phone.json('/api/me')).status).toBe(401)
+    expect((await bystander.json('/api/me')).status).toBe(200)
+    await phone.signIn({ email: 'everywhere@example.com' })
+    expect((await phone.json('/api/me')).status).toBe(200)
+  })
+
+  it('needs a signed-in user', async () => {
+    expect((await new Browser().request('/api/me/sign-out-everywhere', { method: 'POST' })).status).toBe(401)
+  })
+})
+
 describe('GET /api/me', () => {
   it('needs a signed-in user', async () => {
     expect((await new Browser().json('/api/me')).status).toBe(401)
