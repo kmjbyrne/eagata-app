@@ -31,6 +31,7 @@ export const users = mysqlTable('users', {
   email: exactVarchar('email', { length: 255 }).notNull(),
   avatarUrl: varchar('avatar_url', { length: 2048 }),
   deactivatedAt: datetime('deactivated_at', { fsp: 3 }),
+  sessionVersion: int('session_version').notNull().default(0),
   createdAt: datetime('created_at', { fsp: 3 }).notNull().default(now)
 }, table => [
   uniqueIndex('users_email_unique').on(table.email)

@@ -30,10 +30,14 @@ function requireUserId(currentUser: CurrentUser): UserId {
   return currentUser.userId
 }
 
-/** The signed-in user. A deactivated user counts as signed out, so their sessions end at once. */
+/**
+ * The signed-in user. A deactivated user counts as signed out, so their
+ * sessions end at once, and so does a session older than the user's session
+ * version.
+ */
 export async function requireUser(tx: Repositories, currentUser: CurrentUser): Promise<User> {
   const user = await tx.users.findById(requireUserId(currentUser))
-  if (!user || user.deactivatedAt) {
+  if (!user || user.deactivatedAt || user.sessionVersion !== currentUser.sessionVersion) {
     throw new NotSignedInError()
   }
   return user

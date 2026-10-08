@@ -43,7 +43,8 @@ export function defaultTenancyFixtures(): TenancyFixtures {
     avatarUrl: null,
     platformRole: person.isPlatformAdmin ? { role: 'admin' as const, grantedAt: day(0), grantedBy: null } : null,
     identities: [],
-    deactivatedAt: person.deactivatedAt ?? null
+    deactivatedAt: person.deactivatedAt ?? null,
+    sessionVersion: 0
   }))
 
   const orgs: OrgRecord[] = [

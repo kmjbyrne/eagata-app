@@ -41,6 +41,7 @@ export class AuthService {
    * 3. Anyone else is refused, and nothing is created.
    *
    * An unverified email never links. A deactivated user is refused either way.
+   * Linking ends the user's other sessions.
    * @throws NotInvitedError
    * @throws EmailNotVerifiedError
    * @throws AccountDeactivatedError
@@ -75,13 +76,15 @@ export class AuthService {
       }
       const link = { ...key, linkedAt: this.now() }
       await tx.users.linkIdentity(user.id, link)
-      return { kind: 'signed-in', user: await this.refreshAvatar(tx, { ...user, identities: [...user.identities, link] }, identity.picture) }
+      const sessionVersion = await tx.users.bumpSessionVersion(user.id)
+      return { kind: 'signed-in', user: await this.refreshAvatar(tx, { ...user, identities: [...user.identities, link], sessionVersion }, identity.picture) }
     })
   }
 
   /**
    * Links a provider account to the signed-in user, from their settings. They
-   * are already signed in, so no other proof is needed.
+   * are already signed in, so no other proof is needed. Linking ends their
+   * sessions: start a new one with the returned user to stay signed in.
    * @throws IdentityInUseError if another user has the account
    * @throws IdentityMismatchError if they already have a different account at the provider
    */
@@ -100,7 +103,8 @@ export class AuthService {
       }
       const link = { provider: identity.provider, subject: identity.subject, linkedAt: this.now() }
       await tx.users.linkIdentity(user.id, link)
-      return this.refreshAvatar(tx, { ...user, identities: [...user.identities, link] }, identity.picture)
+      const sessionVersion = await tx.users.bumpSessionVersion(user.id)
+      return this.refreshAvatar(tx, { ...user, identities: [...user.identities, link], sessionVersion }, identity.picture)
     })
   }
 

@@ -2,6 +2,26 @@ import { describe, expect, it } from 'vitest'
 import { InvalidInputError, LastPlatformAdminError, NotSignedInError } from '../errors'
 import { createTestServices } from '../testing/createTestServices'
 
+describe('UserService.signOutEverywhere', () => {
+  it('ends every session the user has, and no one else\'s', async () => {
+    const t = createTestServices()
+    const ada = await t.addUser('Ada Lovelace')
+    const grace = await t.addUser('Grace Hopper')
+    t.signInAs(ada)
+    await t.services.users.signOutEverywhere()
+
+    await expect(t.services.users.getMe()).rejects.toThrow(NotSignedInError)
+    t.signInAs((await t.repositories.users.findById(ada.id))!)
+    expect((await t.services.users.getMe()).id).toBe(ada.id)
+    t.signInAs(grace)
+    expect((await t.services.users.getMe()).id).toBe(grace.id)
+  })
+
+  it('needs a signed-in user', async () => {
+    await expect(createTestServices().services.users.signOutEverywhere()).rejects.toThrow(NotSignedInError)
+  })
+})
+
 describe('UserService.deactivateMe', () => {
   it('deactivates the signed-in user, who then can\'t act', async () => {
     const t = createTestServices()

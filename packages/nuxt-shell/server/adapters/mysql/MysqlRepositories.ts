@@ -144,7 +144,8 @@ class MysqlUserRepository implements UserRepository {
         displayName: user.displayName,
         email: user.email,
         avatarUrl: user.avatarUrl,
-        deactivatedAt: user.deactivatedAt
+        deactivatedAt: user.deactivatedAt,
+        sessionVersion: user.sessionVersion
       })
     }, () => new EmailTakenError(user.email))
     await this.setPlatformRole(user.id, user.platformRole)
@@ -183,6 +184,15 @@ class MysqlUserRepository implements UserRepository {
     )
   }
 
+  async bumpSessionVersion(userId: UserId) {
+    await this.db.update(schema.users).set({ sessionVersion: sql`${schema.users.sessionVersion} + 1` }).where(eq(schema.users.id, userId))
+    const [row] = await this.db.select({ sessionVersion: schema.users.sessionVersion }).from(schema.users).where(eq(schema.users.id, userId))
+    if (!row) {
+      throw new Error(`No user ${userId}`)
+    }
+    return row.sessionVersion
+  }
+
   private async load(where?: ReturnType<typeof eq>): Promise<User[]> {
     const rows = await this.db.select().from(schema.users).where(where).orderBy(asc(schema.users.displayName), asc(schema.users.id))
     if (!rows.length) {
@@ -200,6 +210,7 @@ class MysqlUserRepository implements UserRepository {
       avatarUrl: row.avatarUrl,
       platformRole: toGrant(roles.find(role => role.userId === row.id)),
       deactivatedAt: row.deactivatedAt,
+      sessionVersion: row.sessionVersion,
       identities: identities.filter(identity => identity.userId === row.id)
         .map(identity => ({ provider: identity.provider, subject: identity.subject, linkedAt: identity.createdAt }))
     }))

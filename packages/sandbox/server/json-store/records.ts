@@ -23,7 +23,8 @@ export const userRecord = z.object({
     linkedAt: z.iso.datetime().default(() => new Date().toISOString())
   })),
   // Defaults, so dev data saved before it existed still loads.
-  deactivatedAt: z.iso.datetime().nullable().default(null)
+  deactivatedAt: z.iso.datetime().nullable().default(null),
+  sessionVersion: z.number().int().default(0)
 })
 
 export const orgRecord = z.object({

@@ -78,14 +78,14 @@ more than one, every client shares the outer proxy's address.
 
 ## Routes
 
-| Route                            | What it does                                       |
-| -------------------------------- | -------------------------------------------------- |
-| `POST /api/auth/password`        | Signs in with `{ email, password }`                |
-| `GET`, `POST /api/auth/link`     | The waiting link, and `{ password }` to confirm it |
-| `POST /api/auth/password/forgot` | `{ email }`. Always 202.                           |
-| `POST /api/auth/password/reset`  | `{ token, password }`, then signs in               |
-| `GET`, `PUT /api/me/password`    | `{ hasPassword }`, and `{ current?, password }`    |
-| `POST /api/auth/password/invite` | Platform admins only                               |
+| Route                            | What it does                                                                    |
+| -------------------------------- | ------------------------------------------------------------------------------- |
+| `POST /api/auth/password`        | Signs in with `{ email, password }`                                             |
+| `GET`, `POST /api/auth/link`     | The waiting link, and `{ password }` to confirm it                              |
+| `POST /api/auth/password/forgot` | `{ email }`. Always 202.                                                        |
+| `POST /api/auth/password/reset`  | `{ token, password }`, then signs in                                            |
+| `GET`, `PUT /api/me/password`    | `{ hasPassword }`, and `{ current?, password }`, which signs out other sessions |
+| `POST /api/auth/password/invite` | Platform admins only                                                            |
 
 ## Tests
 

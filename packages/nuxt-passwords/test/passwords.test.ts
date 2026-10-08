@@ -1,7 +1,7 @@
 import { fileURLToPath } from 'node:url'
 import type { EmailMessage } from '@kmjbyrne/core'
 import { $fetch } from '@nuxt/test-utils/e2e'
-import { Browser, createUser, setupApp } from '@kmjbyrne/nuxt-shell/testing'
+import { Browser, createUser, fakeCode, setupApp } from '@kmjbyrne/nuxt-shell/testing'
 import { describe, expect, it } from 'vitest'
 import type { PasswordStatusResponse, PendingLinkResponse } from '../shared/contracts/passwords'
 
@@ -62,6 +62,18 @@ describe('Google sign-in for a user with a password', () => {
     expect((await new Browser().signIn({ email: 'grace@example.com' })).headers.get('location')).toBe('/')
   })
 
+  it('ends the user\'s other sessions once it links', async () => {
+    await userWithPassword('linker@example.com')
+    const other = new Browser()
+    await other.request('/api/auth/password', send('POST', { email: 'linker@example.com', password: 'correct horse battery' }))
+    const browser = new Browser()
+    await browser.signIn({ email: 'linker@example.com' })
+    await browser.request('/api/auth/link', send('POST', { password: 'correct horse battery' }))
+
+    expect((await browser.json('/api/me')).status).toBe(200)
+    expect((await other.json('/api/me')).status).toBe(401)
+  })
+
   it('signs a user without a password straight in', async () => {
     await createUser('alan@example.com')
 
@@ -89,6 +101,18 @@ describe('password resets', () => {
     expect((await browser.request('/api/auth/password/reset', send('POST', { token, password: 'another new one' }))).status).toBe(400)
   })
 
+  it('ends every session the user had', async () => {
+    await userWithPassword('reset@example.com')
+    const stolen = new Browser()
+    await stolen.request('/api/auth/password', send('POST', { email: 'reset@example.com', password: 'correct horse battery' }))
+    const browser = new Browser()
+    await browser.request('/api/auth/password/forgot', send('POST', { email: 'reset@example.com' }))
+    await browser.request('/api/auth/password/reset', send('POST', { token: await tokenSentTo('reset@example.com'), password: 'a brand new one' }))
+
+    expect((await browser.json('/api/me')).status).toBe(200)
+    expect((await stolen.json('/api/me')).status).toBe(401)
+  })
+
   it('answers the same for an unknown email', async () => {
     expect((await new Browser().request('/api/auth/password/forgot', send('POST', { email: 'nobody@example.com' }))).status).toBe(202)
   })
@@ -108,8 +132,37 @@ describe('/api/me/password', () => {
     expect((await browser.request('/api/me/password', send('PUT', { current: 'a brand new one', password: 'another new one' }))).status).toBe(204)
   })
 
+  it('ends every other session, and keeps this one', async () => {
+    await userWithPassword('changer@example.com')
+    const stolen = new Browser()
+    await stolen.request('/api/auth/password', send('POST', { email: 'changer@example.com', password: 'correct horse battery' }))
+    const browser = new Browser()
+    await browser.request('/api/auth/password', send('POST', { email: 'changer@example.com', password: 'correct horse battery' }))
+
+    expect((await browser.request('/api/me/password', send('PUT', { current: 'correct horse battery', password: 'a brand new one' }))).status).toBe(204)
+    expect((await browser.json('/api/me')).status).toBe(200)
+    expect((await stolen.json('/api/me')).status).toBe(401)
+    expect((await stolen.request('/api/me/password', send('PUT', { current: 'a brand new one', password: 'the thief\'s own' }))).status).toBe(401)
+  })
+
   it('needs a signed-in user', async () => {
     expect((await new Browser().request('/api/me/password')).status).toBe(401)
+  })
+})
+
+describe('connecting a provider account while signed in with a password', () => {
+  it('ends the user\'s other sessions, and keeps this one', async () => {
+    await userWithPassword('connect@example.com')
+    const other = new Browser()
+    await other.request('/api/auth/password', send('POST', { email: 'connect@example.com', password: 'correct horse battery' }))
+    const browser = new Browser()
+    await browser.request('/api/auth/password', send('POST', { email: 'connect@example.com', password: 'correct horse battery' }))
+    const authorize = new URL((await browser.request('/api/auth/login?intent=connect')).headers.get('location')!)
+    const response = await browser.callback(authorize.searchParams.get('state')!, fakeCode({ nonce: authorize.searchParams.get('nonce')!, email: 'connect@example.com' }))
+
+    expect(response.headers.get('location')).toBe('/settings/security?connect=connected')
+    expect((await browser.json('/api/me')).status).toBe(200)
+    expect((await other.json('/api/me')).status).toBe(401)
   })
 })
 

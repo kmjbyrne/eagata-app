@@ -115,7 +115,7 @@ class InMemoryUserRepository implements UserRepository {
     this.requireEmailFree(user)
     const stored = this.state().users.find(existing => existing.id === user.id)
     if (stored) {
-      Object.assign(stored, copy({ ...user, identities: stored.identities, platformRole: stored.platformRole }))
+      Object.assign(stored, copy({ ...user, identities: stored.identities, platformRole: stored.platformRole, sessionVersion: stored.sessionVersion }))
     }
   }
 
@@ -132,6 +132,14 @@ class InMemoryUserRepository implements UserRepository {
       throw new IdentityInUseError(identity.provider)
     }
     this.state().users.find(user => user.id === userId)?.identities.push(...(owner ? [] : [copy(identity)]))
+  }
+
+  async bumpSessionVersion(userId: UserId) {
+    const stored = this.state().users.find(user => user.id === userId)
+    if (!stored) {
+      throw new Error(`No user ${userId}`)
+    }
+    return ++stored.sessionVersion
   }
 
   private requireEmailFree(user: User) {

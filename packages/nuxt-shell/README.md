@@ -323,12 +323,16 @@ play the provider's part in a sign-in.
 ## Sessions and Errors
 
 `server/utils/session.ts` keeps two sealed cookies, using H3's session helpers.
-`session` holds the signed-in user's id, plus the last-used org and workspace
-slugs and whose they are. Signing out keeps the last-used workspace, and signing
-in keeps it only for the same user, so `/` takes them back to it. Those decide
-only where `/` takes the user next time. The URL always decides which org and
-workspace a request acts on. `sign-in` lives for 10 minutes and carries one
-sign-in round trip's `state`, `nonce` and PKCE verifier.
+`session` holds the signed-in user's id and session version, plus the last-used
+org and workspace slugs and whose they are. A session whose version is older
+than the user's counts as signed out, so moving the version on ends every
+session the user has. Changing or resetting a password, linking a provider
+account and signing out everywhere all move it on. Signing out keeps the
+last-used workspace, and signing in keeps it only for the same user, so `/`
+takes them back to it. Those decide only where `/` takes the user next time. The
+URL always decides which org and workspace a request acts on. `sign-in` lives
+for 10 minutes and carries one sign-in round trip's `state`, `nonce` and PKCE
+verifier.
 
 `server/middleware/actor.ts` sets `event.context.actor` from the session on
 every request, through `resolveActor(event)`. Middleware from different layers
@@ -360,12 +364,13 @@ the same handler for their own routes.
 
 ## Sign-In
 
-| Route                    | What it does                                                                                                                                                              |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `GET /api/auth/login`    | Keeps a new `state`, `nonce` and PKCE verifier in the `sign-in` cookie, and redirects to the provider. `?hint=` preselects an account.                                    |
-| `GET /api/auth/callback` | Checks `state` against the cookie and ends the round trip, so it can't be replayed. Completes the sign-in, signs the person in, starts the session, and redirects to `/`. |
-| `POST /api/auth/logout`  | Ends the session. Answers 204.                                                                                                                                            |
-| `GET /api/me`            | The signed-in user, or 401.                                                                                                                                               |
+| Route                              | What it does                                                                                                                                                              |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GET /api/auth/login`              | Keeps a new `state`, `nonce` and PKCE verifier in the `sign-in` cookie, and redirects to the provider. `?hint=` preselects an account.                                    |
+| `GET /api/auth/callback`           | Checks `state` against the cookie and ends the round trip, so it can't be replayed. Completes the sign-in, signs the person in, starts the session, and redirects to `/`. |
+| `POST /api/auth/logout`            | Ends the session. Answers 204.                                                                                                                                            |
+| `GET /api/me`                      | The signed-in user, or 401.                                                                                                                                               |
+| `POST /api/me/sign-out-everywhere` | Ends every session the user has, this one included. Answers 204.                                                                                                          |
 
 A state that doesn't match, or a callback this browser never started, is a 400.
 Other failures go back to `/login?error=` with a reason:

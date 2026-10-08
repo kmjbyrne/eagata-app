@@ -5,10 +5,13 @@ import { callbackQuery, type ConnectOutcome, type SignInError } from '../../../s
 const backToLogin = (error: SignInError) => `/login?error=${error}`
 const backToSecurity = (outcome: ConnectOutcome) => `/settings/security?connect=${outcome}`
 
-/** Links the account to the signed-in user, and returns to their settings. */
+/**
+ * Links the account to the signed-in user, and returns to their settings.
+ * Linking signs the user out everywhere, so this browser gets a new session.
+ */
 async function connect(event: H3Event, identity: ProviderIdentity) {
   try {
-    await useServices(event).auth.connectIdentity(identity)
+    await startSession(event, await useServices(event).auth.connectIdentity(identity))
     return sendRedirect(event, backToSecurity('connected'))
   } catch (error) {
     if (error instanceof IdentityInUseError) {
@@ -63,7 +66,7 @@ export default defineNavigationHandler(async (event) => {
       await replaceFlow(event, { pendingLink: result.link })
       return sendRedirect(event, '/link-account')
     }
-    await startSession(event, result.user.id)
+    await startSession(event, result.user)
   } catch (error) {
     if (error instanceof EmailNotVerifiedError) {
       return sendRedirect(event, backToLogin('email-not-verified'))

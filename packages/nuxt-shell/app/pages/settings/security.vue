@@ -7,6 +7,7 @@ const { me } = useMe()
 const { shell } = useAppConfig()
 const { provider: signInProvider, name: provider } = useSignInProvider()
 const route = useRoute()
+const toast = useToast()
 
 const outcomes: Record<ConnectOutcome, { color: 'success' | 'error' | 'neutral', text: string }> = {
   'connected': { color: 'success', text: 'Connected. You can now sign in with it.' },
@@ -21,6 +22,19 @@ const confirming = ref(false)
 const confirmEmail = ref('')
 const deactivating = ref(false)
 const deactivateError = ref<string>()
+
+const signingOut = ref(false)
+
+async function signOutEverywhere() {
+  signingOut.value = true
+  try {
+    await $fetch('/api/me/sign-out-everywhere', { method: 'POST' })
+    await navigateTo('/login', { external: true })
+  } catch {
+    toast.add({ title: 'Something went wrong. Try again.', color: 'error' })
+    signingOut.value = false
+  }
+}
 
 async function deactivate() {
   deactivating.value = true
@@ -114,6 +128,21 @@ async function deactivate() {
       v-for="name in shell.securityExtras"
       :key="name"
     />
+
+    <UPageCard
+      title="Sessions"
+      description="Signs you out on every device and browser, this one included."
+      variant="subtle"
+    >
+      <UButton
+        label="Sign out everywhere"
+        color="neutral"
+        variant="outline"
+        class="w-fit self-start"
+        :loading="signingOut"
+        @click="signOutEverywhere"
+      />
+    </UPageCard>
 
     <UPageCard
       title="Account"

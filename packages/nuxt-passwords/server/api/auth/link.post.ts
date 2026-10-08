@@ -10,7 +10,7 @@ export default defineServiceHandler(async (event) => {
   await limitByAddress(event, 'sign-in', ADDRESS_SIGN_IN_ATTEMPTS)
   const user = await useServices(event).passwords.linkIdentity(pendingLink, password)
   await endFlow(event)
-  await startSession(event, user.id)
+  await startSession(event, user)
   setResponseStatus(event, 204)
   return null
 })

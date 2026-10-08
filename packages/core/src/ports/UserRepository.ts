@@ -14,7 +14,8 @@ export interface UserRepository {
   create(user: User): Promise<void>
   /**
    * Saves the display name, email, avatar and deactivation. Identities change
-   * only through `linkIdentity`, and the platform role through `setPlatformRole`.
+   * only through `linkIdentity`, the platform role through `setPlatformRole`,
+   * and the session version through `bumpSessionVersion`.
    * @throws EmailTakenError
    */
   update(user: User): Promise<void>
@@ -22,4 +23,6 @@ export interface UserRepository {
   setPlatformRole(userId: UserId, grant: PlatformRoleGrant | null): Promise<void>
   /** Does nothing if the user already has it. @throws IdentityInUseError */
   linkIdentity(userId: UserId, identity: LinkedIdentity): Promise<void>
+  /** Adds one to the user's session version, ending their sessions, and returns the new version. */
+  bumpSessionVersion(userId: UserId): Promise<number>
 }
