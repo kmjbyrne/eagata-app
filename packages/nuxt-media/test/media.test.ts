@@ -55,6 +55,8 @@ describe('uploading and reading media', () => {
     expect(own.status).toBe(200)
     expect(own.headers.get('content-type')).toBe('image/png')
     expect(own.headers.get('cache-control')).toBe('private, max-age=31536000, immutable')
+    expect(own.headers.get('content-security-policy')).toBe('default-src \'none\'')
+    expect(own.headers.get('x-frame-options')).toBe('DENY')
     expect(new Uint8Array(await own.arrayBuffer())).toEqual(PNG_BYTES)
     expect((await pat.request(src)).status).toBe(200)
     expect((await outsider.request(src)).status).toBe(404)

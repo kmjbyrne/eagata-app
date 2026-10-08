@@ -336,6 +336,14 @@ runs in no guaranteed order, so another layer's middleware that needs the actor
 calls `resolveActor(event)` first. It reads the session once per request.
 `SessionCurrentUser` reads it, so services know who is asking.
 
+`server/middleware/securityHeaders.ts` sets security headers on every
+response: a CSP that forbids framing and limits `base-uri`, `object-src` and
+`form-action`, `X-Frame-Options: DENY`, `nosniff`, a `Referrer-Policy`, a
+`Permissions-Policy`, and HSTS outside dev. A route that sets the same header
+overrides it, as the media route does with `default-src 'none'`, and a page's
+`referrer` meta tag still applies. The CSP has no `script-src` yet, because
+Nuxt inlines scripts that would need nonces.
+
 Every route is defined with `defineServiceHandler`, which turns the domain's
 errors into responses:
 

@@ -12,6 +12,14 @@ sandbox, the docs and the tooling. The format follows
 
 ### Security
 
+- Every page and API response now carries security headers, set by the
+  shell's `server/middleware/securityHeaders.ts`: a CSP with
+  `frame-ancestors 'none'`, `base-uri 'self'`, `object-src 'none'` and
+  `form-action 'self'`, `X-Frame-Options: DENY`, `nosniff`,
+  `Referrer-Policy: strict-origin-when-cross-origin`, a minimal
+  `Permissions-Policy`, and HSTS outside dev. Pages can no longer be framed.
+  A route's own headers still win, so media keeps `default-src 'none'`.
+
 - Outside dev, the shell no longer prints mail to the log when no SES sender
   is set. The log held live password-reset and invite links, so anyone who
   could read it could take over an account. Without `NUXT_EMAIL_SES_SENDER`,
