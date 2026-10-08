@@ -18,6 +18,22 @@ const ada = new Browser()
 const outsider = new Browser()
 const pat = new Browser()
 
+/**
+ * Posts a chunked body that sends one chunk, then never ends, so a server that
+ * read the body before answering would never answer.
+ */
+async function uploadEndless(browser: Browser, path: string): Promise<number> {
+  const body = new ReadableStream<Uint8Array>({
+    start: controller => controller.enqueue(new Uint8Array(64 * 1024)),
+    pull: () => new Promise(() => {})
+  })
+  const abort = new AbortController()
+  const init = { method: 'POST', body, duplex: 'half', signal: abort.signal, headers: { 'content-type': 'multipart/form-data; boundary=x' } }
+  const response = await browser.request(path, init as RequestInit)
+  abort.abort()
+  return response.status
+}
+
 async function submit(subject = 'Images vanish') {
   return (await ada.json<FeedbackResponse>(own, json('POST', { kind: 'bug', subject, body: '<p>On save</p><script>x()</script>', pagePath: '/ada-lovelace/general' }))).body
 }
@@ -84,5 +100,14 @@ describe('the platform inbox', () => {
     expect(response.status).toBe(201)
     expect((await ada.request(src)).status).toBe(200)
     expect((await outsider.request(src)).status).toBe(404)
+  })
+
+  it('checks who\'s asking before reading a reply\'s image, and never reads one without a length', async () => {
+    const path = `/api/protected/feedback/${(await submit('Endless')).id}/media`
+
+    expect(await uploadEndless(new Browser(), path)).toBe(401)
+    expect(await uploadEndless(ada, path)).toBe(403)
+    expect(await uploadEndless(pat, '/api/protected/feedback/missing/media')).toBe(404)
+    expect(await uploadEndless(pat, path)).toBe(411)
   })
 })

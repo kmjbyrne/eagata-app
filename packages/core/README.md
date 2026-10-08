@@ -385,11 +385,15 @@ The ports are `PasswordHasher` and `PasswordRepository`. Tests use
 under keys of the form `<scope>/<id>/<year>/<month>/<uuid>.<ext>`. The scope is
 `workspaces` for a workspace's images and `users` for a person's own.
 
-- `upload(orgSlug, workspaceSlug, bytes)` needs `media.upload`, which every
+- `upload(orgSlug, workspaceSlug, read)` needs `media.upload`, which every
   workspace role holds. The type comes from the file's bytes, never its name:
   JPEG, PNG, GIF or WebP, up to 15 MB.
-- `uploadForMe(bytes)` stores an image as the signed-in user's own, such as a
+- `uploadForMe(read)` stores an image as the signed-in user's own, such as a
   feedback screenshot.
+
+Uploads take `read`, a function that returns the bytes, not the bytes
+themselves. The service calls it only after the access check, so a route never
+reads a request body for someone who may not upload.
 - `read(key)` serves a workspace's image to people who can see the workspace, a
   person's image to that person, and both to platform admins. Anyone else, and a
   malformed or missing key, gets `NotFoundError`.
@@ -410,8 +414,10 @@ author, not to a workspace.
 - `listOwn`, `getOwn` and `replyAsAuthor` show people only their own feedback.
   Anyone else's is not found. Replying to done feedback reopens it.
 - `listAll`, `get`, `replyAsPlatform`, `setStatus` and `attachImage` are for
-  platform admins. Replying to new feedback marks it seen. `attachImage` stores
-  an image as the author's own, so only they and platform admins can open it.
+  platform admins. Replying to new feedback marks it seen.
+  `attachImage(id, read)` stores an image as the author's own, so only they and
+  platform admins can open it. Like media uploads, it calls `read` only after
+  the access check.
 
 Statuses are `new`, `seen` and `done`, and kinds are `bug`, `idea`, `question`
 and `other`. The ports are `FeedbackRepository` and `HtmlSanitizer`. Tests use

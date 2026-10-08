@@ -149,11 +149,14 @@ export class FeedbackService {
     return this.view(await this.require(feedback.id))
   }
 
-  /** Stores an image for a platform reply as the author's own, so they can open it. */
-  async attachImage(id: string, bytes: Uint8Array): Promise<StoredMedia> {
+  /**
+   * Stores an image for a platform reply as the author's own, so they can open
+   * it. Calls `read` only once the caller and the feedback are checked.
+   */
+  async attachImage(id: string, read: () => Promise<Uint8Array>): Promise<StoredMedia> {
     await requirePlatformAdmin(this.adapters.repositories, this.adapters.currentUser)
     const feedback = await this.require(id)
-    return this.adapters.media.storeForUser(feedback.authorId, bytes)
+    return this.adapters.media.storeForUser(feedback.authorId, await read())
   }
 
   private async reply(feedback: Feedback, authorId: UserId, fromPlatform: boolean, body: string, status?: FeedbackStatus) {

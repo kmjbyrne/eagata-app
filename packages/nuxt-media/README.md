@@ -34,6 +34,12 @@ one, and the access check runs once per image, not once per view.
 
 Content stores `src`, an app-owned URL, never a storage URL.
 
+Upload routes check access before they read the body, so a stranger gets 401 or
+404 without the server taking in a byte. A body must then declare its
+`Content-Length`, or the route answers 411, and fit within 15 MB plus room for
+the multipart framing, or it answers 413. A layer with its own upload route
+passes `() => readImageUpload(event)` to its service, which does all of this.
+
 In pages, `useMediaUpload()` uploads to the workspace in the URL and resolves
 with `{ key, src }`, in the shape the editor's `upload` prop takes:
 

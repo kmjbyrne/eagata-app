@@ -15,6 +15,22 @@ function upload(browser: Browser, path: string, bytes: Uint8Array) {
   return browser.request(path, { method: 'POST', body: form })
 }
 
+/**
+ * Posts a chunked body that sends one chunk, then never ends, so a server that
+ * read the body before answering would never answer.
+ */
+async function uploadEndless(browser: Browser, path: string): Promise<number> {
+  const body = new ReadableStream<Uint8Array>({
+    start: controller => controller.enqueue(new Uint8Array(64 * 1024)),
+    pull: () => new Promise(() => {})
+  })
+  const abort = new AbortController()
+  const init = { method: 'POST', body, duplex: 'half', signal: abort.signal, headers: { 'content-type': 'multipart/form-data; boundary=x' } }
+  const response = await browser.request(path, init as RequestInit)
+  abort.abort()
+  return response.status
+}
+
 const ada = new Browser()
 const outsider = new Browser()
 const pat = new Browser()
@@ -59,6 +75,17 @@ describe('uploading and reading media', () => {
     expect((await ada.request(src)).status).toBe(200)
     expect((await pat.request(src)).status).toBe(200)
     expect((await outsider.request(src)).status).toBe(404)
+  })
+
+  it('checks who\'s asking before reading a body, and never reads one without a length or over the limit', async () => {
+    const workspace = '/api/orgs/ada-lovelace/workspaces/general/media'
+
+    expect(await uploadEndless(new Browser(), '/api/me/media')).toBe(401)
+    expect(await uploadEndless(new Browser(), workspace)).toBe(401)
+    expect(await uploadEndless(outsider, workspace)).toBe(404)
+    expect(await uploadEndless(ada, workspace)).toBe(411)
+    expect(await uploadEndless(ada, '/api/me/media')).toBe(411)
+    expect((await upload(ada, workspace, new Uint8Array(16 * 1024 * 1024))).status).toBe(413)
   })
 
   it('answers not found for a key that isn\'t one', async () => {

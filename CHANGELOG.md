@@ -20,6 +20,14 @@ sandbox, the docs and the tooling. The format follows
   50 an hour per person. `WorkspaceService.addMember` is replaced by `invite`
   and `cancelInvitation`, and `Repositories` gains `invitations`. A new
   `workspace_invitations` table comes with migration `0007`.
+- Image uploads can no longer exhaust the server's memory. The upload routes
+  read the body only after the access check, so a request without a session
+  gets 401 unread. A body without `Content-Length`, such as a chunked one, gets
+  411, and one declared over the limit gets 413, so nothing past 15 MB plus the
+  multipart framing is ever buffered. `MediaService.upload`, `uploadForMe` and
+  `FeedbackService.attachImage` now take a function that reads the bytes, in
+  place of the bytes. `readImageUpload(event)` in `@kmjbyrne/nuxt-media` is
+  that function for a multipart `file` field.
 
 ### Fixed
 
