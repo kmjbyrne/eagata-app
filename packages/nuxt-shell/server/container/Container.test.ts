@@ -20,6 +20,19 @@ describe('Container', () => {
     expect(container.adapters().repositories).toBe(provided)
   })
 
+  it('gives the defaults what was provided, so they can skip building it', () => {
+    const provided = new InMemoryRepositories()
+    const container = new Container((given) => {
+      if (!given.repositories) {
+        throw new Error('No repositories to default to')
+      }
+      return {}
+    })
+    container.provideAdapters({ repositories: provided })
+
+    expect(container.adapters().repositories).toBe(provided)
+  })
+
   it('builds the defaults once, and only when first used', () => {
     let built = 0
     const container = new Container(() => {

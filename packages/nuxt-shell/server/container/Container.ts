@@ -21,11 +21,13 @@ export class Container {
   private readonly factories: ServiceFactory[] = []
 
   /**
-   * `features` is the app's catalog of feature flags, read per request so a
-   * test can set it.
+   * `createDefaults` is given what was provided, so it can skip a default
+   * that can't be built here, such as an email sender outside dev, when
+   * something else supplies it. `features` is the app's catalog of feature
+   * flags, read per request so a test can set it.
    */
   constructor(
-    private readonly createDefaults: () => Partial<CoreAdapters>,
+    private readonly createDefaults: (provided: Partial<Adapters>) => Partial<CoreAdapters>,
     private readonly features: () => readonly string[] = () => []
   ) {}
 
@@ -40,7 +42,7 @@ export class Container {
   }
 
   adapters(): Adapters {
-    this.defaults ??= this.createDefaults()
+    this.defaults ??= this.createDefaults(this.provided)
     return { ...this.defaults, ...this.provided } as Adapters
   }
 

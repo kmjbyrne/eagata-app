@@ -12,11 +12,20 @@ sandbox, the docs and the tooling. The format follows
 
 ### Security
 
+- Outside dev, the shell no longer prints mail to the log when no SES sender
+  is set. The log held live password-reset and invite links, so anyone who
+  could read it could take over an account. Without `NUXT_EMAIL_SES_SENDER`,
+  every request now fails with an error naming it, unless an email sender comes
+  from `provideAdapters`. `docker-compose.yml` marks it
+  required, so `make check` lists it. The route-test harness supplies a
+  `RecordingEmailSender`.
+
 - Removing someone from an org now removes them from that org's workspaces too.
   Before, a workspace membership outlived the org membership, so a removed
   workspace creator kept owning their workspaces. `platformOrgs.removeMember`
   drops the memberships in the same transaction, even where the person was a
   workspace's last owner member, as the org's owners and admins still manage it.
+
 - Sharing a workspace no longer reveals whether an email has an account.
   Workspace owners now invite by email, and get the same answer for every email.
   An invitation becomes a membership when someone with that email next opens the
