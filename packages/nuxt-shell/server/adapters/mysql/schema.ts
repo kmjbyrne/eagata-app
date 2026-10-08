@@ -1,6 +1,6 @@
 import { ORG_ROLES, PLATFORM_ROLES, WORKSPACE_ROLES } from '@kmjbyrne/core'
 import { type AnyColumn, sql } from 'drizzle-orm'
-import { boolean, check, datetime, index, int, mysqlTable, primaryKey, uniqueIndex, varchar } from 'drizzle-orm/mysql-core'
+import { boolean, check, customType, datetime, index, int, mysqlTable, primaryKey, uniqueIndex, varchar } from 'drizzle-orm/mysql-core'
 
 // The tables behind core's repositories. Each app lists this file in its
 // drizzle.config.ts next to its own schema, and owns the migrations.
@@ -15,10 +15,20 @@ const now = sql`CURRENT_TIMESTAMP(3)`
 const oneOf = (column: AnyColumn, values: readonly string[]) =>
   sql`${column} IN (${sql.raw(values.map(value => `'${value}'`).join(', '))})`
 
+/**
+ * A varchar compared byte for byte. MariaDB's default collation is accent and
+ * case insensitive, so it would find `john@corp.com` for `jöhn@corp.com`, and
+ * an identity for a subject that differs only in case. Core lowercases emails
+ * before they get here, so exact comparison is the right one.
+ */
+const exactVarchar = customType<{ data: string, config: { length: number } }>({
+  dataType: config => `varchar(${config!.length}) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin`
+})
+
 export const users = mysqlTable('users', {
   id: varchar('id', { length: 64 }).primaryKey(),
   displayName: varchar('display_name', { length: 100 }).notNull(),
-  email: varchar('email', { length: 255 }).notNull(),
+  email: exactVarchar('email', { length: 255 }).notNull(),
   avatarUrl: varchar('avatar_url', { length: 2048 }),
   deactivatedAt: datetime('deactivated_at', { fsp: 3 }),
   createdAt: datetime('created_at', { fsp: 3 }).notNull().default(now)
@@ -42,8 +52,8 @@ export const platformRoles = mysqlTable('platform_roles', {
 
 /** A provider account belongs to one user, so (provider, subject) is the key. */
 export const userIdentities = mysqlTable('user_identities', {
-  provider: varchar('provider', { length: 64 }).notNull(),
-  subject: varchar('subject', { length: 191 }).notNull(),
+  provider: exactVarchar('provider', { length: 64 }).notNull(),
+  subject: exactVarchar('subject', { length: 191 }).notNull(),
   userId: varchar('user_id', { length: 64 }).notNull().references(() => users.id, { onDelete: 'cascade' }),
   createdAt: datetime('created_at', { fsp: 3 }).notNull().default(now)
 }, table => [
@@ -111,7 +121,7 @@ export const workspaceMemberships = mysqlTable('workspace_memberships', {
  */
 export const workspaceInvitations = mysqlTable('workspace_invitations', {
   workspaceId: varchar('workspace_id', { length: 64 }).notNull().references(() => workspaces.id, { onDelete: 'cascade' }),
-  email: varchar('email', { length: 255 }).notNull(),
+  email: exactVarchar('email', { length: 255 }).notNull(),
   role: varchar('role', { length: 16 }).notNull(),
   invitedBy: varchar('invited_by', { length: 64 }).notNull().references(() => users.id, { onDelete: 'cascade' }),
   createdAt: datetime('created_at', { fsp: 3 }).notNull()

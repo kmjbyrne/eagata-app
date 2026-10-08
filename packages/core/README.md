@@ -34,6 +34,11 @@ const email = parseEmail(' Ada@Example.com ')
 const name = parseName('Ada  Lovelace')
 ```
 
+`parseEmail` trims and lowercases, and accepts printable ASCII only. An
+internationalised domain must be in its `xn--` form. Two emails are the same
+only when they are equal byte for byte, so `jöhn@corp.com` can never be read as
+`john@corp.com`.
+
 ## Slugs
 
 Orgs and workspaces are addressed by slug: `/acme/general`. A slug has 3 to 32
