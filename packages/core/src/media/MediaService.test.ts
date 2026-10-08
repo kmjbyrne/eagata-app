@@ -1,10 +1,12 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { NotFoundError, NotSignedInError } from '../errors'
 import { companyOrg } from '../testing/companyOrg'
 import { createTestServices } from '../testing/createTestServices'
 import { InMemoryMediaStorage } from '../testing/InMemoryMediaStorage'
 import { MediaService, MediaTooLargeError, UnsupportedMediaError } from './MediaService'
 import { PNG_BYTES } from './testing'
+
+const bytes = (value: Uint8Array) => async () => value
 
 async function setup() {
   const t = createTestServices()
@@ -23,7 +25,7 @@ describe('MediaService.upload', () => {
   it('stores an image under its workspace, typed by its bytes, for any member', async () => {
     const { t, media, storage, grace, general } = await setup()
     t.signInAs(grace)
-    const stored = await media.upload('acme', 'general', PNG_BYTES)
+    const stored = await media.upload('acme', 'general', bytes(PNG_BYTES))
 
     expect(stored.key).toMatch(new RegExp(`^workspaces/${general.id}/2026/06/[0-9a-f-]{36}\\.png$`))
     expect(stored.src).toBe(`/media/${stored.key}`)
@@ -34,15 +36,17 @@ describe('MediaService.upload', () => {
     const { t, media, ada } = await setup()
     t.signInAs(ada)
 
-    await expect(media.upload('acme', 'general', new TextEncoder().encode('<svg onload="x">'))).rejects.toThrow(UnsupportedMediaError)
-    await expect(media.upload('acme', 'general', new Uint8Array(15 * 1024 * 1024 + 1))).rejects.toThrow(MediaTooLargeError)
+    await expect(media.upload('acme', 'general', bytes(new TextEncoder().encode('<svg onload="x">')))).rejects.toThrow(UnsupportedMediaError)
+    await expect(media.upload('acme', 'general', bytes(new Uint8Array(15 * 1024 * 1024 + 1)))).rejects.toThrow(MediaTooLargeError)
   })
 
-  it('hides the workspace from outsiders', async () => {
+  it('hides the workspace from outsiders, without reading their upload', async () => {
     const { t, media, alan } = await setup()
     t.signInAs(alan)
+    const read = vi.fn(bytes(PNG_BYTES))
 
-    await expect(media.upload('acme', 'general', PNG_BYTES)).rejects.toThrow(NotFoundError)
+    await expect(media.upload('acme', 'general', read)).rejects.toThrow(NotFoundError)
+    expect(read).not.toHaveBeenCalled()
   })
 })
 
@@ -50,7 +54,7 @@ describe('MediaService.read', () => {
   it('serves an image to the workspace\'s people and to platform admins, and to nobody else', async () => {
     const { t, media, ada, grace, alan, pat } = await setup()
     t.signInAs(grace)
-    const { key } = await media.upload('acme', 'general', PNG_BYTES)
+    const { key } = await media.upload('acme', 'general', bytes(PNG_BYTES))
 
     for (const allowed of [grace, ada, pat]) {
       t.signInAs(allowed)
@@ -75,7 +79,7 @@ describe('a person\'s own images', () => {
   it('serves them to their owner and platform admins only', async () => {
     const { t, media, ada, grace, pat } = await setup()
     t.signInAs(ada)
-    const { key } = await media.uploadForMe(PNG_BYTES)
+    const { key } = await media.uploadForMe(bytes(PNG_BYTES))
 
     expect(key).toMatch(new RegExp(`^users/${ada.id}/`))
     for (const allowed of [ada, pat]) {
@@ -84,5 +88,14 @@ describe('a person\'s own images', () => {
     }
     t.signInAs(grace)
     await expect(media.read(key)).rejects.toThrow(NotFoundError)
+  })
+
+  it('needs someone signed in, before reading the upload', async () => {
+    const { t, media } = await setup()
+    t.signOut()
+    const read = vi.fn(bytes(PNG_BYTES))
+
+    await expect(media.uploadForMe(read)).rejects.toThrow(NotSignedInError)
+    expect(read).not.toHaveBeenCalled()
   })
 })

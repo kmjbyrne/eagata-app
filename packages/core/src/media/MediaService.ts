@@ -48,13 +48,15 @@ export class MediaService {
   constructor(private readonly adapters: MediaAdapters) {}
 
   /**
+   * Calls `read` only once access is checked, so no one can make the app take
+   * in a body before showing they may upload.
    * @throws MediaTooLargeError
    * @throws UnsupportedMediaError for anything but a JPEG, PNG, GIF or WebP, judged by its bytes
    * @throws NotFoundError if the user can't see the workspace
    */
-  async upload(orgSlug: string, workspaceSlug: string, bytes: Uint8Array): Promise<StoredMedia> {
+  async upload(orgSlug: string, workspaceSlug: string, read: () => Promise<Uint8Array>): Promise<StoredMedia> {
     const { workspace } = await this.adapters.access.require(orgSlug, workspaceSlug, 'media.upload')
-    return this.store(workspace.id, bytes)
+    return this.store(workspace.id, await read())
   }
 
   /**
@@ -67,10 +69,14 @@ export class MediaService {
     return this.storeUnder(`workspaces/${workspaceId}`, bytes)
   }
 
-  /** An image of the signed-in user's own, such as a feedback screenshot. @throws NotSignedInError */
-  async uploadForMe(bytes: Uint8Array): Promise<StoredMedia> {
+  /**
+   * An image of the signed-in user's own, such as a feedback screenshot. Calls
+   * `read` only once someone is signed in.
+   * @throws NotSignedInError
+   */
+  async uploadForMe(read: () => Promise<Uint8Array>): Promise<StoredMedia> {
     const user = await requireUser(this.adapters.repositories, this.adapters.currentUser)
-    return this.storeForUser(user.id, bytes)
+    return this.storeForUser(user.id, await read())
   }
 
   /** Stores an image as a person's own without checking access, for a service that already has. */

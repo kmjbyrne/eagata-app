@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { ForbiddenError, InvalidInputError, NotFoundError, NotSignedInError } from '../errors'
 import { MediaService } from '../media/MediaService'
 import { PNG_BYTES } from '../media/testing'
@@ -126,13 +126,25 @@ describe('FeedbackService for platform admins', () => {
     t.signInAs(grace)
     const feedback = await service.submit(input)
     t.signInAs(pat)
-    const { key } = await service.attachImage(feedback.id, PNG_BYTES)
+    const { key } = await service.attachImage(feedback.id, async () => PNG_BYTES)
 
     expect(key).toMatch(new RegExp(`^users/${grace.id}/`))
     t.signInAs(grace)
     expect((await media.read(key)).contentType).toBe('image/png')
     t.signInAs(ada)
     await expect(media.read(key)).rejects.toThrow(NotFoundError)
+  })
+
+  it('reads an attached image only for a platform admin and feedback that exists', async () => {
+    const { t, service, grace, pat } = await setup()
+    t.signInAs(grace)
+    const feedback = await service.submit(input)
+    const read = vi.fn(async () => PNG_BYTES)
+
+    await expect(service.attachImage(feedback.id, read)).rejects.toThrow(ForbiddenError)
+    t.signInAs(pat)
+    await expect(service.attachImage('missing', read)).rejects.toThrow(NotFoundError)
+    expect(read).not.toHaveBeenCalled()
   })
 })
 
